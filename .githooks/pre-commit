@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -e
+
+# ── Secret detection ──────────────────────────────────────────────
+STAGED_DIFF="$(git diff --cached --diff-filter=ACMR)"
+
+AKIA_HITS="$(echo "$STAGED_DIFF" | grep -E '(AKIA|ASIA)[A-Z0-9]{16}' | grep -vE '(pragma: allowlist secret|gitleaks:allow)' || true)"
+if [ -n "$AKIA_HITS" ]; then
+  echo "ERROR: Possible AWS access key detected in staged changes:"
+  echo "$AKIA_HITS" | head -5
+  echo "Add 'pragma: allowlist secret' on the line to whitelist if intentional."
+  exit 1
+fi
+
+if echo "$STAGED_DIFF" | grep -qE '(password|secret|token)\s*[:=]\s*["\x27][^"'\'']{8,}' 2>/dev/null; then
+  REAL_SECRETS="$(echo "$STAGED_DIFF" | grep -E '(password|secret|token)\s*[:=]\s*["\x27][^"'\'']{8,}' | grep -vE '(test-secret|dev-secret|example|placeholder|your-|changeme|CHANGE_ME|pragma: allowlist secret|gitleaks:allow)' || true)"
+  if [ -n "$REAL_SECRETS" ]; then
+    echo "WARNING: Possible secret detected in staged changes:"
+    echo "$REAL_SECRETS" | head -5
+    echo "Add 'pragma: allowlist secret' on the line to whitelist, or commit with --no-verify if intentional."
+    exit 1
+  fi
+fi
+
+STAGED_ENV_FILES="$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^(\.env$|.*\/\.env$|.*\.env\.(prod|staging|dev)$)' || true)"
+if [ -n "$STAGED_ENV_FILES" ]; then
+  echo "ERROR: .env file(s) staged for commit:"
+  echo "$STAGED_ENV_FILES"
+  exit 1
+fi
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+FASTIFY_TS=$(echo "$STAGED_FILES" | grep '^fastify/.*\.ts$' || true)
+FASTIFY_ALL=$(echo "$STAGED_FILES" | grep '^fastify/' || true)
+if [ -n "$FASTIFY_ALL" ]; then
+  echo "Formatting fastify..."
+  cd fastify
+  echo "$FASTIFY_ALL" | sed 's|^fastify/||' | xargs npx prettier --write --ignore-unknown
+  if [ -n "$FASTIFY_TS" ]; then
+    echo "$FASTIFY_TS" | sed 's|^fastify/||' | xargs npx eslint --fix
+    npx tsc --noEmit
+  fi
+  cd ..
+  echo "$FASTIFY_ALL" | xargs git add
+fi
+
+VITEJS_TS=$(echo "$STAGED_FILES" | grep '^vitejs/.*\.tsx\?$' || true)
+VITEJS_ALL=$(echo "$STAGED_FILES" | grep '^vitejs/' || true)
+if [ -n "$VITEJS_ALL" ]; then
+  echo "Formatting vitejs..."
+  cd vitejs
+  echo "$VITEJS_ALL" | sed 's|^vitejs/||' | xargs npx prettier --write --ignore-unknown
+  if [ -n "$VITEJS_TS" ]; then
+    echo "$VITEJS_TS" | sed 's|^vitejs/||' | xargs npx eslint --fix
+    npx tsc --noEmit
+  fi
+  cd ..
+  echo "$VITEJS_ALL" | xargs git add
+fi

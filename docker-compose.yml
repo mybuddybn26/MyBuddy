@@ -1,0 +1,88 @@
+services:
+  fastify-migrate:
+    build:
+      context: ./fastify
+      target: migrate
+    env_file:
+      - ./fastify/.env
+    networks:
+      - app-network
+  fastify:
+    build: ./fastify
+    expose:
+      - "3000"
+    env_file:
+      - ./fastify/.env
+    restart: unless-stopped
+    depends_on:
+      fastify-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/api/health/live', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      app-network:
+        aliases:
+          - backend
+  vitejs:
+    build:
+      context: ./vitejs
+      args:
+        VITE_API_URL: ""
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    depends_on:
+      fastify:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--spider",
+          "-q",
+          "--no-check-certificate",
+          "https://127.0.0.1/",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - app-network
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done"
+    restart: unless-stopped
+    depends_on:
+      vitejs:
+        condition: service_healthy
+    profiles:
+      - ssl
+    networks:
+      - app-network
+volumes:
+  letsencrypt:
+  certbot-www:
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,6 @@
+{
+  "component": "fastify",
+  "skip": [
+    "package.json"
+  ]
+}

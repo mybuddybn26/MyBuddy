@@ -1,0 +1,6 @@
+{
+  "component": "vitejs",
+  "skip": [
+    "package.json"
+  ]
+}

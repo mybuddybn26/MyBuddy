@@ -1,0 +1,9 @@
+{
+  "version": "1.9.0",
+  "updatedAt": "2026-06-19",
+  "packageManager": "npm",
+  "orm": "drizzle",
+  "defaultsApplied": true,
+  "createdAt": "2026-06-19",
+  "skip": []
+}

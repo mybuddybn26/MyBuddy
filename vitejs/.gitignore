@@ -1,0 +1,8 @@
+node_modules
+dist
+dist-e2e
+coverage
+.env
+__tests__
+playwright-report
+test-results
