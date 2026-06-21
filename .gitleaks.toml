@@ -1,0 +1,10 @@
+title = "MyBuddy Gitleaks Config"
+
+[allowlist]
+  paths = [
+    ".env.test",
+    ".env.example",
+    "fastify/.env.test",
+    "fastify/.env.example",
+    "whisper-stt/.env.example",
+  ]
