@@ -143,61 +143,16 @@ export default fp(async (app: FastifyInstance) => {
           const msg = err instanceof Error ? err.message : 'unknown';
           request.log.warn(
             { msg },
-            'AssemblyAI failed, falling back to Whisper',
+            'AssemblyAI failed, falling back to Groq',
           );
         }
       }
 
-      // 2 ── Self-hosted Faster-Whisper ──
-      const whisperUrl = config.WHISPER_STT_URL || 'http://127.0.0.1:8002';
-
-      try {
-        const formData = new FormData();
-        formData.append(
-          'file',
-          new File([new Uint8Array(buffer)], filename, { type: mimetype }),
-        );
-
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 30000);
-
-        const whisperRes = await fetch(`${whisperUrl}/transcribe`, {
-          method: 'POST',
-          signal: controller.signal,
-          body: formData,
-        });
-        clearTimeout(timeout);
-
-        if (whisperRes.ok) {
-          const result = (await whisperRes.json()) as {
-            text: string;
-            language: string;
-          };
-          request.log.info(
-            { lang: result.language, len: result.text.length },
-            'Faster-Whisper transcription OK',
-          );
-          return reply.send({ transcript: result.text });
-        }
-
-        const errText = await whisperRes.text();
-        request.log.warn(
-          { status: whisperRes.status },
-          `Faster-Whisper failed, falling back to Groq: ${errText.slice(0, 200)}`,
-        );
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'unknown';
-        request.log.warn(
-          { msg },
-          `Faster-Whisper unreachable, falling back to Groq: ${msg}`,
-        );
-      }
-
-      // 3 ── Fallback: Groq / OpenAI ──
+      // 2 ── Fallback: Groq / OpenAI ──
       if (!config.GROQ_API_KEY && !config.OPENAI_API_KEY) {
         return reply.status(503).send({
           detail:
-            'Voice transcription not configured. Set ASSEMBLYAI_API_KEY, start the Whisper service, or set a cloud API key.',
+            'Voice transcription not configured. Set ASSEMBLYAI_API_KEY or GROQ_API_KEY.',
         });
       }
 
@@ -233,107 +188,57 @@ export default fp(async (app: FastifyInstance) => {
 
       const ttsText = text.slice(0, 5000);
 
-      // 1 ── Primary: ElevenLabs ──
-      if (config.ELEVENLABS_API_KEY) {
-        const elevenVoiceId = voice_id || '21m00Tcm4TlvDq8ikWAM';
-
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 30000);
-
-          const elRes = await fetch(
-            `https://api.elevenlabs.io/v1/text-to-speech/${elevenVoiceId}`,
-            {
-              method: 'POST',
-              headers: {
-                'xi-api-key': config.ELEVENLABS_API_KEY,
-                'Content-Type': 'application/json',
-              },
-              signal: controller.signal,
-              body: JSON.stringify({
-                text: ttsText,
-                model_id: 'eleven_multilingual_v2',
-                voice_settings: {
-                  stability: 0.5,
-                  similarity_boost: 0.75,
-                },
-              }),
-            },
-          );
-          clearTimeout(timeout);
-
-          if (elRes.ok) {
-            const audioBuffer = Buffer.from(await elRes.arrayBuffer());
-            request.log.info(
-              { len: audioBuffer.length, provider: 'elevenlabs' },
-              'TTS OK',
-            );
-            reply.header('Content-Type', 'audio/mpeg');
-            reply.header('Content-Length', audioBuffer.length);
-            return reply.send(audioBuffer);
-          }
-
-          const errText = await elRes.text();
-          request.log.warn(
-            { status: elRes.status, err: errText.slice(0, 200) },
-            'ElevenLabs TTS failed, falling back to Kokoro',
-          );
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : 'unknown';
-          request.log.warn(
-            { msg },
-            `ElevenLabs TTS unreachable, falling back to Kokoro: ${msg}`,
-          );
-        }
+      if (!config.ELEVENLABS_API_KEY) {
+        return reply.status(503).send({
+          detail: 'Text-to-speech not configured. Set ELEVENLABS_API_KEY.',
+        });
       }
 
-      // 2 ── Fallback: Self-hosted Kokoro-82M ──
-      const userId = request.authUser!.sub;
-      const { users } = await import('../../db/schema.js');
-      const { eq } = await import('drizzle-orm');
-      const [user] = await app.db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
+      const elevenVoiceId = voice_id || '21m00Tcm4TlvDq8ikWAM';
 
-      const langHint =
-        (user?.aiPersona as { language?: string })?.language || 'en';
-      const langMap: Record<string, string> = {
-        en: 'a',
-        zh: 'z',
-        ms: 'a',
-        mixed: 'a',
-      };
-      const langCode = langMap[langHint] || 'a';
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
 
-      const kokoroUrl = config.KOKORO_TTS_URL || 'http://127.0.0.1:5050';
-
-      try {
-        const response = await fetch(`${kokoroUrl}/tts`, {
+      const elRes = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${elevenVoiceId}`,
+        {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'xi-api-key': config.ELEVENLABS_API_KEY,
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
           body: JSON.stringify({
             text: ttsText,
-            lang_code: langCode,
-            voice: voice_id || '',
+            model_id: 'eleven_multilingual_v2',
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75,
+            },
           }),
-        });
+        },
+      );
+      clearTimeout(timeout);
 
-        if (!response.ok) {
-          const err = await response.text();
-          request.log.error({ err }, 'Kokoro TTS failed');
-          return reply.status(502).send({ detail: 'TTS generation failed' });
-        }
-
-        const audioBuffer = Buffer.from(await response.arrayBuffer());
-        reply.header('Content-Type', 'audio/wav');
-        reply.header('Content-Length', audioBuffer.length);
-        return reply.send(audioBuffer);
-      } catch (err) {
-        request.log.error({ err }, 'Kokoro TTS unavailable');
-        return reply.status(503).send({ detail: 'TTS service not available' });
+      if (!elRes.ok) {
+        const errText = await elRes.text();
+        request.log.error(
+          { status: elRes.status, err: errText.slice(0, 200) },
+          'ElevenLabs TTS failed',
+        );
+        return reply
+          .status(502)
+          .send({ detail: `TTS generation failed: ${errText}` });
       }
+
+      const audioBuffer = Buffer.from(await elRes.arrayBuffer());
+      request.log.info(
+        { len: audioBuffer.length, provider: 'elevenlabs' },
+        'TTS OK',
+      );
+      reply.header('Content-Type', 'audio/mpeg');
+      reply.header('Content-Length', audioBuffer.length);
+      return reply.send(audioBuffer);
     },
   );
 });
