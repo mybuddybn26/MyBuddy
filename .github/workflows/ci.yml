@@ -81,18 +81,21 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           path: ${{ env.WS }}
+      - uses: pnpm/action-setup@d2e80c2cd4ed53a7e3ed31819a0e30af5c7d63ab # v6
+        with:
+          version: 9
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: ${{ env.WS }}/fastify/package-lock.json
-      - run: npm ci
+          cache: pnpm
+          cache-dependency-path: ${{ env.WS }}/fastify/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
       - run: npx drizzle-kit push --force
       - run: npx prettier --check .
       - run: npx eslint .
       - run: npx tsc --noEmit
-      - run: npm run build
-      - run: npm audit --omit=dev
+      - run: pnpm run build
+      - run: pnpm audit --omit=dev
 
   vitejs:
     name: React + Vite (format + lint + typecheck + build + audit)
@@ -106,16 +109,19 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           path: ${{ env.WS }}
+      - uses: pnpm/action-setup@d2e80c2cd4ed53a7e3ed31819a0e30af5c7d63ab # v6
+        with:
+          version: 9
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: ${{ env.WS }}/vitejs/package-lock.json
-      - run: npm ci
+          cache: pnpm
+          cache-dependency-path: ${{ env.WS }}/vitejs/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
       - run: npx prettier --check .
       - run: npx eslint 'src/**/*.{ts,tsx}'
       - run: npx tsc --noEmit
-      - run: npm run build
+      - run: pnpm run build
       - run: bash scripts/check-bundle-size.sh
       # Validates frontend/nginx.conf against the same nginx image the Dockerfile
       # uses. Catches unknown / module-dependent directives (e.g. `brotli on;` on
