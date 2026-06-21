@@ -1,110 +1,153 @@
 import { useState } from 'react';
-import { login } from '../auth';
-import { useTheme } from '../theme';
+import { login, register } from '../auth';
+import { MessageCircle, Shield, Zap } from 'lucide-react';
 
-export function Login({ onAuth }: { onAuth: () => void }) {
-  const [username, setUsername] = useState('');
+interface LoginProps {
+  onAuth: () => void;
+}
+
+export function Login({ onAuth }: LoginProps) {
+  const [isRegister, setIsRegister] = useState(false);
+  const [phoneEmail, setPhoneEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const { theme, toggle } = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
     try {
-      await login(username, password);
+      if (isRegister) {
+        await register(phoneEmail, password, displayName || undefined);
+      } else {
+        await login(phoneEmail, password);
+      }
       onAuth();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className='login-page'>
-      <button
-        className='theme-toggle'
-        onClick={toggle}
-        aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-      >
-        {theme === 'light' ? '\u263E' : '\u2600'}
-      </button>
-      <form
-        className='login-form'
-        onSubmit={handleSubmit}
-        noValidate
-        aria-label='Login form'
-      >
-        <h2>Sign In</h2>
-        {error && (
-          <div className='error' role='alert'>
-            {error}
-          </div>
-        )}
-        <label htmlFor='login-username'>
-          Username
-          <input
-            id='login-username'
-            type='text'
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            autoComplete='username'
-            autoFocus
-          />
-        </label>
-        <label htmlFor='login-password'>
-          Password
-          <div className='password-wrapper'>
-            <input
-              id='login-password'
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete='current-password'
-            />
+    <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-600 via-primary-500 to-accent p-4'>
+      <div className='w-full max-w-md animate-fade-in'>
+        {/* Brand Header */}
+        <div className='text-center mb-8'>
+          <div className='text-6xl mb-3'>🤖</div>
+          <h1 className='text-3xl font-bold text-white tracking-tight'>
+            MyBuddy
+          </h1>
+          <p className='text-primary-100 text-sm mt-1'>
+            Your AI-powered voice assistant
+          </p>
+        </div>
+
+        {/* Login Card */}
+        <div className='glass-card p-6'>
+          <h2 className='text-lg font-semibold text-slate-800 mb-4'>
+            {isRegister ? 'Create Account' : 'Welcome Back'}
+          </h2>
+
+          <form onSubmit={handleSubmit} className='space-y-4'>
+            {isRegister && (
+              <div>
+                <label className='block text-sm font-medium text-slate-600 mb-1'>
+                  Your Name
+                </label>
+                <input
+                  type='text'
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder='e.g. Ahmad'
+                  className='w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100'
+                />
+              </div>
+            )}
+
+            <div>
+              <label className='block text-sm font-medium text-slate-600 mb-1'>
+                Phone or Email
+              </label>
+              <input
+                type='text'
+                value={phoneEmail}
+                onChange={(e) => setPhoneEmail(e.target.value)}
+                placeholder='e.g. +673-8123456 or ali@email.com'
+                required
+                className='w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100'
+              />
+            </div>
+
+            <div>
+              <label className='block text-sm font-medium text-slate-600 mb-1'>
+                Password
+              </label>
+              <input
+                type='password'
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder='Min 6 characters'
+                required
+                minLength={6}
+                className='w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100'
+              />
+            </div>
+
+            {error && (
+              <p className='text-sm text-danger bg-red-50 px-3 py-2 rounded-lg'>
+                {error}
+              </p>
+            )}
+
             <button
-              type='button'
-              className='password-toggle'
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              type='submit'
+              disabled={loading}
+              className='w-full py-2.5 bg-primary-600 text-white font-medium rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 text-sm'
             >
-              <svg
-                width='20'
-                height='20'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                aria-hidden='true'
-              >
-                {showPassword ? (
-                  <>
-                    <path d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94' />
-                    <path d='M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19' />
-                    <line x1='1' y1='1' x2='23' y2='23' />
-                  </>
-                ) : (
-                  <>
-                    <path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z' />
-                    <circle cx='12' cy='12' r='3' />
-                  </>
-                )}
-              </svg>
+              {loading
+                ? 'Please wait…'
+                : isRegister
+                  ? 'Create Account'
+                  : 'Sign In'}
             </button>
-          </div>
-        </label>
-        <button type='submit' disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign In'}
-        </button>
-      </form>
+          </form>
+
+          <p className='text-center text-sm text-slate-500 mt-4'>
+            {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button
+              onClick={() => {
+                setIsRegister(!isRegister);
+                setError('');
+              }}
+              className='text-primary-600 font-medium hover:underline'
+            >
+              {isRegister ? 'Sign In' : 'Create One'}
+            </button>
+          </p>
+        </div>
+
+        {/* Features */}
+        <div className='mt-6 grid grid-cols-3 gap-3'>
+          {[
+            { icon: MessageCircle, text: 'Voice Chat' },
+            { icon: Shield, text: 'Secure' },
+            { icon: Zap, text: 'AI Powered' },
+          ].map(({ icon: Icon, text }) => (
+            <div
+              key={text}
+              className='flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white/10 backdrop-blur-sm'
+            >
+              <Icon size={20} className='text-white/80' />
+              <span className='text-xs text-white/70'>{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

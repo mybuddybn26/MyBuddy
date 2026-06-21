@@ -1,0 +1,1008 @@
+{
+  "nodes": [
+    {
+      "id": "src_app_buildappoptions",
+      "label": "BuildAppOptions",
+      "file_type": "code",
+      "source_file": "fastify/src/app.ts",
+      "source_location": "L26",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_buildapp",
+      "label": "buildApp",
+      "file_type": "code",
+      "source_file": "fastify/src/app.ts",
+      "source_location": "L30",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_config_config",
+      "label": "Config",
+      "file_type": "code",
+      "source_file": "fastify/src/config.ts",
+      "source_location": "L47",
+      "_origin": "ast"
+    },
+    {
+      "id": "db_client_checkdatabase",
+      "label": "checkDatabase",
+      "file_type": "code",
+      "source_file": "fastify/src/db/client.ts",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "db_client_closedatabase",
+      "label": "closeDatabase",
+      "file_type": "code",
+      "source_file": "fastify/src/db/client.ts",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "db_client_dbclient",
+      "label": "DbClient",
+      "file_type": "code",
+      "source_file": "fastify/src/db/client.ts",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "db_schema_aipersona",
+      "label": "AiPersona",
+      "file_type": "code",
+      "source_file": "fastify/src/db/schema.ts",
+      "source_location": "L12",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_errors_notfounderror",
+      "label": "NotFoundError",
+      "file_type": "code",
+      "source_file": "fastify/src/errors.ts",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_errors_businessruleerror",
+      "label": "BusinessRuleError",
+      "file_type": "code",
+      "source_file": "fastify/src/errors.ts",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_crypto_encryptstring",
+      "label": "encryptString",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/crypto.ts",
+      "source_location": "L30",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_crypto_decryptstring",
+      "label": "decryptString",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/crypto.ts",
+      "source_location": "L38",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_jwt_verifier_resolveprovider",
+      "label": "resolveProvider",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/jwt-verifier.ts",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_jwt_verifier_buildjwtoptions",
+      "label": "buildJwtOptions",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/jwt-verifier.ts",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_outbound_url_assertsafeoutboundurl",
+      "label": "assertSafeOutboundUrl",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/outbound-url.ts",
+      "source_location": "L28",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_sentry_sentryruntimeconfig",
+      "label": "SentryRuntimeConfig",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/sentry.ts",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_sentry_normalizesentryconfig",
+      "label": "normalizeSentryConfig",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/sentry.ts",
+      "source_location": "L15",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_sentry_initsentry",
+      "label": "initSentry",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/sentry.ts",
+      "source_location": "L36",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_sentry_registersentryfastifyhooks",
+      "label": "registerSentryFastifyHooks",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/sentry.ts",
+      "source_location": "L79",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_sentry_sentrynode",
+      "label": "SentryNode",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/sentry.ts",
+      "source_location": "L112",
+      "_origin": "ast"
+    },
+    {
+      "id": "lib_shutdown_gracefulshutdown",
+      "label": "gracefulShutdown",
+      "file_type": "code",
+      "source_file": "fastify/src/lib/shutdown.ts",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_auto_routes_beforecreatehook",
+      "label": "BeforeCreateHook",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_auto_routes_aftercreatehook",
+      "label": "AfterCreateHook",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_auto_routes_beforeupdatehook",
+      "label": "BeforeUpdateHook",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L21",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_auto_routes_afterupdatehook",
+      "label": "AfterUpdateHook",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L26",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_auto_routes_beforedeletehook",
+      "label": "BeforeDeleteHook",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L31",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_auto_routes_drizzleentityconfig",
+      "label": "DrizzleEntityConfig",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L36",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_auto_routes_registerentityroutes",
+      "label": "registerEntityRoutes",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L67",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_query_engine_parsedquery",
+      "label": "ParsedQuery",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/query-engine.ts",
+      "source_location": "L4",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_query_engine_parserawquery",
+      "label": "parseRawQuery",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/query-engine.ts",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_query_engine_buildwhere",
+      "label": "buildWhere",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/query-engine.ts",
+      "source_location": "L42",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_query_engine_buildsearchwhere",
+      "label": "buildSearchWhere",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/query-engine.ts",
+      "source_location": "L57",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_query_engine_buildorderby",
+      "label": "buildOrderBy",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/query-engine.ts",
+      "source_location": "L77",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_query_engine_combinewhere",
+      "label": "combineWhere",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/query-engine.ts",
+      "source_location": "L95",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_query_engine_paginationmeta",
+      "label": "PaginationMeta",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/query-engine.ts",
+      "source_location": "L100",
+      "_origin": "ast"
+    },
+    {
+      "id": "base_query_engine_buildpagination",
+      "label": "buildPagination",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/_base/query-engine.ts",
+      "source_location": "L107",
+      "_origin": "ast"
+    },
+    {
+      "id": "chat_claude_buildsystemprompt",
+      "label": "buildSystemPrompt",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/chat/claude.ts",
+      "source_location": "L20",
+      "_origin": "ast"
+    },
+    {
+      "id": "chat_claude_analyzeimage",
+      "label": "analyzeImage",
+      "file_type": "code",
+      "source_file": "fastify/src/modules/chat/claude.ts",
+      "source_location": "L94",
+      "_origin": "ast"
+    },
+    {
+      "id": "plugins_auth_authuser",
+      "label": "AuthUser",
+      "file_type": "code",
+      "source_file": "fastify/src/plugins/auth.ts",
+      "source_location": "L7",
+      "_origin": "ast"
+    },
+    {
+      "id": "plugins_authz_permissionresolver",
+      "label": "PermissionResolver",
+      "file_type": "code",
+      "source_file": "fastify/src/plugins/authz.ts",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "plugins_authz_defaultpermissionresolver",
+      "label": "DefaultPermissionResolver",
+      "file_type": "code",
+      "source_file": "fastify/src/plugins/authz.ts",
+      "source_location": "L21",
+      "_origin": "ast"
+    },
+    {
+      "id": "plugins_authz_oidcpermissionresolver",
+      "label": "OidcPermissionResolver",
+      "file_type": "code",
+      "source_file": "fastify/src/plugins/authz.ts",
+      "source_location": "L31",
+      "_origin": "ast"
+    },
+    {
+      "id": "plugins_authz_computescopefilters",
+      "label": "computeScopeFilters",
+      "file_type": "code",
+      "source_file": "fastify/src/plugins/authz.ts",
+      "source_location": "L183",
+      "_origin": "ast"
+    },
+    {
+      "id": "plugins_public_paths_ispublicpath",
+      "label": "isPublicPath",
+      "file_type": "code",
+      "source_file": "fastify/src/plugins/public-paths.ts",
+      "source_location": "L15",
+      "_origin": "ast"
+    },
+    {
+      "id": "plugins_public_paths_isauthnonlypath",
+      "label": "isAuthnOnlyPath",
+      "file_type": "code",
+      "source_file": "fastify/src/plugins/public-paths.ts",
+      "source_location": "L21",
+      "_origin": "ast"
+    },
+    {
+      "id": "utils_request_context_setrequestuserid",
+      "label": "setRequestUserId",
+      "file_type": "code",
+      "source_file": "fastify/src/utils/request-context.ts",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "utils_request_context_getrequestuserid",
+      "label": "getRequestUserId",
+      "file_type": "code",
+      "source_file": "fastify/src/utils/request-context.ts",
+      "source_location": "L18",
+      "_origin": "ast"
+    },
+    {
+      "id": "utils_request_context_runwithuserid",
+      "label": "runWithUserId",
+      "file_type": "code",
+      "source_file": "fastify/src/utils/request-context.ts",
+      "source_location": "L22",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_auth_register",
+      "label": "register",
+      "file_type": "code",
+      "source_file": "vitejs/src/auth.ts",
+      "source_location": "L55",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_auth_login",
+      "label": "login",
+      "file_type": "code",
+      "source_file": "vitejs/src/auth.ts",
+      "source_location": "L76",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_auth_ensurefreshtoken",
+      "label": "ensureFreshToken",
+      "file_type": "code",
+      "source_file": "vitejs/src/auth.ts",
+      "source_location": "L120",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_auth_gettoken",
+      "label": "getToken",
+      "file_type": "code",
+      "source_file": "vitejs/src/auth.ts",
+      "source_location": "L128",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_auth_isauthenticated",
+      "label": "isAuthenticated",
+      "file_type": "code",
+      "source_file": "vitejs/src/auth.ts",
+      "source_location": "L132",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_auth_getuserinfo",
+      "label": "getUserInfo",
+      "file_type": "code",
+      "source_file": "vitejs/src/auth.ts",
+      "source_location": "L136",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_auth_logout",
+      "label": "logout",
+      "file_type": "code",
+      "source_file": "vitejs/src/auth.ts",
+      "source_location": "L145",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_auth_initauth",
+      "label": "initAuth",
+      "file_type": "code",
+      "source_file": "vitejs/src/auth.ts",
+      "source_location": "L152",
+      "_origin": "ast"
+    },
+    {
+      "id": "components_confirmdialog_confirmoptions",
+      "label": "ConfirmOptions",
+      "file_type": "code",
+      "source_file": "vitejs/src/components/ConfirmDialog.tsx",
+      "source_location": "L10",
+      "_origin": "ast"
+    },
+    {
+      "id": "components_errorboundary_errorboundary",
+      "label": "ErrorBoundary",
+      "file_type": "code",
+      "source_file": "vitejs/src/components/ErrorBoundary.tsx",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "components_toast_toastprovider",
+      "label": "ToastProvider",
+      "file_type": "code",
+      "source_file": "vitejs/src/components/Toast.tsx",
+      "source_location": "L35",
+      "_origin": "ast"
+    },
+    {
+      "id": "pages_chat_chat",
+      "label": "Chat",
+      "file_type": "code",
+      "source_file": "vitejs/src/pages/Chat.tsx",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "pages_notfound_notfound",
+      "label": "NotFound",
+      "file_type": "code",
+      "source_file": "vitejs/src/pages/NotFound.tsx",
+      "source_location": "L3",
+      "_origin": "ast"
+    }
+  ],
+  "edges": [
+    {
+      "source": "base_index",
+      "target": "base_auto_routes",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/_base/index.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "base_index",
+      "target": "base_query_engine",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/_base/index.ts",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "db_client_checkdatabase",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/app.ts",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "db_client_closedatabase",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/app.ts",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "lib_sentry",
+      "target": "src_errors_businessruleerror",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/lib/sentry.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "lib_sentry",
+      "target": "src_errors_notfounderror",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/lib/sentry.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "base_auto_routes",
+      "target": "base_query_engine_buildorderby",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "base_auto_routes",
+      "target": "base_query_engine_buildpagination",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "base_auto_routes",
+      "target": "base_query_engine_buildsearchwhere",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "base_auto_routes",
+      "target": "base_query_engine_buildwhere",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "base_auto_routes",
+      "target": "base_query_engine_combinewhere",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "base_auto_routes",
+      "target": "base_query_engine_parserawquery",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/_base/auto-routes.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "chat_claude",
+      "target": "db_schema_aipersona",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/chat/claude.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "chat_routes",
+      "target": "db_schema_aipersona",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/chat/routes.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "persona_routes",
+      "target": "db_schema_aipersona",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/modules/persona/routes.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_auth",
+      "target": "lib_jwt_verifier_buildjwtoptions",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/plugins/auth.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_auth",
+      "target": "plugins_public_paths_ispublicpath",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/plugins/auth.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_authz",
+      "target": "plugins_public_paths_ispublicpath",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/plugins/authz.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_authz",
+      "target": "plugins_public_paths_isauthnonlypath",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/plugins/authz.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_error_handler",
+      "target": "src_errors_notfounderror",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/plugins/error-handler.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_error_handler",
+      "target": "src_errors_businessruleerror",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/plugins/error-handler.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_server",
+      "target": "src_app_buildapp",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/server.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "src_server",
+      "target": "lib_shutdown_gracefulshutdown",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/server.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "modules_app_test",
+      "target": "src_app_buildapp",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/tests/modules/app.test.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_auth_initauth",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/App.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_auth_isauthenticated",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/App.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "pages_chat_chat",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/App.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "pages_notfound_notfound",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/App.tsx",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "src_api",
+      "target": "src_auth_ensurefreshtoken",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/api.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "src_api",
+      "target": "src_auth_gettoken",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/api.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "src_api",
+      "target": "src_auth_logout",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/api.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "components_layout",
+      "target": "src_auth_getuserinfo",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/components/Layout.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "components_layout",
+      "target": "src_auth_logout",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/components/Layout.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_main",
+      "target": "components_errorboundary_errorboundary",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/main.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "pages_login",
+      "target": "src_auth_login",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/pages/Login.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "pages_login",
+      "target": "src_auth_register",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/pages/Login.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_app_test",
+      "target": "src_auth_initauth",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/tests/App.test.tsx",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "components_errorboundary_test",
+      "target": "components_errorboundary_errorboundary",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/tests/components/ErrorBoundary.test.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "components_layout_test",
+      "target": "src_auth_logout",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/tests/components/Layout.test.tsx",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "components_toast_test",
+      "target": "components_toast_toastprovider",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/tests/components/Toast.test.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "pages_notfound_test",
+      "target": "pages_notfound_notfound",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/tests/pages/NotFound.test.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_server_start",
+      "target": "src_app_buildapp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/server.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_server_start",
+      "target": "lib_shutdown_gracefulshutdown",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/server.ts",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "src_api_request",
+      "target": "src_auth_ensurefreshtoken",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/api.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_api_request",
+      "target": "src_auth_gettoken",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/api.ts",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "src_api_request",
+      "target": "src_auth_logout",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/api.ts",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "src_api_uploadfile",
+      "target": "src_auth_ensurefreshtoken",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/api.ts",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "src_api_uploadfile",
+      "target": "src_auth_gettoken",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/api.ts",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "pages_login_handlesubmit",
+      "target": "src_auth_register",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/pages/Login.tsx",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "pages_login_handlesubmit",
+      "target": "src_auth_login",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "vitejs/src/pages/Login.tsx",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_authz_defaultpermissionresolver",
+      "target": "plugins_authz_permissionresolver",
+      "relation": "implements",
+      "context": "type",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/plugins/authz.ts",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_authz_oidcpermissionresolver",
+      "target": "plugins_authz_permissionresolver",
+      "relation": "implements",
+      "context": "type",
+      "confidence": "EXTRACTED",
+      "source_file": "fastify/src/plugins/authz.ts",
+      "source_location": "L31",
+      "weight": 1.0
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

@@ -29,6 +29,34 @@ const ConfigSchema = Type.Object({
   RATE_LIMIT_WINDOW: Type.String({ default: '1 minute' }),
   EXPOSE_API_DOCS: Type.Boolean({ default: false }),
   LOG_PRETTY: Type.Boolean({ default: false }),
+
+  // ─── AI Provider Keys ───
+  DEEPSEEK_API_KEY: Type.String({ default: '' }),
+  GROQ_API_KEY: Type.String({ default: '' }),
+  ANTHROPIC_API_KEY: Type.String({ default: '' }),
+  OPENAI_API_KEY: Type.String({ default: '' }),
+  ELEVENLABS_API_KEY: Type.String({ default: '' }),
+
+  // ─── DeepSeek Configuration ───
+  DEEPSEEK_MODEL: Type.String({ default: 'deepseek-chat' }),
+
+  // ─── Kokoro TTS ───
+  KOKORO_TTS_URL: Type.String({ default: 'http://127.0.0.1:8001' }),
+
+  // ─── Faster-Whisper STT (self-hosted) ───
+  WHISPER_STT_URL: Type.String({ default: 'http://127.0.0.1:8002' }),
+
+  // ─── Ollama Configuration ───
+  OLLAMA_URL: Type.String({ default: 'http://127.0.0.1:11434' }),
+  OLLAMA_MODEL: Type.String({ default: 'gemma4:latest' }),
+
+  // ─── Stripe ───
+  STRIPE_SECRET_KEY: Type.String({ default: '' }),
+  STRIPE_WEBHOOK_SECRET: Type.String({ default: '' }),
+
+  // ─── File Uploads ───
+  UPLOAD_DIR: Type.String({ default: './uploads' }),
+  MAX_FILE_SIZE_MB: Type.Number({ default: 10 }),
 });
 
 export type Config = Static<typeof ConfigSchema>;
@@ -55,6 +83,34 @@ function loadConfig(): Config {
     RATE_LIMIT_WINDOW: process.env.RATE_LIMIT_WINDOW ?? '1 minute',
     EXPOSE_API_DOCS: process.env.EXPOSE_API_DOCS === 'true',
     LOG_PRETTY: process.env.LOG_PRETTY === 'true',
+
+    // AI Provider Keys
+    DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY ?? '',
+    GROQ_API_KEY: process.env.GROQ_API_KEY ?? '',
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? '',
+    ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY ?? '',
+
+    // DeepSeek Configuration
+    DEEPSEEK_MODEL: process.env.DEEPSEEK_MODEL ?? 'deepseek-chat',
+
+    // Kokoro TTS
+    KOKORO_TTS_URL: process.env.KOKORO_TTS_URL ?? 'http://127.0.0.1:8001',
+
+    // Faster-Whisper STT
+    WHISPER_STT_URL: process.env.WHISPER_STT_URL ?? 'http://127.0.0.1:8002',
+
+    // Ollama Configuration
+    OLLAMA_URL: process.env.OLLAMA_URL ?? 'http://127.0.0.1:11434',
+    OLLAMA_MODEL: process.env.OLLAMA_MODEL ?? 'gemma4:latest',
+
+    // Stripe
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? '',
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ?? '',
+
+    // File Uploads
+    UPLOAD_DIR: process.env.UPLOAD_DIR ?? './uploads',
+    MAX_FILE_SIZE_MB: Number(process.env.MAX_FILE_SIZE_MB ?? 10),
   };
 
   if (!Value.Check(ConfigSchema, raw)) {

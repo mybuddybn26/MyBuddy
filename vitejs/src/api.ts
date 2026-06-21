@@ -1,59 +1,12 @@
 import { ensureFreshToken, getToken, logout } from './auth';
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const API_PREFIX = '/api/v1';
+const BASE = import.meta.env.VITE_API_URL || '';
 
-export class ForbiddenError extends Error {
-  constructor() {
-    super('You do not have permission to perform this action.');
-    this.name = 'ForbiddenError';
-  }
-}
-
-export class ConflictError extends Error {
-  constructor(message = 'Resource was modified by another user.') {
-    super(message);
-    this.name = 'ConflictError';
-  }
-}
-
-export class ValidationError extends Error {
-  fieldErrors: Record<string, string>;
-  constructor(message: string, fieldErrors: Record<string, string> = {}) {
-    super(message);
-    this.name = 'ValidationError';
-    this.fieldErrors = fieldErrors;
-  }
-}
-
-export class NotFoundError extends Error {
-  constructor(message = 'Resource not found.') {
-    super(message);
-    this.name = 'NotFoundError';
-  }
-}
-
-interface ValidationDetail {
-  loc: (string | number)[];
-  msg: string;
-  type: string;
-}
-
-function parseFieldErrors(detail: unknown): Record<string, string> | null {
-  if (!Array.isArray(detail)) return null;
-  const errors: Record<string, string> = {};
-  for (const item of detail as ValidationDetail[]) {
-    if (item.loc && item.msg) {
-      const fieldName = String(item.loc[item.loc.length - 1]);
-      errors[fieldName] = item.msg;
-    }
-  }
-  return Object.keys(errors).length ? errors : null;
-}
-
-async function doFetch(path: string, init?: RequestInit): Promise<Response> {
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  await ensureFreshToken();
   const token = getToken();
-  return fetch(`${BASE}${API_PREFIX}${path}`, {
+
+  const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -61,138 +14,219 @@ async function doFetch(path: string, init?: RequestInit): Promise<Response> {
       ...init?.headers,
     },
   });
-}
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  await ensureFreshToken();
-  let res = await doFetch(path, init);
 
   if (res.status === 401) {
-    await ensureFreshToken();
-    if (!getToken()) {
-      logout();
-      throw new Error('Session expired');
-    }
-    res = await doFetch(path, init);
+    logout();
+    throw new Error('Session expired');
   }
-
+  if (res.status === 402) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || 'No tokens remaining');
+  }
   if (res.status === 204) return undefined as T;
-
-  if (res.status === 403) throw new ForbiddenError();
-
-  if (res.status === 404) {
-    const body = await res.json().catch(() => ({}));
-    throw new NotFoundError(body.detail || 'Resource not found');
-  }
-
-  if (res.status === 409) {
-    const body = await res.json().catch(() => ({}));
-    throw new ConflictError(body.detail || 'Resource conflict');
-  }
-
-  if (res.status === 422 || res.status === 400) {
-    const body = await res.json().catch(() => ({}));
-    if (body.field_errors && typeof body.field_errors === 'object') {
-      throw new ValidationError(
-        body.detail || 'Validation failed',
-        body.field_errors,
-      );
-    }
-    const fieldErrs = parseFieldErrors(body.detail);
-    if (fieldErrs) {
-      throw new ValidationError('Validation failed', fieldErrs);
-    }
-    throw new Error(
-      typeof body.detail === 'string' ? body.detail : res.statusText,
-    );
-  }
-
-  if (res.status === 429) {
-    const retryAfter = res.headers.get('Retry-After');
-    const seconds = retryAfter ? parseInt(retryAfter, 10) : 30;
-    throw new Error(`Too many requests. Please try again in ${seconds}s.`);
-  }
-
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail || res.statusText);
   }
-
   return res.json();
 }
 
-export interface PaginatedResponse<T = Record<string, unknown>> {
-  data: T[];
-  pagination: {
-    current_page: number;
-    page_size: number;
-    total_pages: number;
-    total_records: number;
-  };
-}
+async function uploadFile(
+  path: string,
+  file: File | Blob,
+  filename?: string,
+): Promise<{ url: string }> {
+  await ensureFreshToken();
+  const token = getToken();
+  const formData = new FormData();
+  formData.append('file', file, filename || 'upload');
 
-export interface ListParams {
-  page?: number;
-  page_size?: number;
-  order_by?: string[];
-  search?: string;
-  expand?: string;
-  [key: string]: unknown;
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || 'Upload failed');
+  }
+  return res.json();
 }
 
 export const api = {
-  raw<T = unknown>(path: string, init?: RequestInit) {
-    return request<T>(path, init);
-  },
+  // Auth
+  me: () => request<Record<string, unknown>>('/api/auth/me'),
 
-  list<T = Record<string, unknown>>(prefix: string, params: ListParams = {}) {
-    const sp = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v === undefined || v === null || v === '') return;
-      if (Array.isArray(v)) v.forEach((i) => sp.append(k, String(i)));
-      else sp.set(k, String(v));
+  // Chat (returns ReadableStream for SSE)
+  async chatStream(
+    message: string,
+    inputType = 'text',
+    history: Array<{ role: string; content: string }> = [],
+  ) {
+    await ensureFreshToken();
+    const token = getToken();
+    return fetch(`${BASE}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        message,
+        input_type: inputType,
+        conversation_history: history,
+      }),
     });
-    const qs = sp.toString();
-    return request<PaginatedResponse<T>>(`${prefix}/${qs ? `?${qs}` : ''}`);
   },
 
-  get<T = Record<string, unknown>>(prefix: string, id: string | number) {
-    return request<T>(`${prefix}/${id}`);
-  },
+  chatHistory: (limit = 50, offset = 0) =>
+    request<{ data: Array<Record<string, unknown>>; count: number }>(
+      `/api/chat/history?limit=${limit}&offset=${offset}`,
+    ),
 
-  create<T = Record<string, unknown>>(prefix: string, data: Partial<T>) {
-    return request<T>(`${prefix}/`, {
+  budgets: () =>
+    request<{ data: Array<Record<string, unknown>>; count: number }>('/api/budgets'),
+
+  createBudget: (data: Record<string, unknown>) =>
+    request<Record<string, unknown>>('/api/budgets', {
       method: 'POST',
       body: JSON.stringify(data),
-    });
-  },
+    }),
 
-  update<T = Record<string, unknown>>(
-    prefix: string,
-    id: string | number,
-    data: Partial<T>,
-  ) {
-    return request<T>(`${prefix}/${id}`, {
+  updateBudget: (id: string, data: Record<string, unknown>) =>
+    request<Record<string, unknown>>(`/api/budgets/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
-    });
-  },
+    }),
 
-  delete(prefix: string, id: string | number) {
-    return request<void>(`${prefix}/${id}`, { method: 'DELETE' });
-  },
+  deleteBudget: (id: string) =>
+    request<void>(`/api/budgets/${id}`, { method: 'DELETE' }),
 
-  bulkCreate<T = Record<string, unknown>>(prefix: string, items: Partial<T>[]) {
-    return request<{ data: T[]; count: number }>(`${prefix}/bulk`, {
+  aiEditBudget: (id: string, message: string) =>
+    request<Record<string, unknown>>(`/api/budgets/${id}/ai-edit`, {
       method: 'POST',
-      body: JSON.stringify(items),
+      body: JSON.stringify({ message }),
+    }),
+
+  // Voice
+  transcribe: (audioBlob: Blob) =>
+    uploadFile('/api/voice/transcribe', audioBlob, 'audio.webm') as Promise<
+      { transcript: string } & { url: string }
+    >,
+
+  tts: async (text: string, voiceId?: string) => {
+    await ensureFreshToken();
+    const token = getToken();
+    return fetch(`${BASE}/api/voice/tts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ text, voice_id: voiceId }),
     });
   },
 
-  bulkDelete(prefix: string, ids: (string | number)[]) {
-    return request<void>(`${prefix}/bulk`, {
-      method: 'DELETE',
-      body: JSON.stringify({ ids }),
-    });
+  // Upload
+  uploadImage: (file: File) => uploadFile('/api/upload/image', file, file.name),
+
+  // Transactions
+  createTransaction: (data: Record<string, unknown>) =>
+    request<Record<string, unknown>>('/api/transactions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  transactions: (params: Record<string, string> = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request<{ data: Array<Record<string, unknown>>; count: number }>(
+      `/api/transactions${qs ? `?${qs}` : ''}`,
+    );
   },
+
+  transactionSummary: (period: 'day' | 'week' = 'day') =>
+    request<Record<string, unknown>>(
+      `/api/transactions/summary?period=${period}`,
+    ),
+
+  updateTransaction: (id: string, data: Record<string, unknown>) =>
+    request<Record<string, unknown>>(`/api/transactions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteTransaction: (id: string) =>
+    request<void>(`/api/transactions/${id}`, { method: 'DELETE' }),
+
+  // Documents
+  createDocument: (data: Record<string, unknown>) =>
+    request<Record<string, unknown>>('/api/documents', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  documents: (limit = 20, offset = 0) =>
+    request<{ data: Array<Record<string, unknown>>; count: number }>(
+      `/api/documents?limit=${limit}&offset=${offset}`,
+    ),
+
+  analyzeDocument: (id: string) =>
+    request<{ summary: string; doc_type: string }>(`/api/documents/${id}/analyze`, {
+      method: 'POST',
+    }),
+
+  updateDocument: (id: string, data: Record<string, unknown>) =>
+    request<Record<string, unknown>>(`/api/documents/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteDocument: (id: string) =>
+    request<void>(`/api/documents/${id}`, { method: 'DELETE' }),
+
+  // PDF
+  async generatePdf(title: string, sections: Array<{ heading: string; body: string }>) {
+    await ensureFreshToken();
+    const token = getToken();
+    const res = await fetch(`${BASE}/api/pdf/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ title, content: { sections } }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ detail: 'PDF generation failed' }));
+      throw new Error(body.detail || 'PDF generation failed');
+    }
+    return res.blob();
+  },
+
+  // Persona
+  getPersona: () => request<Record<string, unknown>>('/api/persona'),
+  updatePersona: (data: Record<string, unknown>) =>
+    request<Record<string, unknown>>('/api/persona', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  // Tokens
+  tokenBalance: () => request<Record<string, unknown>>('/api/tokens/balance'),
+
+  // Billing
+  createCheckout: (packId: string) =>
+    request<Record<string, unknown>>('/api/billing/create-checkout', {
+      method: 'POST',
+      body: JSON.stringify({ pack_id: packId }),
+    }),
+
+  confirmPayment: (reference: string) =>
+    request<Record<string, unknown>>('/api/billing/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ reference }),
+    }),
 };

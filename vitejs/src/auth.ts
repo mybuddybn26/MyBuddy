@@ -1,97 +1,128 @@
-const OIDC_URL = import.meta.env.VITE_OIDC_URL;
-const OIDC_REALM = import.meta.env.VITE_OIDC_REALM;
-const OIDC_CLIENT_ID = import.meta.env.VITE_OIDC_CLIENT_ID;
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-if (!OIDC_URL || !OIDC_REALM || !OIDC_CLIENT_ID) {
-  throw new Error(
-    'VITE_OIDC_URL, VITE_OIDC_REALM, and VITE_OIDC_CLIENT_ID are required',
-  );
-}
+const TOKEN_KEY = 'mybuddy.access_token';
+const REFRESH_KEY = 'mybuddy.refresh_token';
 
-const TOKEN_URL = `${OIDC_URL}/realms/${OIDC_REALM}/protocol/openid-connect/token`;
-const REFRESH_STORAGE_KEY = 'projx.refresh_token';
-
-interface StoredTokens {
+interface AuthTokens {
   access_token: string;
   refresh_token: string;
-  expires_at: number;
 }
 
-let tokens: StoredTokens | null = null;
-let refreshPromise: Promise<void> | null = null;
-
-function parseExp(accessToken: string): number {
-  try {
-    const payload = JSON.parse(atob(accessToken.split('.')[1]));
-    return (payload.exp ?? 0) * 1000;
-  } catch {
-    return 0;
-  }
-}
-
-function save(raw: { access_token: string; refresh_token: string }) {
-  tokens = {
-    access_token: raw.access_token,
-    refresh_token: raw.refresh_token,
-    expires_at: parseExp(raw.access_token),
+interface UserInfo {
+  id: string;
+  phone_email: string;
+  display_name: string;
+  ai_persona: {
+    name: string;
+    language: string;
+    tone: string;
+    dialect: string;
+    voice_id?: string;
   };
-  sessionStorage.setItem(REFRESH_STORAGE_KEY, raw.refresh_token);
+  token_balance: number;
 }
 
-export async function login(username: string, password: string) {
-  let res: Response;
-  try {
-    res = await fetch(TOKEN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'password',
-        client_id: OIDC_CLIENT_ID,
-        username,
-        password,
-      }),
-    });
-  } catch {
-    throw new Error(`Unable to reach authentication server at ${OIDC_URL}`);
+let tokens: AuthTokens | null = null;
+
+function loadFromStorage() {
+  const at = sessionStorage.getItem(TOKEN_KEY);
+  const rt = sessionStorage.getItem(REFRESH_KEY);
+  if (at && rt) {
+    tokens = { access_token: at, refresh_token: rt };
   }
+}
+
+function save(data: AuthTokens) {
+  tokens = data;
+  sessionStorage.setItem(TOKEN_KEY, data.access_token);
+  sessionStorage.setItem(REFRESH_KEY, data.refresh_token);
+}
+
+function parseJwt(token: string): Record<string, unknown> {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch {
+    return {};
+  }
+}
+
+function isExpired(token: string): boolean {
+  const payload = parseJwt(token);
+  const exp = (payload.exp as number) ?? 0;
+  return Date.now() >= exp * 1000 - 10_000;
+}
+
+export async function register(
+  phone_email: string,
+  password: string,
+  display_name?: string,
+): Promise<UserInfo> {
+  const res = await fetch(`${BASE}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone_email, password, display_name }),
+  });
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error_description || 'Invalid credentials');
+    throw new Error(body.detail || 'Registration failed');
   }
-  save(await res.json());
+
+  const data = await res.json();
+  save({ access_token: data.access_token, refresh_token: data.refresh_token });
+  return data.user;
 }
 
-async function doRefresh(): Promise<void> {
-  const refreshToken = tokens?.refresh_token;
-  if (!refreshToken) return;
+export async function login(
+  phone_email: string,
+  password: string,
+): Promise<UserInfo> {
+  const res = await fetch(`${BASE}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone_email, password }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || 'Invalid credentials');
+  }
+
+  const data = await res.json();
+  save({ access_token: data.access_token, refresh_token: data.refresh_token });
+  return data.user;
+}
+
+async function refreshTokens(): Promise<boolean> {
+  if (!tokens?.refresh_token) return false;
+
   try {
-    const res = await fetch(TOKEN_URL, {
+    const res = await fetch(`${BASE}/api/auth/refresh`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'refresh_token',
-        client_id: OIDC_CLIENT_ID,
-        refresh_token: refreshToken,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: tokens.refresh_token }),
     });
-    if (!res.ok) throw new Error();
-    save(await res.json());
+
+    if (!res.ok) {
+      logout();
+      return false;
+    }
+
+    const data = await res.json();
+    save(data);
+    return true;
   } catch {
     logout();
+    return false;
   }
 }
 
 export async function ensureFreshToken(): Promise<boolean> {
   if (!tokens) return false;
-  if (tokens.expires_at - Date.now() < 10_000) {
-    if (!refreshPromise) {
-      refreshPromise = doRefresh().finally(() => {
-        refreshPromise = null;
-      });
-    }
-    await refreshPromise;
+  if (isExpired(tokens.access_token)) {
+    return refreshTokens();
   }
-  return !!tokens;
+  return true;
 }
 
 export function getToken(): string | undefined {
@@ -99,56 +130,30 @@ export function getToken(): string | undefined {
 }
 
 export function isAuthenticated(): boolean {
-  return !!tokens;
+  return !!tokens?.access_token;
 }
 
-export function getRoles(): string[] {
-  if (!tokens) return [];
-  try {
-    const payload = JSON.parse(atob(tokens.access_token.split('.')[1]));
-    const realm: string[] = payload.realm_access?.roles ?? [];
-    const client: string[] = Object.values(
-      (payload.resource_access ?? {}) as Record<string, { roles?: string[] }>,
-    ).flatMap((r) => r.roles ?? []);
-    return [...realm, ...client];
-  } catch {
-    return [];
-  }
-}
-
-export function hasAnyRole(required: string[] = []): boolean {
-  if (!required.length) return true;
-  const userRoles = getRoles();
-  return required.some((r) => userRoles.includes(r));
-}
-
-export function getUserInfo() {
+export function getUserInfo(): { name: string; email?: string } {
   if (!tokens) return { name: 'User' };
-  try {
-    const payload = JSON.parse(atob(tokens.access_token.split('.')[1]));
-    return {
-      name: payload.preferred_username ?? payload.name ?? payload.sub ?? 'User',
-      email: payload.email,
-    };
-  } catch {
-    return { name: 'User' };
-  }
+  const payload = parseJwt(tokens.access_token);
+  return {
+    name: (payload.name as string) ?? 'User',
+    email: payload.email as string | undefined,
+  };
 }
 
 export function logout() {
   tokens = null;
-  sessionStorage.removeItem(REFRESH_STORAGE_KEY);
-  window.location.href = '/';
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_KEY);
+  window.location.href = '/login';
 }
 
 export async function initAuth(): Promise<boolean> {
-  const stored = sessionStorage.getItem(REFRESH_STORAGE_KEY);
-  if (!stored) return false;
-  tokens = {
-    access_token: '',
-    refresh_token: stored,
-    expires_at: 0,
-  };
-  await doRefresh();
-  return !!tokens;
+  loadFromStorage();
+  if (!tokens) return false;
+  if (isExpired(tokens.access_token)) {
+    return refreshTokens();
+  }
+  return true;
 }

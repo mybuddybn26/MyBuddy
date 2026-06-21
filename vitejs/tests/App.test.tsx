@@ -7,8 +7,19 @@ vi.mock('../src/auth', () => ({
   logout: vi.fn(),
 }));
 
-vi.mock('../src/theme', () => ({
-  useTheme: vi.fn(() => ({ theme: 'light', toggle: vi.fn() })),
+// Mock api to prevent fetch calls
+vi.mock('../src/api', () => ({
+  api: {
+    tokenBalance: vi.fn(() =>
+      Promise.reject(new Error('not configured in test')),
+    ),
+    chatHistory: vi.fn(() =>
+      Promise.resolve({ data: [] }),
+    ),
+    budgets: vi.fn(() =>
+      Promise.resolve({ data: [], count: 0 }),
+    ),
+  },
 }));
 
 import { initAuth } from '../src/auth';
@@ -24,15 +35,14 @@ describe('App', () => {
     mockInitAuth.mockResolvedValue(false);
     render(<App />);
     expect(
-      await screen.findByRole('heading', { name: 'Sign In' }),
+      await screen.findByRole('heading', { name: 'MyBuddy' }),
     ).toBeInTheDocument();
   });
 
-  it('renders the Dashboard when authenticated', async () => {
+  it('renders the Layout when authenticated', async () => {
     mockInitAuth.mockResolvedValue(true);
     render(<App />);
-    expect(
-      await screen.findByRole('heading', { name: 'Dashboard' }),
-    ).toBeInTheDocument();
+    const headings = await screen.findAllByText('🤖 MyBuddy');
+    expect(headings.length).toBeGreaterThanOrEqual(1);
   });
 });

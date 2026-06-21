@@ -1,127 +1,187 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { getUserInfo, logout } from '../auth';
-import { useTheme } from '../theme';
+import { api } from '../api';
+import {
+  MessageCircle,
+  BookOpen,
+  FileText,
+  Coins,
+  ClipboardList,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+} from 'lucide-react';
 
-const COLLAPSED_KEY = 'sidebar-collapsed';
-
-function useCloseOnRouteChange(
-  open: boolean,
-  close: () => void,
-  pathname: string,
-) {
-  const [prev, setPrev] = useState(pathname);
-  if (pathname !== prev) {
-    setPrev(pathname);
-    if (open) close();
-  }
-}
+const NAV_ITEMS = [
+  { to: '/', icon: MessageCircle, label: 'Chat', end: true },
+  { to: '/ledger', icon: BookOpen, label: 'Ledger' },
+  { to: '/documents', icon: FileText, label: 'Documents' },
+  { to: '/budgets', icon: ClipboardList, label: 'Budgets' },
+  { to: '/billing', icon: Coins, label: 'Billing' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
+];
 
 export function Layout() {
   const user = getUserInfo();
-  const { theme, toggle } = useTheme();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(
-    () => localStorage.getItem(COLLAPSED_KEY) === 'true',
-  );
-
-  const closeSidebar = () => setSidebarOpen(false);
-  useCloseOnRouteChange(sidebarOpen, closeSidebar, location.pathname);
-
-  const toggleCollapsed = () => {
-    setCollapsed((c) => {
-      localStorage.setItem(COLLAPSED_KEY, String(!c));
-      return !c;
-    });
-  };
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!sidebarOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSidebarOpen(false);
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [sidebarOpen]);
+    api
+      .tokenBalance()
+      .then((data) => {
+        setTokenBalance(data.balance as number);
+      })
+      .catch(() => {});
+  }, [location.pathname]);
 
   useEffect(() => {
-    if (sidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [sidebarOpen]);
+    setMobileOpen(false);
+  }, [location.pathname]);
 
   return (
-    <div className={`layout ${collapsed ? 'sidebar-collapsed' : ''}`}>
-      <a href='#main-content' className='skip-link'>
-        Skip to main content
-      </a>
+    <div className='flex h-screen bg-surface overflow-hidden'>
+      {/* ─── Desktop Sidebar ─── */}
+      <nav className='hidden md:flex flex-col w-64 gradient-header'>
+        {/* Brand */}
+        <div className='p-5 border-b border-white/10'>
+          <h1 className='text-xl font-bold tracking-tight'>🤖 MyBuddy</h1>
+          <p className='text-xs text-primary-100 mt-0.5 opacity-80'>
+            Your AI Assistant
+          </p>
+        </div>
 
-      {sidebarOpen && (
-        <div
-          className='sidebar-backdrop'
-          onClick={closeSidebar}
-          aria-hidden='true'
-        />
-      )}
+        {/* Nav Links */}
+        <div className='flex-1 py-3 px-3 space-y-1'>
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  isActive
+                    ? 'bg-white/20 text-white shadow-sm'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                }`
+              }
+            >
+              <item.icon size={18} />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </div>
 
-      <nav
-        className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}
-        aria-label='Main navigation'
-      >
-        <div className='sidebar-header'>
-          <span className='sidebar-title'>Project Template</span>
-          <div className='sidebar-header-actions'>
+        {/* Token Balance */}
+        {tokenBalance !== null && (
+          <div className='px-4 py-3 border-t border-white/10'>
+            <div className='flex items-center gap-2 text-xs text-white/60 mb-1.5'>
+              <Coins size={14} />
+              <span>{tokenBalance} tokens left</span>
+            </div>
+            <div className='token-bar bg-white/10'>
+              <div
+                className='token-bar-fill !bg-white/50'
+                style={{
+                  width: `${Math.max(0, Math.min(100, (tokenBalance / 200) * 100))}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* User Footer */}
+        <div className='p-4 border-t border-white/10'>
+          <div className='flex items-center justify-between'>
+            <span className='text-sm text-white/80 truncate'>{user.name}</span>
             <button
-              className='theme-toggle'
-              onClick={toggle}
-              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+              onClick={logout}
+              className='text-white/50 hover:text-white transition-colors p-1'
+              aria-label='Log out'
             >
-              {theme === 'light' ? '☾' : '☀'}
-            </button>
-            <button
-              className='collapse-toggle'
-              onClick={toggleCollapsed}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              aria-expanded={!collapsed}
-            >
-              {collapsed ? '❯' : '❮'}
+              <LogOut size={16} />
             </button>
           </div>
         </div>
+      </nav>
 
-        <div className='sidebar-nav' role='list'>
-          <NavLink to='/' end role='listitem'>
-            <span className='nav-icon' aria-hidden='true'>
-              {'■'}
-            </span>
-            <span className='nav-label'>Dashboard</span>
-          </NavLink>
-        </div>
-
-        <div className='sidebar-footer'>
-          <span className='nav-label'>{user.name}</span>
-          <button onClick={logout} aria-label='Log out'>
-            <span className='nav-label'>Logout</span>
+      {/* ─── Mobile Header ─── */}
+      <div className='md:hidden fixed top-0 left-0 right-0 z-50 gradient-header'>
+        <div className='flex items-center justify-between px-4 h-14'>
+          <h1 className='text-lg font-bold text-white'>🤖 MyBuddy</h1>
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className='text-white p-1'
+            aria-label='Toggle menu'
+          >
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
+        </div>
+      </div>
+
+      {/* ─── Mobile Overlay ─── */}
+      {mobileOpen && (
+        <>
+          <div
+            className='md:hidden fixed inset-0 bg-black/40 z-40'
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className='md:hidden fixed top-14 right-0 w-64 bottom-0 z-50 gradient-header animate-fade-in p-4 space-y-2'>
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium ${
+                    isActive
+                      ? 'bg-white/20 text-white'
+                      : 'text-white/70 hover:bg-white/10'
+                  }`
+                }
+              >
+                <item.icon size={18} />
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+            <button
+              onClick={logout}
+              className='flex items-center gap-3 px-3 py-2.5 text-white/60 hover:text-white text-sm w-full'
+            >
+              <LogOut size={18} />
+              <span>Log Out</span>
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ─── Mobile Bottom Nav ─── */}
+      <nav className='md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 safe-area-pb'>
+        <div className='flex justify-around py-2'>
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-0.5 px-3 py-1.5 text-xs ${
+                  isActive ? 'text-primary-600' : 'text-slate-400'
+                }`
+              }
+            >
+              <item.icon size={20} />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
         </div>
       </nav>
 
-      <main id='main-content' className='content'>
-        <button
-          className='mobile-menu-btn'
-          onClick={() => setSidebarOpen(true)}
-          aria-label='Open navigation menu'
-          aria-expanded={sidebarOpen}
-          aria-controls='sidebar-nav'
-        >
-          &#9776;
-        </button>
+      {/* ─── Main Content ─── */}
+      <main className='flex-1 overflow-auto md:overflow-hidden pt-14 md:pt-0 pb-16 md:pb-0'>
         <Outlet />
       </main>
     </div>

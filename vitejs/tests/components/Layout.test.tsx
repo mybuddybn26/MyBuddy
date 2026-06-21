@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -8,8 +8,13 @@ vi.mock('../../src/auth', () => ({
   logout: vi.fn(),
 }));
 
-vi.mock('../../src/theme', () => ({
-  useTheme: vi.fn(() => ({ theme: 'light', toggle: vi.fn() })),
+// Mock api module to prevent real fetch calls for token balance
+vi.mock('../../src/api', () => ({
+  api: {
+    tokenBalance: vi.fn(() =>
+      Promise.reject(new Error('not configured in test')),
+    ),
+  },
 }));
 
 import { logout } from '../../src/auth';
@@ -27,22 +32,30 @@ describe('Layout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    document.body.style.overflow = '';
   });
 
   afterEach(() => {
     cleanup();
-    document.body.style.overflow = '';
   });
 
-  it('renders Dashboard nav link', () => {
+  it('renders Chat nav link', () => {
     renderLayout();
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getAllByText('Chat').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders skip-to-content link', () => {
+  it('renders Ledger nav link', () => {
     renderLayout();
-    expect(screen.getByText('Skip to main content')).toBeInTheDocument();
+    expect(screen.getAllByText('Ledger').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renders Documents nav link', () => {
+    renderLayout();
+    expect(screen.getAllByText('Documents').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renders Settings nav link', () => {
+    renderLayout();
+    expect(screen.getAllByText('Settings').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders user info', () => {
@@ -58,109 +71,19 @@ describe('Layout', () => {
     expect(logout).toHaveBeenCalledTimes(1);
   });
 
-  it('sidebar collapse saves to localStorage', async () => {
-    const user = userEvent.setup();
+  it('renders app branding', () => {
     renderLayout();
-    const collapseBtn = screen.getByRole('button', {
-      name: /collapse sidebar/i,
-    });
-    await user.click(collapseBtn);
-    expect(localStorage.getItem('sidebar-collapsed')).toBe('true');
+    expect(screen.getAllByText('🤖 MyBuddy').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('sidebar expand saves to localStorage', async () => {
-    const user = userEvent.setup();
-    localStorage.setItem('sidebar-collapsed', 'true');
+  it('renders mobile menu toggle button', () => {
     renderLayout();
-    const expandBtn = screen.getByRole('button', {
-      name: /expand sidebar/i,
-    });
-    await user.click(expandBtn);
-    expect(localStorage.getItem('sidebar-collapsed')).toBe('false');
+    const menuBtn = screen.getByRole('button', { name: /toggle menu/i });
+    expect(menuBtn).toBeInTheDocument();
   });
 
-  it('reads collapsed state from localStorage on mount', () => {
-    localStorage.setItem('sidebar-collapsed', 'true');
+  it('brand subtitle is shown', () => {
     renderLayout();
-    const layout = document.querySelector('.layout');
-    expect(layout?.classList.contains('sidebar-collapsed')).toBe(true);
-  });
-
-  it('mobile menu button opens sidebar', async () => {
-    const user = userEvent.setup();
-    renderLayout();
-    const menuBtn = screen.getByRole('button', {
-      name: /open navigation menu/i,
-    });
-    await user.click(menuBtn);
-    const sidebar = document.querySelector('.sidebar');
-    expect(sidebar?.classList.contains('sidebar-open')).toBe(true);
-  });
-
-  it('escape key closes mobile sidebar', async () => {
-    const user = userEvent.setup();
-    renderLayout();
-    const menuBtn = screen.getByRole('button', {
-      name: /open navigation menu/i,
-    });
-    await user.click(menuBtn);
-    expect(document.querySelector('.sidebar-open')).toBeTruthy();
-
-    await act(async () => {
-      await user.keyboard('{Escape}');
-    });
-    expect(document.querySelector('.sidebar-open')).toBeFalsy();
-  });
-
-  it('body overflow hidden when sidebar open', async () => {
-    const user = userEvent.setup();
-    renderLayout();
-    const menuBtn = screen.getByRole('button', {
-      name: /open navigation menu/i,
-    });
-    await user.click(menuBtn);
-    expect(document.body.style.overflow).toBe('hidden');
-  });
-
-  it('body overflow restored when sidebar closes', async () => {
-    const user = userEvent.setup();
-    renderLayout();
-    const menuBtn = screen.getByRole('button', {
-      name: /open navigation menu/i,
-    });
-    await user.click(menuBtn);
-    expect(document.body.style.overflow).toBe('hidden');
-
-    await act(async () => {
-      await user.keyboard('{Escape}');
-    });
-    expect(document.body.style.overflow).toBe('');
-  });
-
-  it('clicking backdrop closes sidebar', async () => {
-    const user = userEvent.setup();
-    renderLayout();
-    const menuBtn = screen.getByRole('button', {
-      name: /open navigation menu/i,
-    });
-    await user.click(menuBtn);
-    const backdrop = document.querySelector('.sidebar-backdrop');
-    expect(backdrop).toBeTruthy();
-    await user.click(backdrop!);
-    expect(document.querySelector('.sidebar-open')).toBeFalsy();
-  });
-
-  it('renders theme toggle button', () => {
-    renderLayout();
-    const themeBtn = screen.getByRole('button', {
-      name: /switch to dark theme/i,
-    });
-    expect(themeBtn).toBeInTheDocument();
-  });
-
-  it('sidebar nav has correct aria-label', () => {
-    renderLayout();
-    const nav = screen.getByRole('navigation', { name: /main navigation/i });
-    expect(nav).toBeInTheDocument();
+    expect(screen.getByText('Your AI Assistant')).toBeInTheDocument();
   });
 });
