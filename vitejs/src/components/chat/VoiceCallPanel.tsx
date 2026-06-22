@@ -13,55 +13,68 @@ interface VoiceCallPanelProps {
 }
 
 const FALSE_POSITIVES = new Set([
-  'thank you', 'thanks', 'bye', 'you', 'okay', 'ok', 'yes', 'no',
-  'hmm', 'uh', 'um', 'oh', 'ah', 'hi', 'hello', 'hey',
+  'thank you', 'thanks', 'thank', 'bye', 'you', 'okay', 'ok', 'yes', 'no',
+  'hmm', 'uh', 'um', 'oh', 'ah', 'hi', 'hello', 'hey', 'so', 'yeah', 'yep',
+  'nope', 'maybe', 'sure', 'right', 'good', 'great', 'fine', 'well',
+  'sorry', 'please', 'what', 'who', 'when', 'where', 'why', 'how',
 ]);
 
-function containsUnexpectedChars(text: string): boolean {
+function containsNonEnglish(text: string): boolean {
+  const cyrillic = /[\u0400-\u04FF]/.test(text);
+  if (cyrillic) return true;
+  const eastAsian = /[\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]/.test(text);
+  if (eastAsian) return true;
   const unusual = text.match(/[\u00C0-\u00FF\u0100-\u024F\u1E00-\u1EFF]/g);
-  if (!unusual) return false;
-  return unusual.length > text.length * 0.3;
+  if (unusual && unusual.length > text.length * 0.3) return true;
+  return false;
 }
 
 function words(text: string): string[] {
-  return text.split(/\s+/).filter((w) => w.length > 1);
+  return text.split(/\s+/).filter((w) => w.length > 0);
 }
+
+const HALLUCINATION_PHRASES = new Set([
+  'продолжение следует', 'subtitles', 'captions', 'subtitle', 'caption',
+  'transcribed by', 'auto-generated', 'automatic speech recognition',
+]);
 
 function scoreTranscript(text: string, peak: number, avgRms: number, voicedFrames: number, duration: number): { accept: boolean; reason: string } {
   const trimmed = text.trim();
   const w = words(trimmed);
   const wCount = w.length;
+  const meaningWords = w.filter((x) => x.length > 1);
+  const mwCount = meaningWords.length;
   const lower = trimmed.toLowerCase().replace(/[.!?,]$/, '').trim();
-  const isQuestion = /^(what|how|why|when|where|who|can|could|do|does|is|are|will|would|should|explain|tell|show|help|make|create|i want|i need|i would|please|stop|end)/i.test(trimmed);
-  const containsEnglish = /[a-zA-Z]{3,}/.test(trimmed);
-  const hasMeaningfulContent = wCount >= 2 || (wCount === 1 && w[0].length > 5);
+  const isQuestion = /^(what|how|why|when|where|who|can|could|do|does|is|are|will|would|should|explain|tell|show|help|make|create|i want|i need|i would|please|stop|end|why did)/i.test(trimmed);
+  const hasEnglish = /[a-zA-Z]{3,}/.test(trimmed);
 
   if (!trimmed) return { accept: false, reason: 'empty' };
-  if (trimmed.length < 2) return { accept: false, reason: 'too short (<2 chars)' };
+  if (trimmed.length < 2) return { accept: false, reason: 'too short' };
 
-  if (FALSE_POSITIVES.has(lower)) {
-    if (peak < 20 && avgRms < 5 && duration < 1500) return { accept: false, reason: `false positive "${lower}" (low energy)` };
-  }
+  if (FALSE_POSITIVES.has(lower) && duration < 2500 && peak < 30 && voicedFrames < 50) return { accept: false, reason: `false positive "${lower}"` };
 
-  if (duration < 600 && wCount < 2 && peak < 15) return { accept: false, reason: 'too short + low energy — noise' };
+  if (mwCount === 0) return { accept: false, reason: 'no meaningful words' };
+  if (mwCount === 1 && duration < 2000 && !isQuestion) return { accept: false, reason: 'single short word, no question' };
 
-  if (!containsEnglish && containsUnexpectedChars(trimmed) && wCount < 3) return { accept: false, reason: 'unexpected language chars + short — likely hallucination' };
+  if (HALLUCINATION_PHRASES.has(lower) || /продолжение/i.test(trimmed)) return { accept: false, reason: 'known hallucination phrase' };
+
+  if (!hasEnglish && containsNonEnglish(trimmed)) return { accept: false, reason: 'non-English text in English voice mode' };
+
+  if (duration < 400 && mwCount < 2) return { accept: false, reason: 'too short + too few words' };
+
+  if (avgRms < 2 && peak < 10 && mwCount < 3 && !isQuestion) return { accept: false, reason: `near-silence (rms:${avgRms.toFixed(1)}, peak:${peak})` };
 
   const signals = 0
-    + (hasMeaningfulContent ? 2 : 0)
+    + (mwCount >= 2 ? 2 : mwCount >= 1 ? 1 : 0)
     + (isQuestion ? 2 : 0)
-    + (peak > 20 ? 2 : peak > 10 ? 1 : 0)
-    + (voicedFrames > 100 ? 2 : voicedFrames > 20 ? 1 : 0)
-    + (duration > 1500 ? 1 : 0)
-    + (wCount >= 3 ? 2 : wCount >= 2 ? 1 : 0);
+    + (peak > 30 ? 2 : peak > 15 ? 1 : 0)
+    + (voicedFrames > 100 ? 2 : voicedFrames > 30 ? 1 : 0)
+    + (duration > 1500 ? 1 : 0);
 
-  if (signals >= 3) return { accept: true, reason: `score ${signals}/9 (words:${wCount}, peak:${peak}, voiced:${voicedFrames})` };
+  if (signals >= 3) return { accept: true, reason: `score ${signals}/7 (words:${mwCount}, peak:${peak}, voiced:${voicedFrames})` };
+  if (signals >= 2 && peak > 10 && mwCount >= 2) return { accept: true, reason: `borderline: score ${signals}/7` };
 
-  if (avgRms < 3 && peak < 10 && wCount < 2) return { accept: false, reason: `very low energy (rms:${avgRms.toFixed(1)}, peak:${peak}), insufficient signals` };
-
-  if (signals >= 2 && peak > 8) return { accept: true, reason: `borderline accept: score ${signals}/9` };
-
-  return { accept: false, reason: `insufficient signals: score ${signals}/9 (words:${wCount}, peak:${peak}, voiced:${voicedFrames}, rms:${avgRms.toFixed(1)})` };
+  return { accept: false, reason: `insufficient: score ${signals}/7 (words:${mwCount}, peak:${peak}, voiced:${voicedFrames})` };
 }
 
 function Waveform({ active, level, color }: { active: boolean; level: number; color: string }) {
