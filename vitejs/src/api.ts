@@ -261,10 +261,8 @@ export const api = {
 
   usageMe: () =>
     request<{
-      summary: { totalRequests: number; totalTokens: number; estimatedCost: string };
+      summary: { totalRequests: number; totalTokens: number };
       byFeature: Array<{ feature: string; tokens: number }>;
-      byModel: Array<{ model: string; tokens: number }>;
-      daily: Array<{ date: string; tokens: number; cost: string }>;
     }>('/api/usage/me'),
 
   usageHistory: (limit = 50, offset = 0) =>

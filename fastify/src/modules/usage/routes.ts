@@ -1,9 +1,10 @@
 import fp from 'fastify-plugin';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { eq, desc, sql, and, gte } from 'drizzle-orm';
+import { eq, desc, sql, and } from 'drizzle-orm';
 import { aiUsage } from '../../db/schema.js';
 
 export default fp(async (app: FastifyInstance) => {
+  // ─── User-facing usage (no costs, no provider data) ───
   app.get(
     '/api/usage/me',
     { schema: { tags: ['usage'] } },
@@ -13,15 +14,12 @@ export default fp(async (app: FastifyInstance) => {
       const rows = await app.db
         .select({
           totalRequests: sql<number>`count(*)::int`,
-          totalInputTokens: sql<number>`coalesce(sum(${aiUsage.promptTokens}), 0)::int`,
-          totalOutputTokens: sql<number>`coalesce(sum(${aiUsage.completionTokens}), 0)::int`,
           totalTokens: sql<number>`coalesce(sum(${aiUsage.totalTokens}), 0)::int`,
-          estimatedCost: sql<string>`coalesce(sum(${aiUsage.estimatedCost}), '0')::text`,
         })
         .from(aiUsage)
         .where(eq(aiUsage.userId, userId));
 
-      const summary = rows[0] || { totalRequests: 0, totalInputTokens: 0, totalOutputTokens: 0, totalTokens: 0, estimatedCost: '0' };
+      const summary = rows[0] || { totalRequests: 0, totalTokens: 0 };
 
       const byFeature = await app.db
         .select({
@@ -30,7 +28,41 @@ export default fp(async (app: FastifyInstance) => {
           tokens: sql<number>`coalesce(sum(${aiUsage.totalTokens}), 0)::int`,
         })
         .from(aiUsage)
-        .where(eq(aiUsage.userId, userId))
+        .where(and(eq(aiUsage.userId, userId), eq(aiUsage.status, 'success')))
+        .groupBy(aiUsage.feature);
+
+      return reply.send({
+        summary,
+        byFeature,
+      });
+    },
+  );
+
+  // ─── Admin-only usage (full analytics) ───
+  app.get(
+    '/api/usage/admin',
+    { schema: { tags: ['usage', 'admin'] } },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      if (request.authUser?.role !== 'admin') {
+        return reply.status(403).send({ detail: 'Admin access required' });
+      }
+
+      const totals = await app.db
+        .select({
+          totalRequests: sql<number>`count(*)::int`,
+          totalTokens: sql<number>`coalesce(sum(${aiUsage.totalTokens}), 0)::int`,
+          estimatedCost: sql<string>`coalesce(sum(${aiUsage.estimatedCost}), '0')::text`,
+        })
+        .from(aiUsage);
+
+      const byFeature = await app.db
+        .select({
+          feature: aiUsage.feature,
+          count: sql<number>`count(*)::int`,
+          tokens: sql<number>`coalesce(sum(${aiUsage.totalTokens}), 0)::int`,
+          cost: sql<string>`coalesce(sum(${aiUsage.estimatedCost}), '0')::text`,
+        })
+        .from(aiUsage)
         .groupBy(aiUsage.feature);
 
       const byModel = await app.db
@@ -38,32 +70,38 @@ export default fp(async (app: FastifyInstance) => {
           model: aiUsage.model,
           count: sql<number>`count(*)::int`,
           tokens: sql<number>`coalesce(sum(${aiUsage.totalTokens}), 0)::int`,
+          cost: sql<string>`coalesce(sum(${aiUsage.estimatedCost}), '0')::text`,
         })
         .from(aiUsage)
-        .where(eq(aiUsage.userId, userId))
         .groupBy(aiUsage.model);
 
-      const yesterday = new Date(Date.now() - 86400000);
-      const dailyRows = await app.db
+      const byUser = await app.db
+        .select({
+          userId: aiUsage.userId,
+          count: sql<number>`count(*)::int`,
+          tokens: sql<number>`coalesce(sum(${aiUsage.totalTokens}), 0)::int`,
+          cost: sql<string>`coalesce(sum(${aiUsage.estimatedCost}), '0')::text`,
+        })
+        .from(aiUsage)
+        .groupBy(aiUsage.userId)
+        .orderBy(sql`coalesce(sum(${aiUsage.totalTokens}), 0) desc`);
+
+      const daily = await app.db
         .select({
           date: sql<string>`to_char(${aiUsage.createdAt}, 'YYYY-MM-DD')`,
           tokens: sql<number>`coalesce(sum(${aiUsage.totalTokens}), 0)::int`,
           cost: sql<string>`coalesce(sum(${aiUsage.estimatedCost}), '0')::text`,
         })
         .from(aiUsage)
-        .where(and(eq(aiUsage.userId, userId), gte(aiUsage.createdAt, yesterday)))
         .groupBy(sql`to_char(${aiUsage.createdAt}, 'YYYY-MM-DD')`)
-        .orderBy(sql`to_char(${aiUsage.createdAt}, 'YYYY-MM-DD')`);
+        .orderBy(sql`to_char(${aiUsage.createdAt}, 'YYYY-MM-DD') desc`)
+        .limit(30);
 
-      return reply.send({
-        summary,
-        byFeature,
-        byModel,
-        daily: dailyRows,
-      });
+      return reply.send({ totals, byFeature, byModel, byUser, daily });
     },
   );
 
+  // ─── User history (filtered, no costs) ───
   app.get(
     '/api/usage/me/history',
     { schema: { tags: ['usage'] } },
@@ -74,7 +112,14 @@ export default fp(async (app: FastifyInstance) => {
       const offset = parseInt(query.offset || '0', 10);
 
       const rows = await app.db
-        .select()
+        .select({
+          id: aiUsage.id,
+          model: aiUsage.model,
+          feature: aiUsage.feature,
+          totalTokens: aiUsage.totalTokens,
+          status: aiUsage.status,
+          createdAt: aiUsage.createdAt,
+        })
         .from(aiUsage)
         .where(eq(aiUsage.userId, userId))
         .orderBy(desc(aiUsage.createdAt))
