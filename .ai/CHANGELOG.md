@@ -1,3 +1,9 @@
+### Added: Long-Term Memory Phase 1
+- **Files created**: `fastify/src/modules/memory/routes.ts`, `vitejs/src/components/MemorySection.tsx`
+- **Files modified**: `db/schema.ts`, `app.ts`, `aiService.ts`, `chat/routes.ts`, `budgets/routes.ts`, `api.ts`, `Settings.tsx`
+- **Reason**: Allow Buddy to remember user preferences across conversations, similar to ChatGPT memory.
+- **Impact**: `memories` table with CRUD API. Chat injects up to 5 highest-importance memories into AI prompt. Manual commands: "Remember that X" / "Forget that X". Memory settings UI with edit/delete.
+
 ### Fix: Budget extraction intent gate
 - **Files modified**: `fastify/src/modules/chat/routes.ts`, `fastify/src/ai/prompts/buddySystemPrompt.ts`
 - **Reason**: Budget/transaction blocks were being parsed and displayed even in non-financial conversations.
