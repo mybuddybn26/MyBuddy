@@ -130,3 +130,30 @@ Get-Process -Name node | Stop-Process               # kills unrelated processes
 **Problem**: The AI usage dashboard exposed DeepSeek token costs and provider pricing to normal users. This is business/internal data, not customer information.
 
 **Rule**: Internal cost/profit analytics must never appear in normal user-facing UI. Create separate admin endpoints (ole === 'admin') for financial data. Users should only see feature usage counts.
+
+
+---
+
+## Lesson 11: Never Attach Global Feature State to Arbitrary Chat Messages
+
+- **Date**: 2026-06-23
+- **Category**: State Management / Architecture
+
+**Problem**: The frontend's history loading code called `api.budgets()`, fetched ALL user budgets, and unconditionally attached the most recent budget to the last assistant message in chat. This caused budget cards to appear under messages about voice/tone/settings. The bug survived multiple fixes because only surface-level rendering guards were applied without tracing the data source.
+
+**Rule**: Chat attachments (budgets, transactions, etc.) must be **message-scoped** and created only from **explicit backend events** (SSE `type: 'budget'`, etc.). Never attach global feature state (latest budget, latest transaction) to arbitrary chat messages. If data isn't tied to a specific message ID through a dedicated event, it does not belong on that message.
+
+**Correct** — SSE event handler, attaches only to the message that generated it:
+```typescript
+if (data.type === 'budget') {
+  setMessages((prev) => prev.map((m) =>
+    m.id === assistantMsg.id ? { ...m, budgets: [budget] } : m
+  ));
+}
+```
+
+**Incorrect** — History loader, attaches latest global budget to last message:
+```typescript
+const latestBudget = await api.budgets();
+lastAssistantMsg.budgets = [latestBudget];
+```
