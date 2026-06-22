@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: MEMORY.md
+### Created: TOOLS.md
+- **Files created**: `.ai/TOOLS.md`, modified: `AGENTS.md`, `BUDDY.md`
+- **Reason**: Design document for future AI function/tool calling system — architecture, permission model, tool catalog, and safety rules.
+- **Impact**: 15 sections covering 16 proposed tools across 5 categories, 3-level permission system, safety constraints, and 4-phase roadmap.
 - **Files created**: `.ai/MEMORY.md`, modified: `AGENTS.md`, `BUDDY.md`
 - **Reason**: Design document for future long-term memory system — architecture, database schema, privacy rules, and implementation roadmap.
 - **Impact**: 14 sections covering memory types, current state (none), future architecture, proposed DB schema, creation rules, security, voice integration, and 4-phase roadmap.

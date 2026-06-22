@@ -196,6 +196,7 @@ BUDDY.md            ← Project conventions and memory
 ├── ROADMAP.md      ← Product roadmap + priorities
 ├── FEATURES.md     ← Feature catalog + statuses
 ├── MEMORY.md       ← Memory architecture (future)
+├── TOOLS.md        ← AI tool calling architecture (future)
 ├── DECISIONS.md    ← Architecture Decision Records
 ├── CHANGELOG.md    ← Project change history
 ├── LESSONS.md      ← Recurring mistakes and rules

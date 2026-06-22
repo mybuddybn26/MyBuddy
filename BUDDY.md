@@ -28,6 +28,7 @@ BUDDY.md            ← This file: project conventions, memory, ADR
 ├── ROADMAP.md      ← Product roadmap + priorities
 ├── FEATURES.md     ← Feature catalog + statuses
 ├── MEMORY.md       ← Memory architecture (future)
+├── TOOLS.md        ← AI tool calling architecture (future)
 ├── DECISIONS.md    ← Architecture decisions
 ├── CHANGELOG.md    ← Change history
 ├── LESSONS.md      ← Mistakes + rules
