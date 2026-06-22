@@ -99,3 +99,23 @@ if (audioCtx.state === 'suspended') {
 **Problem**: Renaming a source file without updating all import statements breaks the build.
 
 **Rule**: Use `git grep` to find every reference before renaming. Update imports in source code, documentation (`BUDDY.md`, `AGENTS.md`, skill files), and test files. Run `pnpm typecheck` after the rename.
+
+---
+
+## Lesson 8: Never Open Duplicate Development Servers
+
+- **Date**: 2026-06-22
+- **Category**: Development Workflow
+
+**Problem**: Every time an AI agent restarts localhost, it opens new PowerShell windows. Old servers stay running on the same ports, causing conflicts. After multiple iterations, dozens of orphaned node processes accumulate.
+
+**Rule**: Run `.\scripts\restart-dev.ps1` from the project root. This kills old processes on ports 3000/5173 before starting fresh servers in a single window. Never `Start-Process` a new terminal without closing the previous one.
+
+**Correct**:
+```powershell
+.\scripts\restart-dev.ps1
+```
+**Incorrect**:
+```powershell
+Start-Process powershell -ArgumentList "pnpm dev"  # creates duplicate window
+Get-Process -Name node | Stop-Process               # kills unrelated processes

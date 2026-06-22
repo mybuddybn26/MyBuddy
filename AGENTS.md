@@ -171,6 +171,7 @@ As an AI coding agent working on this project, you MUST:
 5. **Never break existing functionality.**
 6. **Always verify before reporting completion.**
 7. **Treat project documentation as permanent memory.**
+8. **Never open duplicate development servers** — before restarting, always run `.\scripts\restart-dev.ps1` which kills old Buddy processes first. Do not open new terminals or PowerShell windows without closing the previous ones.
 
 ---
 

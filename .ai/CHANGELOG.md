@@ -1,3 +1,9 @@
+### Added: restart-dev.ps1 + duplicate server rule
+- **Files created**: `scripts/restart-dev.ps1`
+- **Files modified**: `AGENTS.md`, `.ai/LESSONS.md`
+- **Reason**: AI agents were opening new PowerShell windows on every restart, leaving orphaned node processes.
+- **Impact**: Single command `.\scripts\restart-dev.ps1` kills old Buddy processes on ports 3000/5173 and starts fresh servers in one window. AGENTS.md now prohibits duplicate dev servers. LESSONS.md documents the anti-pattern.
+
 ### Added: Voice bubble styling + voice selection
 - **Files modified**: `Chat.tsx`, `VoiceCallPanel.tsx`, `SpeechControls.tsx`, `api.ts`, `ttsRoutes.ts`, `deepgramService.ts`, `index.css`, `.ai/VOICE.md`, `.ai/DESIGN.md`
 - **Reason**: Voice call bubbles are visually distinct. Users can select TTS voice. Gradual text reveal during playback.
@@ -14,7 +20,7 @@
 - **Reason**: Replace single-threshold RMS rejection with multi-signal scoring. Add clean dev restart script.
 - **Impact**: Transcript filter now uses 0-9 scoring (words, questions, peak, voiced frames, duration). `dev-clean.ps1` safely stops old Buddy processes before starting.
 
-### Fix: Voice polish — VAD, language guard, voice prompt, gradual reveal
+### Fix: Voice polish ï¿½ VAD, language guard, voice prompt, gradual reveal
 - **Files created**: `fastify/src/ai/prompts/voiceCallPrompt.ts`
 - **Files modified**: `voiceRecorder.ts`, `VoiceCallPanel.tsx`, `Chat.tsx`, `prompts/index.ts`, `.ai/VOICE.md`
 - **Reason**: Fix false transcript hallucinations, improve VAD accuracy, add voice-specific prompt, gradual text reveal, mic reuse.
