@@ -31,7 +31,7 @@ export default fp(async (app: FastifyInstance) => {
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'TTS failed';
         request.log.error({ err: msg }, 'TTS synthesis failed');
-        return reply.status(502).send({ detail: 'Speech is currently unavailable.' });
+        return reply.status(502).send({ detail: msg });
       }
     },
   );

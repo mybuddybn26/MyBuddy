@@ -66,6 +66,9 @@ export async function synthesizeSpeech(text: string): Promise<TTSResult> {
     if (res.status === 401) {
       throw new Error('ElevenLabs: Invalid API key. Check your ELEVENLABS_API_KEY.');
     }
+    if (res.status === 402) {
+      throw new Error('ElevenLabs: No credits remaining. Add credits at elevenlabs.io to enable speech.');
+    }
     if (res.status === 429) {
       throw new Error('ElevenLabs: Rate limit exceeded. Try again later.');
     }
