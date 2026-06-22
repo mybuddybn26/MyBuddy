@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '../api';
 import { Mic, MicOff, Send, Camera, PhoneCall } from 'lucide-react';
 import { MessageActions } from '../components/chat/MessageActions';
-import { VoiceCallModal } from '../components/chat/VoiceCallModal';
+import { VoiceCallPanel } from '../components/chat/VoiceCallPanel';
 
 interface Message {
   id: string;
@@ -387,7 +387,7 @@ export function Chat() {
         </form>
       </div>
 
-      <VoiceCallModal open={voiceCallOpen} onClose={() => setVoiceCallOpen(false)} />
+      <VoiceCallPanel open={voiceCallOpen} onClose={() => setVoiceCallOpen(false)} />
     </div>
   );
 }
