@@ -237,8 +237,14 @@ Raw SQL is allowed only when justified by:
 - Reporting or analytics queries.
 
 **Raw SQL Requirements:**
-1. Document why Drizzle was insufficient in a code comment.
-2. Use parameterized queries only (`$1`, `$2`, etc.) — never concatenate user input.
+1. Document why Drizzle was insufficient with a `// Raw SQL justification:` comment block above the query. Example:
+   ```typescript
+   // Raw SQL justification:
+   // Drizzle query builder cannot express this full-text ranking cleanly.
+   // User input is parameterized through sql placeholders.
+   const results = await app.db.execute(sql`...`);
+   ```
+2. Use parameterized queries only (`$1`, `$2`, etc. or Drizzle's `sql` template tag) — never concatenate user input.
 3. Include comments explaining complex SQL logic.
 4. Add the decision to `.ai/DECISIONS.md` if it introduces a major database pattern.
 - **Transactions**: Use `app.db.transaction()` for multi-step operations.
