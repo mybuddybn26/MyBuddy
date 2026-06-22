@@ -191,6 +191,7 @@ BUDDY.md            ← Project conventions and memory
 ├── SECURITY.md     ← Security & privacy specification
 ├── PERFORMANCE.md  ← Performance engineering specification
 ├── TESTING.md      ← Verification specification
+├── DEPLOYMENT.md   ← Deployment specification
 ├── DECISIONS.md    ← Architecture Decision Records
 ├── CHANGELOG.md    ← Project change history
 ├── LESSONS.md      ← Recurring mistakes and rules

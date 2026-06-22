@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: TESTING.md
+### Created: DEPLOYMENT.md
+- **Files created**: `.ai/DEPLOYMENT.md`, modified: `AGENTS.md`, `BUDDY.md`
+- **Reason**: Permanent deployment specification — Docker architecture, env vars, build process, security checklist, and production readiness assessment.
+- **Impact**: 14 sections covering Docker Compose services, all required env vars, build/deploy commands, file storage, SSL, rollback plan, and 5 documented production gaps.
 - **Files created**: `.ai/TESTING.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/testing.md`
 - **Reason**: Permanent verification specification — defines what "done" means, documents all real commands, and provides domain-specific checklists.
 - **Impact**: 15 sections with all real CLI commands, 4-level verification matrix, voice-specific 9-item checklist, and 7 documented testing gaps with severity ratings.

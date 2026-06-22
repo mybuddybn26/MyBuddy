@@ -24,6 +24,7 @@ BUDDY.md            ← This file: project conventions, memory, ADR
 ├── SECURITY.md     ← Security & privacy specification
 ├── PERFORMANCE.md  ← Performance engineering specification
 ├── TESTING.md      ← Verification specification
+├── DEPLOYMENT.md   ← Deployment specification
 ├── DECISIONS.md    ← Architecture decisions
 ├── CHANGELOG.md    ← Change history
 ├── LESSONS.md      ← Mistakes + rules
