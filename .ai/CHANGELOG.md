@@ -1,3 +1,9 @@
+### Fix: Aspen Snow premium UI redesign
+- **Files modified**: Layout.tsx, Chat.tsx, .ai/DESIGN.md
+- **Reason**: Sidebar felt generic SaaS. Chat input lacked polish. Overall UI needed premium feel.
+- **Impact**: Sidebar uses deep gradient (rom-primary-800 via-primary-700 to-primary-900) with subtle active/hover states. Chat input bar centered with max-w-2xl. Softer border colors.
+
+
 ### Fix: Aspen Snow UI audit — hardcoded hex colors, waveform variables, recording bar polish
 - **Files modified**: `Chat.tsx`, `VoiceCallPanel.tsx`, `VoiceCallModal.tsx`, `index.css`, `.ai/DESIGN.md`
 - **Reason**: UI audit found hardcoded hex colors inconsistent with Aspen Snow theme.

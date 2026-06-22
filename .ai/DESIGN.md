@@ -381,7 +381,7 @@ Appear below every non-streaming assistant message:
 
 | Breakpoint | Behavior |
 |---|---|
-| Desktop (`>= md`) | Sidebar (256px) + content area; horizontal input bar |
+| Desktop (`>= md`) | Sidebar: g-gradient-to-b from-primary-800 via-primary-700 to-primary-900 (deep Aspen Blue gradient) with g-white/15 active states, g-white/8 hover states, 	ext-white/60 default text. Content area uses g-surface.; horizontal input bar |
 | Mobile (`< md`) | Top header + bottom nav; vertical stacking; modal-width inputs |
 
 - Sidebar collapses to bottom navigation on mobile.
