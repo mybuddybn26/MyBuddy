@@ -4,7 +4,6 @@ import { config } from '../../config.js';
 
 async function transcribeAssemblyAI(
   buffer: Uint8Array,
-  filename: string,
   mimetype: string,
 ): Promise<string> {
   const uploadRes = await fetch('https://api.assemblyai.com/v2/upload', {
@@ -83,9 +82,9 @@ async function transcribeGroq(
   filename: string,
   mimetype: string,
 ): Promise<string> {
-  const file = new File([buffer], filename, { type: mimetype });
+  const blob = new Blob([buffer.buffer as ArrayBuffer], { type: mimetype });
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('file', blob, filename);
   formData.append('model', 'whisper-large-v3-turbo');
 
   const apiKey = config.GROQ_API_KEY || config.OPENAI_API_KEY;
@@ -131,7 +130,6 @@ export default fp(async (app: FastifyInstance) => {
         try {
           const transcript = await transcribeAssemblyAI(
             new Uint8Array(buffer),
-            filename,
             mimetype,
           );
           request.log.info(
