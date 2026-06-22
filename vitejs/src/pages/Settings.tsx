@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
-import { Save, User, Globe, Palette, Volume2, Coins } from 'lucide-react';
+import { Save, User, Globe, Palette, Volume2, Coins, Brain } from 'lucide-react';
 
 interface Persona {
   name: string;
@@ -16,6 +16,7 @@ interface TokenInfo {
 }
 
 import { UsageSection } from '../components/UsageSection';
+import { MemorySection } from '../components/MemorySection';
 
 export function Settings() {
   const [persona, setPersona] = useState<Persona>({
@@ -208,6 +209,15 @@ export function Settings() {
             </p>
           </div>
         )}
+      </div>
+
+      {/* ─── Memory Section ─── */}
+      <div className='mt-6'>
+        <div className='flex items-center gap-2 mb-3'>
+          <Brain size={18} className='text-primary-500' />
+          <h3 className='text-sm font-bold text-slate-700'>Memory</h3>
+        </div>
+        <MemorySection />
       </div>
 
       {/* ─── AI Usage Section ─── */}

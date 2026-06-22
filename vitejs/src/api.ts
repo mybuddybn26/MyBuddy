@@ -271,4 +271,16 @@ export const api = {
     request<{ data: Array<Record<string, unknown>>; count: number }>(
       `/api/usage/me/history?limit=${limit}&offset=${offset}`,
     ),
+
+  memories: () =>
+    request<{ data: Array<{ id: string; type: string; content: string; importance: number; createdAt: string; updatedAt: string }>; count: number }>('/api/memories'),
+
+  createMemory: (data: { type: string; content: string; importance?: number }) =>
+    request<Record<string, unknown>>('/api/memories', { method: 'POST', body: JSON.stringify(data) }),
+
+  updateMemory: (id: string, data: Record<string, unknown>) =>
+    request<Record<string, unknown>>(`/api/memories/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+  deleteMemory: (id: string) =>
+    request<void>(`/api/memories/${id}`, { method: 'DELETE' }),
 };

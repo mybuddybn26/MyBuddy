@@ -297,7 +297,7 @@ Only change what the user asked for. Keep existing IDs for unchanged items.`;
         const messages = [{ role: 'user' as const, content: aiPrompt }];
 
         let fullText = '';
-        for await (const chunk of streamChat(messages, persona, 'financial')) {
+        for await (const chunk of streamChat(messages, persona, 'financial', undefined)) {
           if (chunk.type === 'text') {
             fullText += chunk.content;
           }

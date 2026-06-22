@@ -174,4 +174,22 @@ export const aiUsage = pgTable('ai_usage', {
     .defaultNow(),
 });
 
+// ─── 9. memories (long-term AI memory) ───
+export const memories = pgTable('memories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull().default('preference'),
+  content: text('content').notNull(),
+  importance: integer('importance').notNull().default(1),
+  source: text('source').notNull().default('manual'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // projx-anchor: tables

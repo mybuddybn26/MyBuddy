@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { Type } from '@sinclair/typebox';
 import {
   conversations,
@@ -9,6 +9,7 @@ import {
   transactions,
   budgets,
   aiUsage,
+  memories,
 } from '../../db/schema.js';
 import type { AiPersona } from '../../db/schema.js';
 import { streamChat } from './aiService.js';
@@ -208,6 +209,53 @@ export default fp(async (app: FastifyInstance) => {
 
       const persona = user.aiPersona as AiPersona;
 
+      // Load relevant user memories (max 5, highest importance)
+      const memoryRows = await app.db
+        .select()
+        .from(memories)
+        .where(eq(memories.userId, userId))
+        .orderBy(desc(memories.importance))
+        .limit(5);
+      const memoryTexts = memoryRows.map((m) => m.content);
+
+      // Detect manual memory commands
+      const msg = body.message;
+      const rememberMatch = msg.match(/^remember\s+that\s+(.+)$/i);
+      const forgetMatch = msg.match(/^forget\s+that\s+(.+)$/i);
+      let memoryAction: { type: 'create' | 'delete'; content: string } | null = null;
+      if (rememberMatch) {
+        memoryAction = { type: 'create', content: rememberMatch[1].trim() };
+      } else if (forgetMatch) {
+        memoryAction = { type: 'delete', content: forgetMatch[1].trim() };
+      }
+
+      // Handle memory commands
+      if (memoryAction?.type === 'create') {
+        await app.db.insert(memories).values({
+          userId,
+          content: memoryAction.content,
+          type: 'preference',
+          importance: 3,
+        });
+        reply.raw.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+        reply.raw.write(`data: ${JSON.stringify({ type: 'text', content: `I'll remember that. ${memoryAction.content}` })}\n\n`);
+        reply.raw.write(`data: ${JSON.stringify({ type: 'done', token_balance: user.tokenBalance })}\n\n`);
+        reply.raw.end();
+        return;
+      }
+
+      if (memoryAction?.type === 'delete') {
+        const content = memoryAction.content.toLowerCase().trim();
+        await app.db
+          .delete(memories)
+          .where(and(eq(memories.userId, userId), eq(memories.content, content)));
+        reply.raw.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+        reply.raw.write(`data: ${JSON.stringify({ type: 'text', content: `I've removed that memory. "${memoryAction.content}" is now forgotten.` })}\n\n`);
+        reply.raw.write(`data: ${JSON.stringify({ type: 'done', token_balance: user.tokenBalance })}\n\n`);
+        reply.raw.end();
+        return;
+      }
+
       // Build message history
       const history = body.conversation_history || [];
       const messages = [
@@ -250,7 +298,7 @@ export default fp(async (app: FastifyInstance) => {
       let usageData: { promptTokens: number; completionTokens: number; model: string; provider: string } | null = null;
 
       try {
-        for await (const chunk of streamChat(messages, persona)) {
+        for await (const chunk of streamChat(messages, persona, undefined, memoryTexts)) {
           if (chunk.type === 'text') {
             fullResponse += chunk.content;
             reply.raw.write(

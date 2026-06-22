@@ -6,10 +6,20 @@ function buildMessages(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   persona: AiPersona,
   task?: TaskType,
+  memoryTexts?: string[],
 ) {
   const systemPrompt = buildFullSystemPrompt({ persona, task });
+  let fullPrompt = systemPrompt;
+  if (memoryTexts && memoryTexts.length > 0) {
+    fullPrompt = `${systemPrompt}
+
+IMPORTANT CONTEXT ABOUT THIS USER:
+${memoryTexts.map((m) => `- ${m}`).join('\n')}
+
+Use this information naturally. Don't explicitly mention it unless relevant to the conversation.`;
+  }
   return [
-    { role: 'system', content: systemPrompt },
+    { role: 'system', content: fullPrompt },
     ...messages.map((m) => ({
       role: m.role,
       content:
@@ -143,8 +153,9 @@ export async function* streamChat(
   }>,
   persona: AiPersona,
   task?: TaskType,
+  memoryTexts?: string[],
 ): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number; usage?: { promptTokens: number; completionTokens: number; model: string; provider: string } }> {
-  const formatted = buildMessages(messages, persona, task);
+  const formatted = buildMessages(messages, persona, task, memoryTexts);
 
   if (config.DEEPSEEK_API_KEY) {
     try {
