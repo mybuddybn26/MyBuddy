@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api';
-import { Camera, Eye, Upload, Loader2, FileDown, Trash2 } from 'lucide-react';
+import { Camera, Eye, Upload, Loader2, FileDown, Trash2, TriangleAlert, FileText } from 'lucide-react';
 
 interface Doc {
   id: string;
   image_url: string;
   ai_summary: string;
   doc_type: string;
-  created_at: string;
+  createdAt?: string;
+  created_at?: string;
 }
 
 export function Documents() {
@@ -16,6 +17,8 @@ export function Documents() {
   const [uploading, setUploading] = useState(false);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -29,6 +32,7 @@ export function Documents() {
 
   const analyzeDocument = async (docId: string) => {
     setAnalyzingId(docId);
+    setAnalysisError(null);
     try {
       const result = await api.analyzeDocument(docId);
       setDocs((prev) =>
@@ -43,8 +47,8 @@ export function Documents() {
           ? { ...prev, ai_summary: result.summary, doc_type: result.doc_type }
           : prev,
       );
-    } catch {
-      // analysis failed silently — placeholder summary remains
+    } catch (err) {
+      setAnalysisError(err instanceof Error ? err.message : 'Analysis failed. Please try again.');
     }
     setAnalyzingId(null);
   };
@@ -85,21 +89,31 @@ export function Documents() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setError(null);
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      setError(`Unsupported file type: ${file.type || 'unknown'}. Please upload an image or PDF.`);
+      setUploading(false);
+      e.target.value = '';
+      return;
+    }
 
     try {
       const uploadRes = await api.uploadImage(file);
       const docRes = (await api.createDocument({
         image_url: uploadRes.url,
         doc_type: 'other',
-        ai_summary: '',
+        ai_summary: file.type === 'application/pdf' ? 'PDF documents cannot be auto-analyzed by image recognition.' : '',
       })) as unknown as Doc;
 
       setDocs((prev) => [docRes, ...prev]);
 
-      // Auto-analyze the document immediately
-      analyzeDocument(docRes.id);
-    } catch {
-      alert('Upload failed');
+      if (file.type !== 'application/pdf') {
+        analyzeDocument(docRes.id);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed. Please check file size and type.');
     }
 
     setUploading(false);
@@ -141,12 +155,18 @@ export function Documents() {
           <input
             ref={fileRef}
             type='file'
-            accept='image/*'
-            capture='environment'
+            accept='image/*,application/pdf'
             className='hidden'
             onChange={handleUpload}
           />
         </div>
+
+        {error && (
+          <div className='glass-card p-3 flex items-start gap-2 text-sm text-red-600 bg-red-50/50 border-red-200'>
+            <TriangleAlert size={16} className='flex-shrink-0 mt-0.5' />
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* Selected Document Detail */}
         {selectedDoc && (
@@ -214,6 +234,11 @@ export function Documents() {
                     {generatingPdf ? 'Generating…' : 'Download PDF'}
                   </button>
                 </>
+              ) : analysisError ? (
+                <div>
+                  <p className='text-sm text-red-600 mb-2 flex items-center gap-1'><TriangleAlert size={14} /> {analysisError}</p>
+                  <button onClick={() => analyzeDocument(selectedDoc.id)} className='text-xs text-primary-500 hover:text-primary-700 font-medium'>Retry</button>
+                </div>
               ) : (
                 <p className='text-sm text-slate-400 italic'>
                   No analysis yet. Click "Re-analyze" to process.
@@ -274,7 +299,12 @@ export function Documents() {
                     </p>
                   )}
                   <p className='text-xs text-slate-400 mt-1'>
-                    {new Date(doc.created_at).toLocaleDateString()}
+                    {(() => {
+                      const d = doc.createdAt || doc.created_at;
+                      if (!d) return '—';
+                      const dt = new Date(d);
+                      return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString();
+                    })()}
                   </p>
                 </div>
               </button>
