@@ -1,3 +1,8 @@
+### Added: Voice bubble styling + voice selection
+- **Files modified**: `Chat.tsx`, `VoiceCallPanel.tsx`, `SpeechControls.tsx`, `api.ts`, `ttsRoutes.ts`, `deepgramService.ts`, `index.css`, `.ai/VOICE.md`, `.ai/DESIGN.md`
+- **Reason**: Voice call bubbles are visually distinct. Users can select TTS voice. Gradual text reveal during playback.
+- **Impact**: `.chat-bubble-user-voice` and `.chat-bubble-assistant-voice` CSS classes with AudioLines indicator. 9 Deepgram voices supported. Voice preference stored in localStorage. GET /api/voice/tts/voices endpoint.
+
 ### Fix: Stricter voice filter + shorter voice prompt
 - **Files modified**: `VoiceCallPanel.tsx`, `voiceCallPrompt.ts`, `.ai/VOICE.md`
 - **Reason**: Silence was producing false transcripts ("thank you", "so", "??????????? ???????"). Voice responses were too long.
