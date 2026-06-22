@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '../api';
-import { Mic, MicOff, Send, Camera, PhoneCall, AudioLines } from 'lucide-react';
+import { Mic, MicOff, Send, Camera, PhoneCall, AudioLines, ArrowDown } from 'lucide-react';
 import { MessageActions } from '../components/chat/MessageActions';
 import { VoiceCallPanel } from '../components/chat/VoiceCallPanel';
 
@@ -46,6 +46,7 @@ export function Chat() {
   const [voiceCallOpen, setVoiceCallOpen] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
+  const [isNearBottom, setIsNearBottom] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -65,11 +66,23 @@ export function Chat() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const voiceBubbleRef = useRef<{ userId?: string; assistantId?: string }>({});
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = useCallback((smooth = false) => {
+    messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant' });
   }, []);
 
-  useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
+  const checkNearBottom = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const near = el.scrollHeight - el.scrollTop - el.clientHeight < 200;
+    setIsNearBottom(near);
+  }, []);
+
+  // Smart scroll: follow messages only when near bottom
+  useEffect(() => {
+    if (isNearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+    }
+  }, [messages, isNearBottom]);
 
   useEffect(() => {
     api.chatHistory(30).catch(() => ({ data: [], count: 0 })).then((chatRes) => {
@@ -329,8 +342,9 @@ export function Chat() {
           if (el.scrollTop < 80 && hasMoreHistory && !loadingOlderRef.current) {
             loadOlderMessages();
           }
+          checkNearBottom();
         }}
-        className='flex-1 overflow-y-auto p-4 space-y-3'
+        className='flex-1 overflow-y-auto p-4 space-y-3 relative'
       >
         {loadingOlder && (
           <div className='flex justify-center py-3'>
@@ -401,6 +415,18 @@ export function Chat() {
         ))}
         <div ref={messagesEndRef} />
       </div>
+
+      {!isNearBottom && (
+        <div className='flex justify-center -mt-8 mb-2 relative z-10 pointer-events-none'>
+          <button
+            onClick={() => scrollToBottom(true)}
+            className='pointer-events-auto bg-white border border-slate-200 rounded-full p-2 shadow-md hover:shadow-lg hover:border-primary-300 transition-all duration-200'
+            aria-label='Scroll to latest message'
+          >
+            <ArrowDown size={18} className='text-primary-500' />
+          </button>
+        </div>
+      )}
 
       {isRecording && (
         <div className='bg-red-50/80 border-t border-red-200 px-4 py-2 flex items-center gap-3'>
