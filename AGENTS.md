@@ -25,7 +25,7 @@ Determine the task category and load the matching skills automatically:
 
 | Task Category | Skills to Load |
 |---|---|
-| **Backend / API** | `fastify.md` → `architecture.md` → `typescript.md` → `testing.md` → `security.md` |
+| **Backend / API** | `fastify.md` → `.ai/API.md` → `architecture.md` → `typescript.md` → `testing.md` → `security.md` |
 | **Database / Schema** | `drizzle.md` → `.ai/DATABASE.md` → `fastify.md` → `typescript.md` |
 | **Frontend / UI** | `ui.md` → `.ai/DESIGN.md` → `typescript.md` → `architecture.md` → `testing.md` |
 | **Voice / Audio** | `voice.md` → `.ai/VOICE.md` → `ai.md` → `architecture.md` |
@@ -187,6 +187,7 @@ BUDDY.md            ← Project conventions and memory
 ├── VOICE.md        ← Voice system specification
 ├── PROMPTS.md      ← AI prompt system specification
 ├── DATABASE.md     ← Database engineering specification
+├── API.md          ← API contract documentation
 ├── DECISIONS.md    ← Architecture Decision Records
 ├── CHANGELOG.md    ← Project change history
 ├── LESSONS.md      ← Recurring mistakes and rules

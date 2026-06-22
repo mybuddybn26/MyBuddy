@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: DATABASE.md
+### Created: API.md
+- **Files created**: `.ai/API.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/fastify.md`
+- **Reason**: Permanent API contract — every endpoint documented with method, path, purpose, auth, request/response formats, and source file.
+- **Impact**: 16 sections covering 38 endpoints across 12 modules. Backend/API skill selection now includes API.md.
 - **Files created**: `.ai/DATABASE.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/drizzle.md`
 - **Reason**: Permanent database specification — every table documented with purpose, columns, relationships, and usage. Migration rules, query patterns, security, and performance guidance.
 - **Impact**: 15 sections covering all 7 tables with full schema details. Database skill selection now includes DATABASE.md.

@@ -20,6 +20,7 @@ BUDDY.md            ← This file: project conventions, memory, ADR
 ├── VOICE.md        ← Voice system specification
 ├── PROMPTS.md      ← AI prompt system specification
 ├── DATABASE.md     ← Database engineering specification
+├── API.md          ← API contract documentation
 ├── DECISIONS.md    ← Architecture decisions
 ├── CHANGELOG.md    ← Change history
 ├── LESSONS.md      ← Mistakes + rules

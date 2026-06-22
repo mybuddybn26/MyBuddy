@@ -1,5 +1,7 @@
 # Fastify (Backend)
 
+> For the complete API contract, all endpoints, request/response formats, and frontend rules, see `.ai/API.md`.
+
 ## Framework
 
 - **Fastify 5** with TypeScript ESM.
