@@ -48,7 +48,7 @@ The Voice Session Manager is the central orchestrator. **All voice features must
 ```
                     ┌──────────────────────┐
                     │  Voice Session Manager │
-                    │  (VoiceCallModal.tsx)  │
+                    │  (VoiceCallPanel.tsx)  │
                     └──┬───────┬───────┬────┘
                        │       │       │
               ┌────────▼──┐ ┌──▼────┐ ┌▼────────┐
@@ -68,7 +68,7 @@ The Voice Session Manager is the central orchestrator. **All voice features must
 - Error recovery (reconnect, retry, graceful degradation).
 
 ### Implementation
-- `VoiceCallModal.tsx` orchestrates the session using `VoiceRecorder` and `VoicePlayer`.
+- `VoiceCallPanel.tsx` orchestrates the session using `VoiceRecorder` and `VoicePlayer`.
 - `VoiceRecorder` handles mic capture, AudioContext, VAD.
 - `VoicePlayer` handles audio playback with proper cleanup.
 
@@ -263,7 +263,7 @@ Immediately:
 ```
 
 - **UI**: "Tap to interrupt" button visible during speaking state.
-- **Implementation**: `VoiceCallModal.tsx` → `interrupt()` callback.
+- **Implementation**: `VoiceCallPanel.tsx` → `interrupt()` callback.
 - **Behavior**: Similar to ChatGPT Voice — instant, responsive.
 
 ---
@@ -388,7 +388,7 @@ Before claiming voice is complete:
 | `vitejs/src/voice/voiceState.ts` | State machine types, labels |
 | `vitejs/src/voice/voiceRecorder.ts` | Mic capture, AudioContext, VAD |
 | `vitejs/src/voice/voicePlayer.ts` | Audio playback, cleanup |
-| `vitejs/src/components/chat/VoiceCallModal.tsx` | Session orchestrator, UI |
+| `vitejs/src/components/chat/VoiceCallPanel.tsx` | Session orchestrator, UI |
 | `vitejs/src/components/chat/SpeechControls.tsx` | Per-message Read Aloud |
 | `vitejs/src/pages/Chat.tsx` | One-shot mic + PhoneCall button |
 | `fastify/src/modules/voice/routes.ts` | `POST /api/voice/transcribe` |

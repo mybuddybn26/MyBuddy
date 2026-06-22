@@ -23,7 +23,7 @@ Avoid isolated one-off features. Everything should make Buddy feel like a cohesi
 | Feature | Status | Category | Frontend | Backend | DB Tables | AI |
 |---|---|---|---|---|---|---|
 | Text Chat | COMPLETE | Core | `pages/Chat.tsx` | `modules/chat/` | `conversations` | DeepSeek |
-| Voice Call | PARTIAL | Core | `components/chat/VoiceCallModal.tsx` | `modules/voice/`, `services/tts/` | — | DeepSeek |
+| Voice Call | COMPLETE | Core | VoiceCallPanel.tsx` | `modules/voice/`, `services/tts/` | — | DeepSeek |
 | One-Shot Mic | COMPLETE | Voice | `pages/Chat.tsx` | `modules/voice/` | — | AssemblyAI |
 | Read Aloud | COMPLETE | Voice | `components/chat/SpeechControls.tsx` | `services/tts/` | — | Deepgram |
 | Document Analysis | COMPLETE | Productivity | `pages/Documents.tsx` | `modules/documents/` | `documents` | DeepSeek Vision |
@@ -58,7 +58,7 @@ Avoid isolated one-off features. Everything should make Buddy feel like a cohesi
 ### Voice Call (PhoneCall)
 - **Status**: PARTIAL (core loop works, streaming not implemented)
 - **Purpose**: Continuous two-way voice conversation.
-- **Files**: `vitejs/src/voice/voiceState.ts`, `vitejs/src/voice/voiceRecorder.ts`, `vitejs/src/voice/voicePlayer.ts`, `vitejs/src/components/chat/VoiceCallModal.tsx`
+- **Files**: `vitejs/src/voice/voiceState.ts`, `vitejs/src/voice/voiceRecorder.ts`, `vitejs/src/voice/voicePlayer.ts`, `vitejs/src/components/chat/VoiceCallPanel.tsx`
 - **Pipeline**: Mic → VAD → AssemblyAI → DeepSeek → SpeechFormatter → Deepgram → Speaker → loop.
 - **Known Limitations**: Batch STT (not WebSocket streaming), full TTS buffer (not chunked), latency >2s.
 - **Future**: WebSocket STT, streaming TTS, persistent voice settings.

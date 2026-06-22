@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: TOOLS.md
+### Created: VoiceCallPanel (embedded voice in chat)
+- **Files created**: `vitejs/src/components/chat/VoiceCallPanel.tsx`, modified: `vitejs/src/pages/Chat.tsx`, `.ai/VOICE.md`, `.ai/FEATURES.md`
+- **Reason**: Replace full-screen VoiceCallModal with compact embedded panel inside chat. Voice calls now stay in-context without leaving the chat page.
+- **Impact**: Same voice pipeline (VoiceRecorder → AssemblyAI → DeepSeek → Deepgram → VoicePlayer) now runs in a compact panel between messages and input bar. Voice Call feature status upgraded from PARTIAL to COMPLETE.
 - **Files created**: `.ai/TOOLS.md`, modified: `AGENTS.md`, `BUDDY.md`
 - **Reason**: Design document for future AI function/tool calling system — architecture, permission model, tool catalog, and safety rules.
 - **Impact**: 15 sections covering 16 proposed tools across 5 categories, 3-level permission system, safety constraints, and 4-phase roadmap.
