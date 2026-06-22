@@ -1,60 +1,15 @@
 import type { AiPersona } from '../../db/schema.js';
 import { config } from '../../config.js';
-
-/**
- * Build the system prompt from the user's AI persona settings.
- */
-export function buildSystemPrompt(persona: AiPersona): string {
-  const langMap: Record<string, string> = {
-    en: 'English',
-    ms: 'Bahasa Melayu',
-    zh: 'Mandarin Chinese',
-    mixed: 'a natural mix of English, Malay, and Mandarin as appropriate',
-  };
-
-  const toneMap: Record<string, string> = {
-    formal: 'professional and polite',
-    casual: 'friendly and conversational',
-    slang:
-      'casual with local slang and colloquial expressions (e.g. Brunei Malay style)',
-  };
-
-  const dialectNote =
-    persona.dialect === 'brunei'
-      ? ' Use Brunei Malay expressions where appropriate (e.g. "bisai", "banar", "apa khabar?").'
-      : '';
-
-  return `You are ${persona.name}, a helpful personal AI assistant.
-
-PERSONALITY & LANGUAGE:
-- Speak in ${langMap[persona.language] || 'English'}.
-- Your tone is ${toneMap[persona.tone] || 'friendly and conversational'}.${dialectNote}
-- Always greet the user warmly using your name "${persona.name}" when the conversation starts.
-
-CAPABILITIES:
-- When asked to create a budget (e.g. "Make me a $100 weekly food budget"), ALWAYS return a structured table as a JSON code block labeled \`budget\`. The response MUST include the budget JSON block. Example format:
-\`\`\`budget
-[
-  {"category": "Vegetables", "allocated_amount": 15, "notes": "Fresh greens and root vegetables"},
-  {"category": "Meat", "allocated_amount": 10, "notes": "Chicken and fish"}
-]
-\`\`\`
-- When the user describes a sale or expense (e.g. "I sold 3 boxes of kuih for $10 each"), ALWAYS return structured data as a JSON code block labeled \`transaction\`. Example: \`\`\`transaction\n{"type": "sale", "amount": 30, "description": "Sold 3 boxes of kuih at 10 each", "category": "food"}\n\`\`\`
-- When shown an image of a document, read it carefully and explain its contents in simple, plain language. Identify the document type (bill, letter, permit, statement, other).
-- For general conversation, be helpful, warm, and supportive.
-
-RESPONSE FORMAT:
-- Keep responses concise and clear — your users may not be tech-savvy.
-- Use simple language. Avoid jargon.
-- When providing structured data, wrap it in a fenced code block with the appropriate label.`;
-}
+import { buildFullSystemPrompt, type TaskType } from '../../ai/prompts/index.js';
 
 function buildMessages(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   persona: AiPersona,
+  task?: TaskType,
 ) {
+  const systemPrompt = buildFullSystemPrompt({ persona, task });
   return [
-    { role: 'system', content: buildSystemPrompt(persona) },
+    { role: 'system', content: systemPrompt },
     ...messages.map((m) => ({
       role: m.role,
       content:
@@ -175,19 +130,16 @@ async function* streamOllama(
   }
 }
 
-/**
- * Stream a chat response — DeepSeek primary, Ollama fallback.
- */
 export async function* streamChat(
   messages: Array<{
     role: 'user' | 'assistant';
     content: string;
   }>,
   persona: AiPersona,
+  task?: TaskType,
 ): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number }> {
-  const formatted = buildMessages(messages, persona);
+  const formatted = buildMessages(messages, persona, task);
 
-  // Try DeepSeek first if API key is configured
   if (config.DEEPSEEK_API_KEY) {
     try {
       yield* streamDeepSeek(formatted);
@@ -198,13 +150,9 @@ export async function* streamChat(
     }
   }
 
-  // Fallback to Ollama
   yield* streamOllama(formatted, config.OLLAMA_MODEL);
 }
 
-/**
- * Analyze an image (document/photo) — DeepSeek Vision primary, Ollama fallback.
- */
 export async function analyzeImage(
   imageBase64: string,
   _mediaType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
@@ -214,7 +162,8 @@ export async function analyzeImage(
   const prompt =
     userPrompt || 'What does this document say? Explain it in simple language.';
 
-  // Try DeepSeek Vision
+  const systemPrompt = buildFullSystemPrompt({ persona, task: 'document' });
+
   if (config.DEEPSEEK_API_KEY) {
     try {
       const response = await fetch(
@@ -228,10 +177,7 @@ export async function analyzeImage(
           body: JSON.stringify({
             model: config.DEEPSEEK_MODEL,
             messages: [
-              {
-                role: 'system',
-                content: buildSystemPrompt(persona),
-              },
+              { role: 'system', content: systemPrompt },
               {
                 role: 'user',
                 content: [
@@ -273,14 +219,13 @@ export async function analyzeImage(
     }
   }
 
-  // Fallback to Ollama
   const response = await fetch(`${config.OLLAMA_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: config.OLLAMA_MODEL,
       messages: [
-        { role: 'system', content: buildSystemPrompt(persona) },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt, images: [imageBase64] },
       ],
       stream: false,

@@ -5,6 +5,7 @@ import { Type } from '@sinclair/typebox';
 import { documents, users } from '../../db/schema.js';
 import type { AiPersona } from '../../db/schema.js';
 import { config } from '../../config.js';
+import { documentAnalysisPrompt } from '../../ai/prompts/index.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -165,7 +166,7 @@ export default fp(async (app: FastifyInstance) => {
         const result = await analyzeImage(
           imageBase64,
           mediaType,
-          'What does this document say? Explain it in simple language. Identify the document type as one of: bill, letter, permit, statement, or other.',
+          documentAnalysisPrompt,
           persona,
         );
         summary = result.text;
