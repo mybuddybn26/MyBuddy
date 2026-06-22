@@ -16,7 +16,8 @@ interface Transaction {
   amount: string;
   description: string;
   category: string;
-  transacted_at: string;
+  transactedAt?: string;
+  transacted_at?: string;
 }
 
 interface Summary {
@@ -37,8 +38,16 @@ export function Ledger() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
+      const now = new Date();
+      const since = new Date(now);
+      if (period === 'day') {
+        since.setHours(0, 0, 0, 0);
+      } else {
+        since.setDate(now.getDate() - now.getDay());
+        since.setHours(0, 0, 0, 0);
+      }
       const [txRes, sumRes] = await Promise.all([
-        api.transactions({ limit: '30' }),
+        api.transactions({ limit: '30', from: since.toISOString() }),
         api.transactionSummary(period),
       ]);
       setTransactions(txRes.data as unknown as Transaction[]);
@@ -198,7 +207,12 @@ export function Ledger() {
                     </p>
                     <p className='text-xs text-slate-400'>
                       {tx.category} ·{' '}
-                      {new Date(tx.transacted_at).toLocaleDateString()}
+                      {(() => {
+                        const d = tx.transactedAt || tx.transacted_at;
+                        if (!d) return '—';
+                        const dt = new Date(d);
+                        return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString();
+                      })()}
                     </p>
                   </div>
                   {editingTx === tx.id ? (
