@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '../api';
-import { Mic, MicOff, Send, Camera, Volume2, VolumeX } from 'lucide-react';
+import { Mic, MicOff, Send, Camera, Phone } from 'lucide-react';
 import { MessageActions } from '../components/chat/MessageActions';
+import { VoiceConversationModal } from '../components/chat/VoiceConversationModal';
 
 interface Message {
   id: string;
@@ -46,7 +47,7 @@ export function Chat() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [voiceCallOpen, setVoiceCallOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -240,22 +241,6 @@ export function Chat() {
           m.id === assistantMsg.id ? { ...m, streaming: false } : m,
         ),
       );
-
-      // TTS read-back
-      if (ttsEnabled && fullText) {
-        try {
-          const ttsRes = await api.tts(fullText.slice(0, 5000));
-          if (ttsRes.ok) {
-            const audioBlob = await ttsRes.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
-            audio.onended = () => URL.revokeObjectURL(audioUrl);
-            audio.play().catch(() => URL.revokeObjectURL(audioUrl));
-          }
-        } catch {
-          /* TTS optional */
-        }
-      }
     } catch (err) {
       setMessages((prev) =>
         prev.map((m) =>
@@ -674,20 +659,14 @@ export function Chat() {
             className='flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all disabled:opacity-50'
           />
 
-          {/* TTS Toggle */}
+          {/* Voice Call */}
           <button
             type='button'
-            onClick={() => setTtsEnabled(!ttsEnabled)}
-            className={`p-2.5 rounded-xl transition-colors ${
-              ttsEnabled
-                ? 'text-primary-500 bg-primary-50'
-                : 'text-slate-400 hover:text-primary-500 hover:bg-primary-50'
-            }`}
-            aria-label={
-              ttsEnabled ? 'Disable voice read-back' : 'Enable voice read-back'
-            }
+            onClick={() => setVoiceCallOpen(true)}
+            className='p-2.5 text-slate-400 hover:text-primary-500 hover:bg-primary-50 rounded-xl transition-colors'
+            aria-label='Start voice call'
           >
-            {ttsEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            <Phone size={20} />
           </button>
 
           {/* Voice / Send */}
@@ -716,6 +695,11 @@ export function Chat() {
           )}
         </form>
       </div>
+
+      <VoiceConversationModal
+        open={voiceCallOpen}
+        onClose={() => setVoiceCallOpen(false)}
+      />
     </div>
   );
 }
