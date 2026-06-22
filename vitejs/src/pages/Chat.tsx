@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '../api';
-import { Mic, MicOff, Send, Camera, Volume2, Repeat } from 'lucide-react';
+import { Mic, MicOff, Send, Camera, PhoneCall } from 'lucide-react';
 import { MessageActions } from '../components/chat/MessageActions';
+import { VoiceCallModal } from '../components/chat/VoiceCallModal';
 
 interface Message {
   id: string;
@@ -27,10 +28,6 @@ function stripBudgetBlocks(text: string): string {
   return text.replace(/```budget\s*\n[\s\S]*?\n```\n?/g, '');
 }
 
-function stripAllCodeBlocks(text: string): string {
-  return text.replace(/```[\s\S]*?```/g, '').replace(/`[^`]+`/g, '$1');
-}
-
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -44,8 +41,7 @@ export function Chat() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [continuousMode, setContinuousMode] = useState(false);
-  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
+  const [voiceCallOpen, setVoiceCallOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -59,7 +55,6 @@ export function Chat() {
   const recordingStartRef = useRef<number>(0);
   const shouldTranscribeRef = useRef<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -90,54 +85,8 @@ export function Chat() {
     });
   }, []);
 
-  const speakMessage = useCallback(async (text: string) => {
-    const cleaned = stripAllCodeBlocks(stripBudgetBlocks(stripTransactionBlocks(text))).trim();
-    if (!cleaned) return;
-    try {
-      const { ensureFreshToken, getToken } = await import('../auth');
-      await ensureFreshToken();
-      const token = getToken();
-      const BASE = import.meta.env.VITE_API_URL || '';
-      const res = await fetch(`${BASE}/api/voice/tts/speak`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ text: cleaned.slice(0, 5000) }),
-      });
-      if (!res.ok) return;
-      const blob = await res.blob();
-      if (blob.size < 100) return;
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      currentAudioRef.current = audio;
-      await new Promise<void>((resolve) => {
-        audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
-        audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
-        audio.play().catch(() => { URL.revokeObjectURL(url); resolve(); });
-      });
-      currentAudioRef.current = null;
-    } catch { /* TTS optional */ }
-  }, []);
-
-  const stopSpeaking = useCallback(() => {
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current.onended = null;
-      currentAudioRef.current.onerror = null;
-      currentAudioRef.current.src = '';
-      currentAudioRef.current = null;
-    }
-    setSpeakingMsgId(null);
-  }, []);
-
-  const startListeningAfterSpeak = useCallback((msgId: string) => {
-    setSpeakingMsgId(msgId);
-    // After speech ends, auto-start recording if continuous mode
-    // handled by speakMessage's resolve
-  }, []);
-
   const sendMessage = useCallback(async (text: string, inputType = 'text') => {
     if (!text.trim() || isStreaming) return;
-    stopSpeaking();
 
     const userMsg: Message = { id: crypto.randomUUID(), role: 'user', content: text.trim(), input_type: inputType };
     const assistantMsg: Message = { id: crypto.randomUUID(), role: 'assistant', content: '', streaming: true };
@@ -181,23 +130,11 @@ export function Chat() {
 
       setMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, streaming: false } : m));
       setIsStreaming(false);
-
-      if (continuousMode && fullText) {
-        const cleanForSpeech = stripAllCodeBlocks(stripBudgetBlocks(stripTransactionBlocks(fullText))).trim();
-        if (cleanForSpeech) {
-          setSpeakingMsgId(assistantMsg.id);
-          await speakMessage(fullText);
-          setSpeakingMsgId(null);
-          if (continuousMode) {
-            startAutoRecord();
-          }
-        }
-      }
     } catch (err) {
       setMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, content: `⚠️ ${err instanceof Error ? err.message : 'Error sending message'}`, streaming: false } : m));
       setIsStreaming(false);
     }
-  }, [messages, isStreaming, continuousMode, stopSpeaking, speakMessage]);
+  }, [messages, isStreaming]);
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); sendMessage(input); };
 
@@ -232,13 +169,14 @@ export function Chat() {
       const result = await api.transcribe(blob);
       console.log('[Voice] Transcript:', result.transcript);
       if (result.transcript && result.transcript.trim()) {
-        sendMessage(result.transcript.trim(), 'voice');
+        setInput(result.transcript.trim());
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Voice transcription failed';
       console.error('[Voice] Transcribe error:', msg);
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `⚠️ ${msg}. Please try again or type your message.` }]);
     }
-  }, [sendMessage]);
+  }, []);
 
   const startAutoRecord = useCallback(async () => {
     if (isRecording || isStreaming) return;
@@ -366,13 +304,6 @@ export function Chat() {
               <div className='whitespace-pre-wrap text-sm leading-relaxed'>
                 {msg.content}
                 {msg.streaming && <span className='inline-block w-1.5 h-4 bg-primary-400 ml-0.5 animate-pulse rounded-sm' />}
-                {speakingMsgId === msg.id && (
-                  <span className='inline-flex items-center gap-0.5 ml-2 align-middle'>
-                    {[0, 1, 2].map((i) => (
-                      <span key={i} className='w-0.5 bg-primary-400 rounded-full animate-pulse' style={{ height: `${8 + i * 3}px`, animationDelay: `${i * 100}ms` }} />
-                    ))}
-                  </span>
-                )}
               </div>
               {msg.budgets && msg.budgets.length > 0 && (
                 <div className='mt-3 space-y-3'>
@@ -430,16 +361,6 @@ export function Chat() {
           <input ref={fileInputRef} type='file' accept='image/*' capture='environment' className='hidden' onChange={handleImageUpload} />
           <input type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? 'Listening...' : 'Type a message…'} disabled={isStreaming || isRecording} className='flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all disabled:opacity-50' />
 
-          <button
-            type='button'
-            onClick={() => setContinuousMode(!continuousMode)}
-            className={`p-2.5 rounded-xl transition-colors ${continuousMode ? 'text-primary-500 bg-primary-50' : 'text-slate-400 hover:text-primary-500 hover:bg-primary-50'}`}
-            aria-label={continuousMode ? 'Disable continuous voice' : 'Enable continuous voice'}
-            title={continuousMode ? 'Continuous voice on' : 'Continuous voice off'}
-          >
-            <Repeat size={20} />
-          </button>
-
           {input.trim() ? (
             <button type='submit' disabled={isStreaming} className='p-2.5 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors disabled:opacity-50' aria-label='Send message'>
               <Send size={20} />
@@ -454,8 +375,19 @@ export function Chat() {
               {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
             </button>
           )}
+
+          <button
+            type='button'
+            onClick={() => setVoiceCallOpen(true)}
+            className='p-2.5 text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors'
+            aria-label='Start voice call'
+          >
+            <PhoneCall size={20} />
+          </button>
         </form>
       </div>
+
+      <VoiceCallModal open={voiceCallOpen} onClose={() => setVoiceCallOpen(false)} />
     </div>
   );
 }
