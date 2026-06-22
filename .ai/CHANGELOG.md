@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Updated: Database Rules — Raw SQL Policy
+### Created: DESIGN.md
+- **Files created**: `.ai/DESIGN.md`, modified: `AGENTS.md`, `.ai/skills/ui.md`
+- **Reason**: Centralize Buddy's visual identity, color system, typography, spacing, icon mappings, component patterns, chat UI, voice UI, animations, accessibility, and design anti-patterns in one authoritative document.
+- **Impact**: 18 sections covering every visual aspect. Future UI tasks must consult DESIGN.md. UI skill selection now includes DESIGN.md.
 - **Files modified**: `.ai/ARCHITECTURE.md`, `.ai/skills/drizzle.md`, `.ai/skills/security.md`
 - **Reason**: Replaced absolute "no raw SQL" rule with a nuanced policy: prefer Drizzle, raw SQL allowed when justified (performance, complex queries, PG-specific features). Added mandatory parameterized queries for SQL injection prevention.
 - **Impact**: Raw SQL now requires: documented justification, parameterized queries only, comments explaining logic, DECISIONS.md entry for major patterns.

@@ -1,5 +1,7 @@
 # UI (Frontend)
 
+> For comprehensive design rules, colors, typography, and component patterns, see `.ai/DESIGN.md`.
+
 ## Stack
 
 - **React 19** with functional components and hooks.
