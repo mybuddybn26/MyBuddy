@@ -25,7 +25,7 @@ export class VoiceRecorder {
   private rmsTotal = 0;
   private rmsSamples = 0;
   private hasSpeechDetected = false;
-  private voicedFrames = 0;
+  private voicedFrameCount = 0;
   private speechStartedTime = 0;
   private micRequested = false;
 
@@ -35,11 +35,12 @@ export class VoiceRecorder {
 
   get recording(): boolean { return this.recorder?.state === 'recording'; }
   get minDurationMet(): boolean { return Date.now() - this.recordingStartTime >= MIN_SPEECH_DURATION_MS; }
-  get hadRealSpeech(): boolean { return this.hasSpeechDetected && this.peakLevelValue > SPEECH_START_THRESHOLD && this.voicedFrames >= MIN_VOICED_FRAMES; }
+  get hadRealSpeech(): boolean { return this.hasSpeechDetected && this.peakLevelValue > SPEECH_START_THRESHOLD && this.voicedFrameCount >= MIN_VOICED_FRAMES; }
   get peakLevel(): number { return this.peakLevelValue; }
   get avgLevel(): number { return this.rmsSamples > 0 ? this.rmsTotal / this.rmsSamples : 0; }
   get averageRMS(): number { return this.avgLevel; }
   get recordingDuration(): number { return this.recordingStartTime > 0 ? Date.now() - this.recordingStartTime : 0; }
+  get voicedFrames(): number { return this.voicedFrameCount; }
 
   private async ensureStream(): Promise<MediaStream> {
     if (this.stream && this.stream.active) return this.stream;
@@ -71,7 +72,7 @@ export class VoiceRecorder {
       this.rmsTotal = 0;
       this.rmsSamples = 0;
       this.hasSpeechDetected = false;
-      this.voicedFrames = 0;
+      this.voicedFrameCount = 0;
       this.speechStartedTime = 0;
 
       this.recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
@@ -102,8 +103,8 @@ export class VoiceRecorder {
       if (level > this.peakLevelValue) this.peakLevelValue = level;
 
       if (!this.hasSpeechDetected && level > SPEECH_START_THRESHOLD) {
-        this.voicedFrames++;
-        if (this.voicedFrames >= MIN_VOICED_FRAMES) {
+        this.voicedFrameCount++;
+        if (this.voicedFrameCount >= MIN_VOICED_FRAMES) {
           this.hasSpeechDetected = true;
           this.speechStartedTime = Date.now();
           this.callbacks.onSpeechDetected?.();
@@ -112,12 +113,12 @@ export class VoiceRecorder {
       }
 
       if (this.hasSpeechDetected && level > SPEECH_END_THRESHOLD) {
-        this.voicedFrames++;
+        this.voicedFrameCount++;
         if (this.silenceTimer) { clearTimeout(this.silenceTimer); this.silenceTimer = null; }
       } else if (this.hasSpeechDetected && !this.silenceTimer) {
         this.silenceTimer = setTimeout(() => {
           const rms = this.avgLevel;
-          console.log(`[VoiceRecorder] Silence (peak: ${this.peakLevelValue.toFixed(1)}, avg: ${rms.toFixed(1)}, voiced: ${this.voicedFrames}, duration: ${Date.now() - this.recordingStartTime}ms)`);
+          console.log(`[VoiceRecorder] Silence (peak: ${this.peakLevelValue.toFixed(1)}, avg: ${rms.toFixed(1)}, voiced: ${this.voicedFrameCount}, duration: ${Date.now() - this.recordingStartTime}ms)`);
           this.callbacks.onSilenceDetected();
         }, SILENCE_TIMEOUT_MS);
       }
@@ -136,7 +137,7 @@ export class VoiceRecorder {
     this.chunks = [];
     if (allChunks.length === 0) return null;
     const blob = new Blob(allChunks, { type: 'audio/webm' });
-    console.log(`[VoiceRecorder] Blob: ${blob.size}B, peak: ${this.peakLevelValue.toFixed(1)}, avg: ${this.avgLevel.toFixed(1)}, voiced: ${this.voicedFrames}, dur: ${Date.now() - this.recordingStartTime}ms`);
+    console.log(`[VoiceRecorder] Blob: ${blob.size}B, peak: ${this.peakLevelValue.toFixed(1)}, avg: ${this.avgLevel.toFixed(1)}, voiced: ${this.voicedFrameCount}, dur: ${Date.now() - this.recordingStartTime}ms`);
     return blob.size >= 500 ? blob : null;
   }
 

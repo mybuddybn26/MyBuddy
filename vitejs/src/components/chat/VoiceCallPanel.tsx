@@ -17,26 +17,51 @@ const FALSE_POSITIVES = new Set([
   'hmm', 'uh', 'um', 'oh', 'ah', 'hi', 'hello', 'hey',
 ]);
 
-const UNEXPECTED_LANGUAGES = ['is', 'fo', 'ga', 'cy', 'eu', 'lt', 'lv', 'et', 'mt'];
-
 function containsUnexpectedChars(text: string): boolean {
   const unusual = text.match(/[\u00C0-\u00FF\u0100-\u024F\u1E00-\u1EFF]/g);
   if (!unusual) return false;
   return unusual.length > text.length * 0.3;
 }
 
-function shouldIgnoreTranscript(text: string, peak: number, avgRms: number, duration: number): string | null {
+function words(text: string): string[] {
+  return text.split(/\s+/).filter((w) => w.length > 1);
+}
+
+function scoreTranscript(text: string, peak: number, avgRms: number, voicedFrames: number, duration: number): { accept: boolean; reason: string } {
   const trimmed = text.trim();
-  if (!trimmed) return 'empty';
-  if (trimmed.length < 3) return 'too short';
-  const words = trimmed.split(/\s+/).filter((w) => w.length > 1);
-  if (words.length < 2) return 'too few meaningful words';
+  const w = words(trimmed);
+  const wCount = w.length;
   const lower = trimmed.toLowerCase().replace(/[.!?,]$/, '').trim();
-  if (FALSE_POSITIVES.has(lower)) return `false positive: "${lower}"`;
-  if (peak < 25 && duration < 1200) return 'low energy + short duration — likely noise';
-  if (avgRms < 8) return `low average RMS (${avgRms.toFixed(1)}) — likely silence`;
-  if (containsUnexpectedChars(trimmed)) return 'unexpected characters — likely hallucinated';
-  return null;
+  const isQuestion = /^(what|how|why|when|where|who|can|could|do|does|is|are|will|would|should|explain|tell|show|help|make|create|i want|i need|i would|please|stop|end)/i.test(trimmed);
+  const containsEnglish = /[a-zA-Z]{3,}/.test(trimmed);
+  const hasMeaningfulContent = wCount >= 2 || (wCount === 1 && w[0].length > 5);
+
+  if (!trimmed) return { accept: false, reason: 'empty' };
+  if (trimmed.length < 2) return { accept: false, reason: 'too short (<2 chars)' };
+
+  if (FALSE_POSITIVES.has(lower)) {
+    if (peak < 20 && avgRms < 5 && duration < 1500) return { accept: false, reason: `false positive "${lower}" (low energy)` };
+  }
+
+  if (duration < 600 && wCount < 2 && peak < 15) return { accept: false, reason: 'too short + low energy — noise' };
+
+  if (!containsEnglish && containsUnexpectedChars(trimmed) && wCount < 3) return { accept: false, reason: 'unexpected language chars + short — likely hallucination' };
+
+  const signals = 0
+    + (hasMeaningfulContent ? 2 : 0)
+    + (isQuestion ? 2 : 0)
+    + (peak > 20 ? 2 : peak > 10 ? 1 : 0)
+    + (voicedFrames > 100 ? 2 : voicedFrames > 20 ? 1 : 0)
+    + (duration > 1500 ? 1 : 0)
+    + (wCount >= 3 ? 2 : wCount >= 2 ? 1 : 0);
+
+  if (signals >= 3) return { accept: true, reason: `score ${signals}/9 (words:${wCount}, peak:${peak}, voiced:${voicedFrames})` };
+
+  if (avgRms < 3 && peak < 10 && wCount < 2) return { accept: false, reason: `very low energy (rms:${avgRms.toFixed(1)}, peak:${peak}), insufficient signals` };
+
+  if (signals >= 2 && peak > 8) return { accept: true, reason: `borderline accept: score ${signals}/9` };
+
+  return { accept: false, reason: `insufficient signals: score ${signals}/9 (words:${wCount}, peak:${peak}, voiced:${voicedFrames}, rms:${avgRms.toFixed(1)})` };
 }
 
 function Waveform({ active, level, color }: { active: boolean; level: number; color: string }) {
@@ -197,13 +222,14 @@ export function VoiceCallPanel({ open, onClose, onBubble, onRevealText }: VoiceC
 
       if (!text) { onBubble?.('ignored', 'user', ''); startListening(); return; }
 
-      const ignoreReason = shouldIgnoreTranscript(text, recorder.peakLevel || 0, recorder.averageRMS || 0, recorder.recordingDuration || 0);
-      if (ignoreReason) {
-        console.log(`[VoiceFilter] Rejected: ${ignoreReason} — "${text}"`);
+      const filterResult = scoreTranscript(text, recorder.peakLevel || 0, recorder.averageRMS || 0, recorder.voicedFrames || 0, recorder.recordingDuration || 0);
+      if (!filterResult.accept) {
+        console.log(`[VoiceFilter] Rejected: ${filterResult.reason} — "${text}"`);
         onBubble?.('ignored', 'user', '');
         startListening();
         return;
       }
+      console.log(`[VoiceFilter] Accepted: ${filterResult.reason} — "${text}"`);
 
       console.log('[VoiceCall] Accepted:', text);
       setUserTranscript(text);
