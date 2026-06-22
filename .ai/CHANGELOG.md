@@ -1,3 +1,8 @@
+### Fix: Stricter voice filter + shorter voice prompt
+- **Files modified**: `VoiceCallPanel.tsx`, `voiceCallPrompt.ts`, `.ai/VOICE.md`
+- **Reason**: Silence was producing false transcripts ("thank you", "so", "??????????? ???????"). Voice responses were too long.
+- **Impact**: 30-word false positive list, hallucination phrase detection, Cyrillic/East Asian rejection. Voice prompt now enforces 1-3 sentence max.
+
 ### Fix: Transcript scoring filter + dev-clean script
 - **Files created**: `scripts/dev-clean.ps1`
 - **Files modified**: `voiceRecorder.ts`, `VoiceCallPanel.tsx`, `.ai/VOICE.md`, `.ai/DEPLOYMENT.md`
