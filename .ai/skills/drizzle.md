@@ -32,7 +32,7 @@
 ## Common Mistakes
 
 - Forgetting to `.returning()` after insert/update when you need the created record.
-- Using raw SQL when Drizzle query builder would work.
+- Using raw SQL without justification — prefer Drizzle query builder for normal logic. Raw SQL is allowed when justified (see ARCHITECTURE.md §7 for requirements).
 - Not adding foreign key references.
 
 ## Verification

@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: ARCHITECTURE.md
+### Updated: Database Rules — Raw SQL Policy
+- **Files modified**: `.ai/ARCHITECTURE.md`, `.ai/skills/drizzle.md`, `.ai/skills/security.md`
+- **Reason**: Replaced absolute "no raw SQL" rule with a nuanced policy: prefer Drizzle, raw SQL allowed when justified (performance, complex queries, PG-specific features). Added mandatory parameterized queries for SQL injection prevention.
+- **Impact**: Raw SQL now requires: documented justification, parameterized queries only, comments explaining logic, DECISIONS.md entry for major patterns.
 - **Files created**: `.ai/ARCHITECTURE.md`
 - **Files modified**: `AGENTS.md`
 - **Reason**: Define codebase structure rules, dependency rules, and feature creation patterns so future agents build consistently.

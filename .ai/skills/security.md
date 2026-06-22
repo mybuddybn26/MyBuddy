@@ -44,6 +44,13 @@
 - Committing `.env` files with real keys.
 - Exposing API keys in chat or logs.
 - Not setting up `.gitignore` for new secret-containing files.
+- Using string concatenation in raw SQL — always use parameterized queries (`$1`, `$2`).
+
+## SQL Injection Prevention
+
+When raw SQL is necessary (see ARCHITECTURE.md §7 for rules):
+- Always use parameterized queries — never concatenate user input into query strings.
+- Use Drizzle's `sql` template tag for safe interpolation where possible.
 
 ## Verification
 

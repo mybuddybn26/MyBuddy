@@ -227,7 +227,20 @@ fastify/src/db/
 ### Rules
 - **Never modify database manually** — use `drizzle-kit push`.
 - **Schema changes** only in `schema.ts`.
-- **Queries** use Drizzle query builder — no raw SQL unless absolutely necessary.
+- **Queries**: Prefer Drizzle ORM and query builder for normal application logic.
+
+Raw SQL is allowed only when justified by:
+- Performance optimization (query planner analysis showing Drizzle is the bottleneck).
+- Complex queries (recursive CTEs, window functions, materialized views).
+- PostgreSQL-specific features not yet supported by Drizzle.
+- Migrations that require raw DDL.
+- Reporting or analytics queries.
+
+**Raw SQL Requirements:**
+1. Document why Drizzle was insufficient in a code comment.
+2. Use parameterized queries only (`$1`, `$2`, etc.) — never concatenate user input.
+3. Include comments explaining complex SQL logic.
+4. Add the decision to `.ai/DECISIONS.md` if it introduces a major database pattern.
 - **Transactions**: Use `app.db.transaction()` for multi-step operations.
 
 ---
