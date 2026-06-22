@@ -378,7 +378,7 @@ Before claiming voice is complete:
 - [x] Voice conversation loops (listen → speak → listen).
 - [x] Resources cleaned up on call end.
 - [x] TypeScript passes in both projects.
-- [ ] True streaming TTS (full audio received before playback — future optimization).
+- [x] Live voice chat bubbles (temporary Listening/Transcribing/Thinking bubbles).`n- [x] Latency timing logs ([VoiceLatency] STT/AI/TTS).`n- [x] Optimized VAD: 1.8s silence timeout.`n- [ ] True streaming TTS (full audio received before playback — future optimization).
 - [ ] WebSocket-based STT (batch upload used currently — future optimization).
 - [ ] ElevenLabs credits (Deepgram used as fallback — switch when credits available).
 

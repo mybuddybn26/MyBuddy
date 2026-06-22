@@ -6,6 +6,11 @@
 
 ## 2026-06-22
 
+### Added: Live voice bubbles + latency timing
+- **Files modified**: Chat.tsx, VoiceCallPanel.tsx, .ai/VOICE.md 
+- **Reason**: ChatGPT-style temporary chat bubbles during voice calls, latency timing logs, VAD optimization.
+- **Impact**: Temporary user/assistant bubbles show Listening/Transcribing/Thinking states. STT/AI/TTS timing logged. Silence timeout reduced to 1.8s.
+
 ### Fix: Voice call transcript filtering + VAD + chat saving
 - **Files modified**: `vitejs/src/voice/voiceRecorder.ts`, `vitejs/src/components/chat/VoiceCallPanel.tsx`, `vitejs/src/pages/Chat.tsx`, `.ai/VOICE.md`
 - **Reason**: Fix false transcripts, improve VAD, prevent TTS echo, save voice messages to chat.
