@@ -133,4 +133,22 @@ export const budgets = pgTable('budgets', {
     .defaultNow(),
 });
 
+// ─── 7. feedback (AI response ratings) ───
+export const feedback = pgTable('feedback', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  conversationId: uuid('conversation_id')
+    .notNull()
+    .references(() => conversations.id, { onDelete: 'cascade' }),
+  rating: text('rating').notNull(), // 'good' | 'bad'
+  reasons: jsonb('reasons').$type<string[]>().notNull().default([]),
+  feedbackText: text('feedback_text').default(''),
+  model: text('model').default(''),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // projx-anchor: tables

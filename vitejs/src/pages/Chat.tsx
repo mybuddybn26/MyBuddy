@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '../api';
 import { Mic, MicOff, Send, Camera, Volume2, VolumeX } from 'lucide-react';
+import { MessageActions } from '../components/chat/MessageActions';
 
 interface Message {
   id: string;
@@ -8,6 +9,7 @@ interface Message {
   content: string;
   input_type?: string;
   streaming?: boolean;
+  conversationId?: string;
   budgets?: Array<{
     id: string;
     title: string;
@@ -218,6 +220,14 @@ export function Chat() {
                     : m,
                 ),
               );
+            } else if (data.type === 'done') {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantMsg.id
+                    ? { ...m, conversationId: data.conversationId }
+                    : m,
+                ),
+              );
             }
           } catch {
             /* skip malformed lines */
@@ -265,6 +275,20 @@ export function Chat() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sendMessage(input);
+  };
+
+  const handleRetry = (assistantMsgId: string) => {
+    setMessages((prev) => {
+      const idx = prev.findIndex((m) => m.id === assistantMsgId);
+      if (idx <= 0) return prev;
+      const userMsg = prev[idx - 1];
+      if (userMsg.role !== 'user') return prev;
+      const newMessages = [...prev];
+      newMessages.splice(idx - 1, 2);
+      setMessages(newMessages);
+      setTimeout(() => sendMessage(userMsg.content, userMsg.input_type), 0);
+      return newMessages;
+    });
   };
 
   const toggleRecording = () => {
@@ -562,6 +586,13 @@ export function Chat() {
                     </div>
                   ))}
                 </div>
+              )}
+              {msg.role === 'assistant' && !msg.streaming && msg.content && (
+                <MessageActions
+                  content={msg.content}
+                  conversationId={msg.conversationId || msg.id}
+                  onRetry={() => handleRetry(msg.id)}
+                />
               )}
             </div>
           </div>

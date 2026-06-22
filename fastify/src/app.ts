@@ -23,6 +23,7 @@ import tokenRoutes from './modules/tokens/routes.js';
 import billingRoutes from './modules/billing/routes.js';
 import pdfRoutes from './modules/pdf/routes.js';
 import budgetRoutes from './modules/budgets/routes.js';
+import feedbackRoutes from './modules/feedback/routes.js';
 // projx-anchor: imports
 // projx-anchor: entity-imports
 
@@ -126,6 +127,7 @@ export async function buildApp(
   await app.register(billingRoutes);
   await app.register(pdfRoutes);
   await app.register(budgetRoutes);
+  await app.register(feedbackRoutes);
 
   // projx-anchor: entity-registrations
 

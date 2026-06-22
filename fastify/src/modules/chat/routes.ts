@@ -239,6 +239,7 @@ export default fp(async (app: FastifyInstance) => {
 
       let fullResponse = '';
       let totalTokens = 0;
+      let savedConversationId: string | undefined;
 
       try {
         for await (const chunk of streamChat(messages, persona)) {
@@ -324,13 +325,14 @@ export default fp(async (app: FastifyInstance) => {
           txResult.parsed.length > 0 || budgetResult.parsed.length > 0
             ? budgetResult.cleaned
             : fullResponse;
-        await app.db.insert(conversations).values({
+        const [saved] = await app.db.insert(conversations).values({
           userId,
           role: 'assistant',
           content: displayText,
           inputType: 'text',
           tokensUsed: totalTokens,
-        });
+        }).returning({ id: conversations.id });
+        savedConversationId = saved.id;
       }
 
       // Deduct 1 token
@@ -346,7 +348,7 @@ export default fp(async (app: FastifyInstance) => {
       });
 
       reply.raw.write(
-        `data: ${JSON.stringify({ type: 'done', token_balance: user.tokenBalance - 1 })}\n\n`,
+        `data: ${JSON.stringify({ type: 'done', token_balance: user.tokenBalance - 1, conversationId: savedConversationId })}\n\n`,
       );
       reply.raw.end();
     },

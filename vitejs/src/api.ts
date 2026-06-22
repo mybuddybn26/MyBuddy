@@ -239,4 +239,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ reference }),
     }),
+
+  // Feedback
+  submitFeedback: (
+    conversationId: string,
+    data: { rating: 'good' | 'bad'; reasons: string[]; feedbackText?: string },
+  ) =>
+    request<{ status: string }>('/api/feedback', {
+      method: 'POST',
+      body: JSON.stringify({ conversationId, ...data }),
+    }),
 };
