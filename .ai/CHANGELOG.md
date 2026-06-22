@@ -6,7 +6,11 @@
 
 ## 2026-06-22
 
-### Created: PROJECT.md
+### Created: ARCHITECTURE.md
+- **Files created**: `.ai/ARCHITECTURE.md`
+- **Files modified**: `AGENTS.md`
+- **Reason**: Define codebase structure rules, dependency rules, and feature creation patterns so future agents build consistently.
+- **Impact**: 15 sections covering philosophy, structure, frontend/backend/AI/voice/database architecture, dependency rules, error handling, performance, testing, and refactoring.
 - **Files created**: `.ai/PROJECT.md`
 - **Files modified**: `AGENTS.md`
 - **Reason**: Provide a single high-level overview covering product, architecture, features, and development workflow.

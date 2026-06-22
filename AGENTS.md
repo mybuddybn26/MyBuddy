@@ -11,8 +11,9 @@ When starting ANY task on this project, read files in this exact order:
 1. **AGENTS.md** (this file) — workflow and skill selection
 2. **BUDDY.md** — project conventions, philosophy, lessons learned
 3. `.ai/PROJECT.md` — product overview, architecture, features
-4. `.ai/DECISIONS.md` — architecture decisions (ADR)
-5. `.ai/LESSONS.md` — recurring mistakes to avoid
+4. `.ai/ARCHITECTURE.md` — codebase structure rules, dependency rules
+5. `.ai/DECISIONS.md` — architecture decisions (ADR)
+6. `.ai/LESSONS.md` — recurring mistakes to avoid
 
 Then, based on the task type, load the relevant skill files from `.ai/skills/`.
 
@@ -117,35 +118,43 @@ Every task must follow this exact sequence:
        ↓
 2. Read BUDDY.md
        ↓
-3. Read .ai/DECISIONS.md (understand past architecture choices)
+3. Read .ai/PROJECT.md (understand what Buddy is)
        ↓
-4. Read .ai/LESSONS.md (avoid repeating known mistakes)
+4. Read .ai/ARCHITECTURE.md (understand codebase rules)
        ↓
-5. Determine task category
+5. Read .ai/DECISIONS.md (understand past architecture choices)
+       ↓
+6. Read .ai/LESSONS.md (avoid repeating known mistakes)
+       ↓
+7. Determine task category
        ↓
 6. Load matching skills from .ai/skills/
        ↓
-7. Analyze existing code (read affected files)
+7. Determine task category
        ↓
-8. Search for reusable patterns (grep for similar implementations)
+8. Load matching skills from .ai/skills/
        ↓
-9. Think carefully — consider edge cases, multiple approaches
+9. Analyze existing code (read affected files)
        ↓
-10. Implement the solution
+10. Search for reusable patterns (grep for similar implementations)
        ↓
-11. After implementation:
+11. Think carefully — consider edge cases, multiple approaches
+       ↓
+12. Implement the solution
+       ↓
+13. After implementation:
     - If architecture changed: update .ai/DECISIONS.md
     - If a mistake was discovered: update .ai/LESSONS.md
     - Always: update .ai/CHANGELOG.md
        ↓
-12. Verify:
+14. Verify:
     - pnpm typecheck in fastify/ (0 errors)
     - pnpm typecheck in vitejs/ (0 errors)
     - No broken imports
     - Existing functionality preserved
     - All Definition of Done items checked
        ↓
-13. Report completion
+15. Report completion
 ```
 
 ---
