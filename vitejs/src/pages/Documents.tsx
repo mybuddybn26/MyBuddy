@@ -108,7 +108,7 @@ export function Documents() {
 
   const typeBadge: Record<string, { color: string; label: string }> = {
     bill: { color: 'bg-amber-100 text-amber-700', label: '💳 Bill' },
-    letter: { color: 'bg-blue-100 text-blue-700', label: '✉️ Letter' },
+    letter: { color: 'bg-primary-50 text-primary-700', label: '✉️ Letter' },
     permit: { color: 'bg-green-100 text-green-700', label: '📋 Permit' },
     statement: {
       color: 'bg-purple-100 text-purple-700',
