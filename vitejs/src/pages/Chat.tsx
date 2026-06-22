@@ -244,12 +244,13 @@ export function Chat() {
       // TTS read-back
       if (ttsEnabled && fullText) {
         try {
-          const ttsRes = await api.tts(fullText.slice(0, 500));
+          const ttsRes = await api.tts(fullText.slice(0, 5000));
           if (ttsRes.ok) {
             const audioBlob = await ttsRes.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
-            audio.play();
+            audio.onended = () => URL.revokeObjectURL(audioUrl);
+            audio.play().catch(() => URL.revokeObjectURL(audioUrl));
           }
         } catch {
           /* TTS optional */

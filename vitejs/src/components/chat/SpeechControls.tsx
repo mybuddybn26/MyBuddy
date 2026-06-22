@@ -19,18 +19,22 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
   const toast = useToast();
 
   const cleanup = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
+    const audio = audioRef.current;
+
+    if (audio) {
+      audio.pause();
+      audio.onended = null;
+      audio.onerror = null;
+      audio.oncanplay = null;
+      audio.src = '';
       audioRef.current = null;
     }
-    if (audioUrlRef.current) {
-      URL.revokeObjectURL(audioUrlRef.current);
-      audioUrlRef.current = null;
-    }
-    if (activeAudioRef.current === audioRef.current) {
+
+    if (activeAudioRef.current === audio) {
       activeAudioRef.current = null;
     }
+
+    audioUrlRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -44,6 +48,22 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
       activeAudioRef.current = null;
     }
   }, []);
+
+  const attachAudioEvents = useCallback(
+    (audio: HTMLAudioElement) => {
+      audio.onended = () => {
+        setState('idle');
+        cleanup();
+      };
+      audio.onerror = () => {
+        console.error('Audio playback error');
+        toast('Could not play audio. Please try again.', 'error');
+        setState('idle');
+        cleanup();
+      };
+    },
+    [cleanup, toast],
+  );
 
   const speak = useCallback(async () => {
     stopGlobalAudio();
@@ -62,16 +82,7 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
         audioRef.current = audio;
         activeAudioRef.current = audio;
         audioUrlRef.current = cachedUrl;
-
-        audio.onended = () => {
-          setState('idle');
-          cleanup();
-        };
-        audio.onerror = () => {
-          console.error('Audio playback error (cached)');
-          setState('idle');
-          cleanup();
-        };
+        attachAudioEvents(audio);
 
         await audio.play();
         setState('playing');
@@ -93,8 +104,11 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
       });
 
       if (!res.ok) {
-        const errBody = await res.json().catch(() => ({ detail: 'TTS request failed' }));
-        const detail = (errBody as { detail?: string }).detail || 'TTS request failed';
+        const errBody = await res
+          .json()
+          .catch(() => ({ detail: 'TTS request failed' }));
+        const detail =
+          (errBody as { detail?: string }).detail || 'TTS request failed';
         throw new Error(detail);
       }
 
@@ -110,26 +124,19 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
       const audio = new Audio(url);
       audioRef.current = audio;
       activeAudioRef.current = audio;
-
-      audio.onended = () => {
-        setState('idle');
-        cleanup();
-      };
-      audio.onerror = () => {
-        console.error('Audio playback error');
-        setState('idle');
-        cleanup();
-      };
+      attachAudioEvents(audio);
 
       await audio.play();
       setState('playing');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Speech is currently unavailable.';
+      const msg =
+        err instanceof Error ? err.message : 'Speech is currently unavailable.';
       console.error('TTS error:', msg);
       toast(msg, 'error');
       setState('idle');
+      cleanup();
     }
-  }, [text, cleanup, stopGlobalAudio, toast]);
+  }, [text, cleanup, stopGlobalAudio, attachAudioEvents, toast]);
 
   const togglePause = useCallback(() => {
     if (!audioRef.current) return;
@@ -178,7 +185,11 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
   }
 
   return (
-    <div className='flex items-center gap-0.5' role='group' aria-label='Speech controls'>
+    <div
+      className='flex items-center gap-0.5'
+      role='group'
+      aria-label='Speech controls'
+    >
       {state === 'playing' && (
         <span className='flex items-center gap-0.5 mr-0.5' aria-hidden='true'>
           {[0, 1, 2].map((i) => (

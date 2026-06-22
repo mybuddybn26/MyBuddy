@@ -119,16 +119,16 @@ export const api = {
       { transcript: string } & { url: string }
     >,
 
-  tts: async (text: string, voiceId?: string) => {
+  tts: async (text: string) => {
     await ensureFreshToken();
     const token = getToken();
-    return fetch(`${BASE}/api/voice/tts`, {
+    return fetch(`${BASE}/api/voice/tts/speak`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ text, voice_id: voiceId }),
+      body: JSON.stringify({ text: text.slice(0, 5000) }),
     });
   },
 
