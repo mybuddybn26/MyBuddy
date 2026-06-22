@@ -23,6 +23,7 @@ BUDDY.md            ← This file: project conventions, memory, ADR
 ├── API.md          ← API contract documentation
 ├── SECURITY.md     ← Security & privacy specification
 ├── PERFORMANCE.md  ← Performance engineering specification
+├── TESTING.md      ← Verification specification
 ├── DECISIONS.md    ← Architecture decisions
 ├── CHANGELOG.md    ← Change history
 ├── LESSONS.md      ← Mistakes + rules

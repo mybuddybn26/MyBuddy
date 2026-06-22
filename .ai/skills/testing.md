@@ -1,5 +1,7 @@
 # Testing
 
+> For the complete verification specification, commands, manual checklists, and testing gaps, see `.ai/TESTING.md`.
+
 ## Stack
 
 - **Backend**: Vitest + real PostgreSQL

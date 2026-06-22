@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: PERFORMANCE.md
+### Created: TESTING.md
+- **Files created**: `.ai/TESTING.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/testing.md`
+- **Reason**: Permanent verification specification — defines what "done" means, documents all real commands, and provides domain-specific checklists.
+- **Impact**: 15 sections with all real CLI commands, 4-level verification matrix, voice-specific 9-item checklist, and 7 documented testing gaps with severity ratings.
 - **Files created**: `.ai/PERFORMANCE.md`, modified: `AGENTS.md`, `BUDDY.md`
 - **Reason**: Permanent performance specification — streaming, caching, memory management, database optimization, bundle performance, and latency targets.
 - **Impact**: 12 sections covering frontend, chat, AI cost, voice latency (<2s target), database, documents, API, memory, bundle, and monitoring. Documented 3 voice bottlenecks and 2 database risks.
