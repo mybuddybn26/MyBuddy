@@ -33,6 +33,7 @@ const ConfigSchema = Type.Object({
   // ─── AI Provider Keys ───
   DEEPSEEK_API_KEY: Type.String({ default: '' }),
   ASSEMBLYAI_API_KEY: Type.String({ default: '' }),
+  DEEPGRAM_API_KEY: Type.String({ default: '' }),
   GROQ_API_KEY: Type.String({ default: '' }),
   ANTHROPIC_API_KEY: Type.String({ default: '' }),
   OPENAI_API_KEY: Type.String({ default: '' }),
@@ -88,6 +89,7 @@ function loadConfig(): Config {
     // AI Provider Keys
     DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY ?? '',
     ASSEMBLYAI_API_KEY: process.env.ASSEMBLYAI_API_KEY ?? '',
+    DEEPGRAM_API_KEY: process.env.DEEPGRAM_API_KEY ?? '',
     GROQ_API_KEY: process.env.GROQ_API_KEY ?? '',
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
     OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? '',
