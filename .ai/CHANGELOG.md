@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: ROADMAP.md
+### Created: FEATURES.md
+- **Files created**: `.ai/FEATURES.md`, modified: `AGENTS.md`, `BUDDY.md`
+- **Reason**: Permanent feature catalog — every user-facing feature documented with status, location, APIs, dependencies, and completion checklist.
+- **Impact**: 16 sections covering all 13 features with COMPLETE/PARTIAL/PLANNED statuses, feature dependency map, and feature completion checklist.
 - **Files created**: `.ai/ROADMAP.md`, modified: `AGENTS.md`, `BUDDY.md`
 - **Reason**: Define long-term vision, feature direction, and priorities so future agents align implementation with product goals.
 - **Impact**: 12 sections covering vision, principles, all 12 current features with statuses, short/medium/long-term plans, priority system, technical roadmap, and feature evaluation framework.

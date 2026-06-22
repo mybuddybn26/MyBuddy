@@ -26,6 +26,7 @@ BUDDY.md            ← This file: project conventions, memory, ADR
 ├── TESTING.md      ← Verification specification
 ├── DEPLOYMENT.md   ← Deployment specification
 ├── ROADMAP.md      ← Product roadmap + priorities
+├── FEATURES.md     ← Feature catalog + statuses
 ├── DECISIONS.md    ← Architecture decisions
 ├── CHANGELOG.md    ← Change history
 ├── LESSONS.md      ← Mistakes + rules
