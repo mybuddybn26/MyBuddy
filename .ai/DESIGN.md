@@ -9,52 +9,65 @@
 
 Buddy's UI should feel:
 
-- **Modern** — clean lines, generous whitespace, no clutter.
-- **Calm** — blue-and-white palette, soft shadows, no harsh contrasts.
-- **Premium** — polished transitions, consistent spacing, professional typography.
-- **Minimal** — only show what the user needs; hide complexity.
-- **Fast** — 150-250ms animations, optimistic UI where possible.
+- **Aspen Snow** — the official theme: background #FFFFF7, clean, spacious, like fresh snow.
+- **Premium AI assistant** — not just a chatbot, but a polished product.
+- **Clean** — generous whitespace, no clutter, every element has purpose.
+- **Calm** — soft ice blue accents, deep blue anchors, no harsh contrasts.
 - **Trustworthy** — predictable behavior, clear feedback, no dark patterns.
-- **Human** — conversational layout, warm gradient accents, rounded shapes.
+- **Spacious** — breathing room between elements, generous padding, never cramped.
+- **Intelligent** — design reflects intelligence: precise, professional, considered.
 - **Mobile-first** — touch-friendly targets (min 44px), responsive layouts.
 - **Accessible** — WCAG AA contrast, keyboard navigation, screen reader support.
 
-Quality reference: ChatGPT, Linear, Notion, Discord, WhatsApp Desktop — but not copied directly.
+### Design Identity
+- **Primary Identity:** Aspen Snow (#FFFFF7) + Deep Professional Blue.
+- **Avoid:** green nature palette, purple AI gradients, neon colors, harsh gray backgrounds.
+
+Quality reference: premium AI tools, modern productivity apps — but not copied directly.
 
 ---
 
-## 2. Color System
+## 2. Color System — Aspen Snow
 
 All colors are defined as CSS custom properties in `vitejs/src/index.css` via `@theme`.
 
-### Primary Palette (Blue)
+### Theme Name
+**Aspen Snow** — the official Buddy theme.
+
+Background: `#FFFFF7` (warm white, like fresh snow in sunlight).
+
+### Primary Identity: Deep Professional Blue
 ```
---color-primary-50:  #eff6ff   ← Lightest background
---color-primary-100: #dbeafe   ← Hover/focus backgrounds
---color-primary-200: #bfdbfe   ← Selection highlight
---color-primary-300: #93c5fd
---color-primary-400: #60a5fa   ← Subtle accents
---color-primary-500: #3b82f6   ← DEFAULT: buttons, links, accents
---color-primary-600: #2563eb   ← Hover states
---color-primary-700: #1d4ed8   ← Darker accents, gradient stops
---color-primary-800: #1e40af   ← Headings, emphasis
---color-primary-900: #1e3a8a   ← Darkest text emphasis
+--color-primary-50:  #eef2ff   ← Lightest backgrounds
+--color-primary-100: #e0e7ff   ← Hover, subtle fills
+--color-primary-200: #c7d2fe   ← Selection, borders
+--color-primary-300: #a5b4fc   ← Active states
+--color-primary-400: #818cf8   ← Accent elements
+--color-primary-500: #6366f1   ← BUTTONS, primary actions
+--color-primary-600: #4f46e5   ← Hover states
+--color-primary-700: #4338ca   ← Active, gradient stops
+--color-primary-800: #3730a3   ← Headings, emphasis
+--color-primary-900: #312e81   ← Darkest text emphasis
 ```
 
-### Surface
+### Surface (Aspen Snow)
 ```
---color-surface:      #f8fafc   ← Page background (light)
---color-surface-alt:  #f1f5f9   ← Card/panel background (light)
---color-surface-dark: #0f172a   ← Page background (dark)
---color-surface-dark-alt: #1e293b ← Card background (dark)
+--color-surface:      #FFFFF7   ← Page background (Aspen Snow signature)
+--color-surface-alt:  #FEFEF0   ← Card/panel background (warm white)
+--color-surface-dark: #0f172a   ← Page background (dark mode)
+--color-surface-dark-alt: #1e293b ← Card background (dark mode)
+```
+
+### Accent: Soft Ice Blue
+```
+--color-accent:  #38bdf8   ← Soft ice blue accent
 ```
 
 ### Semantic
 ```
---color-accent:  #0ea5e9   ← Sky blue accents, gradients
---color-success: #10b981   ← Success messages, active states
+--color-success: #10b981   ← Success messages
 --color-warning: #f59e0b   ← Warning messages
---color-danger:  #ef4444   ← Error messages, recording state, delete buttons
+--color-danger:  #ef4444   ← Error messages
 ```
 
 ### Text (Tailwind classes referencing tokens)
@@ -68,6 +81,14 @@ All colors are defined as CSS custom properties in `vitejs/src/index.css` via `@
 - **Use Tailwind classes** that reference the theme tokens above.
 - **Selected navigation** must remain readable (white text on primary gradient, or `bg-white/20 text-white`).
 - **Maintain WCAG AA contrast** in both light and dark modes.
+- **Aspen Snow background** (#FFFFF7) must be the default page background.
+- **Cards** should use `white` or `#FEFEF0` backgrounds.
+
+### Avoid
+- Green/nature palette (do not use green tones outside of `--color-success`).
+- Purple AI gradients (no purple-to-blue gradients).
+- Neon/fluorescent colors.
+- Harsh gray backgrounds (do not use gray tones that clash with Aspen Snow).
 
 ---
 
