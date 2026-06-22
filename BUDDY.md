@@ -17,6 +17,7 @@ BUDDY.md            ← This file: project conventions, memory, ADR
 ├── PROJECT.md      ← Product + engineering overview
 ├── ARCHITECTURE.md ← Codebase structure + rules
 ├── DESIGN.md       ← Visual identity + design system
+├── VOICE.md        ← Voice system specification
 ├── DECISIONS.md    ← Architecture decisions
 ├── CHANGELOG.md    ← Change history
 ├── LESSONS.md      ← Mistakes + rules

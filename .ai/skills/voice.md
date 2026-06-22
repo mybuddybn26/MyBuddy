@@ -1,5 +1,7 @@
 # Voice
 
+> For the complete voice specification, pipeline, state machine, and verification checklist, see `.ai/VOICE.md`.
+
 ## Pipeline
 
 ```

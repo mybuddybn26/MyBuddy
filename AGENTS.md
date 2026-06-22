@@ -28,7 +28,7 @@ Determine the task category and load the matching skills automatically:
 | **Backend / API** | `fastify.md` → `architecture.md` → `typescript.md` → `testing.md` → `security.md` |
 | **Database / Schema** | `drizzle.md` → `fastify.md` → `typescript.md` |
 | **Frontend / UI** | `ui.md` → `.ai/DESIGN.md` → `typescript.md` → `architecture.md` → `testing.md` |
-| **Voice / Audio** | `voice.md` → `ai.md` → `architecture.md` |
+| **Voice / Audio** | `voice.md` → `.ai/VOICE.md` → `ai.md` → `architecture.md` |
 | **AI / Prompts** | `ai.md` → `prompts.md` → `architecture.md` |
 | **Security** | `security.md` → `architecture.md` |
 | **Cross-cutting / Refactor** | `architecture.md` → `typescript.md` → `ui.md` → `fastify.md` |
@@ -184,6 +184,7 @@ BUDDY.md            ← Project conventions and memory
 ├── PROJECT.md      ← Product + engineering overview
 ├── ARCHITECTURE.md ← Codebase structure + rules
 ├── DESIGN.md       ← Visual identity + design system
+├── VOICE.md        ← Voice system specification
 ├── DECISIONS.md    ← Architecture Decision Records
 ├── CHANGELOG.md    ← Project change history
 ├── LESSONS.md      ← Recurring mistakes and rules

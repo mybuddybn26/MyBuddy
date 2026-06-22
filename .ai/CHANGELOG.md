@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: DESIGN.md
+### Created: VOICE.md
+- **Files created**: `.ai/VOICE.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/voice.md`
+- **Reason**: Permanent engineering specification for the entire voice system — pipeline, state machine, providers, latency targets, verification checklist.
+- **Impact**: 19 sections covering philosophy, modes, session manager, state machine, complete pipeline, mic rules, waveform, STT, AI, TTS, interruptions, latency, UI, errors, privacy, debugging, and file map. Voice skill selection now includes VOICE.md.
 - **Files created**: `.ai/DESIGN.md`, modified: `AGENTS.md`, `.ai/skills/ui.md`
 - **Reason**: Centralize Buddy's visual identity, color system, typography, spacing, icon mappings, component patterns, chat UI, voice UI, animations, accessibility, and design anti-patterns in one authoritative document.
 - **Impact**: 18 sections covering every visual aspect. Future UI tasks must consult DESIGN.md. UI skill selection now includes DESIGN.md.
