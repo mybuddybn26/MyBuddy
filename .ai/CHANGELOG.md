@@ -1,3 +1,9 @@
+### Added: Tools / Function Calling Phase 1
+- **Files created**: `fastify/src/ai/tools/index.ts`, `fastify/src/ai/prompts/toolPrompt.ts`, `fastify/src/modules/tools/routes.ts`
+- **Files modified**: `aiService.ts`, `chat/routes.ts`, `api.ts`, `Chat.tsx`, `app.ts`
+- **Reason**: Replace fragile regex-based AI action extraction with structured, validated internal tool calls.
+- **Impact**: 4 tools (createBudget, createTransaction, searchDocuments, createMemory). WRITE tools require user confirmation via chat UI cards. Tool prompt injected into every AI request. Legacy regex extraction kept as fallback. Confirmation flow via SSE + POST endpoints.
+
 ### Fix: Budget cards, settings layout, remove AI Usage from user
 - **Files modified**: `Chat.tsx`, `Settings.tsx`
 - **Reason**: Budget cards shown for unrelated messages. Memory section had broken layout. AI Usage exposed internal costs to users.
