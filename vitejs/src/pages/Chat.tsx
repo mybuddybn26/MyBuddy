@@ -355,8 +355,8 @@ export function Chat() {
         </div>
       )}
 
-      <div className='border-t border-slate-200 bg-white px-4 py-3'>
-        <form onSubmit={handleSubmit} className='flex items-center gap-2'>
+      <div className='border-t border-slate-100 bg-white px-4 py-3'>
+        <form onSubmit={handleSubmit} className='flex items-center gap-2 max-w-2xl mx-auto'>
           <button type='button' onClick={() => fileInputRef.current?.click()} className='p-2.5 text-slate-400 hover:text-primary-500 hover:bg-primary-50 rounded-xl transition-colors' aria-label='Upload photo'><Camera size={20} /></button>
           <input ref={fileInputRef} type='file' accept='image/*' capture='environment' className='hidden' onChange={handleImageUpload} />
            <input type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? 'Listening...' : 'Type a message…'} disabled={isStreaming || isRecording} className='flex-1 px-4 py-2.5 bg-surface border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all disabled:opacity-50' />

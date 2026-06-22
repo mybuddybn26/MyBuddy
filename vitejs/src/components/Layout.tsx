@@ -45,27 +45,27 @@ export function Layout() {
   return (
     <div className='flex h-screen bg-surface overflow-hidden'>
       {/* ─── Desktop Sidebar ─── */}
-      <nav className='hidden md:flex flex-col w-64 gradient-header'>
+      <nav className='hidden md:flex flex-col w-64 bg-gradient-to-b from-primary-800 via-primary-700 to-primary-900 backdrop-blur-sm'>
         {/* Brand */}
         <div className='p-5 border-b border-white/10'>
-          <h1 className='text-xl font-bold tracking-tight'>🤖 MyBuddy</h1>
-          <p className='text-xs text-primary-100 mt-0.5 opacity-80'>
+          <h1 className='text-xl font-bold tracking-tight text-white'>MyBuddy</h1>
+          <p className='text-xs text-primary-200 mt-0.5'>
             Your AI Assistant
           </p>
         </div>
 
         {/* Nav Links */}
-        <div className='flex-1 py-3 px-3 space-y-1'>
+        <div className='flex-1 py-4 px-3 space-y-0.5'>
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-white/20 text-white shadow-sm'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                    ? 'bg-white/15 text-white'
+                    : 'text-white/60 hover:bg-white/8 hover:text-white/90'
                 }`
               }
             >
@@ -78,13 +78,13 @@ export function Layout() {
         {/* Token Balance */}
         {tokenBalance !== null && (
           <div className='px-4 py-3 border-t border-white/10'>
-            <div className='flex items-center gap-2 text-xs text-white/60 mb-1.5'>
+            <div className='flex items-center gap-2 text-xs text-white/50 mb-1.5'>
               <Coins size={14} />
-              <span>{tokenBalance} tokens left</span>
+              <span>{tokenBalance} tokens</span>
             </div>
             <div className='token-bar bg-white/10'>
               <div
-                className='token-bar-fill !bg-white/50'
+                className='token-bar-fill !bg-white/40'
                 style={{
                   width: `${Math.max(0, Math.min(100, (tokenBalance / 200) * 100))}%`,
                 }}
@@ -96,10 +96,10 @@ export function Layout() {
         {/* User Footer */}
         <div className='p-4 border-t border-white/10'>
           <div className='flex items-center justify-between'>
-            <span className='text-sm text-white/80 truncate'>{user.name}</span>
+            <span className='text-sm text-white/70 truncate'>{user.name}</span>
             <button
               onClick={logout}
-              className='text-white/50 hover:text-white transition-colors p-1'
+              className='text-white/40 hover:text-white/80 transition-colors p-1'
               aria-label='Log out'
             >
               <LogOut size={16} />
@@ -109,9 +109,9 @@ export function Layout() {
       </nav>
 
       {/* ─── Mobile Header ─── */}
-      <div className='md:hidden fixed top-0 left-0 right-0 z-50 gradient-header'>
+      <div className='md:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-primary-800 via-primary-700 to-primary-900'>
         <div className='flex items-center justify-between px-4 h-14'>
-          <h1 className='text-lg font-bold text-white'>🤖 MyBuddy</h1>
+          <h1 className='text-lg font-bold text-white'>MyBuddy</h1>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className='text-white p-1'
@@ -129,7 +129,7 @@ export function Layout() {
             className='md:hidden fixed inset-0 bg-black/40 z-40'
             onClick={() => setMobileOpen(false)}
           />
-          <div className='md:hidden fixed top-14 right-0 w-64 bottom-0 z-50 gradient-header animate-fade-in p-4 space-y-2'>
+          <div className='md:hidden fixed top-14 right-0 w-64 bottom-0 z-50 bg-gradient-to-b from-primary-800 to-primary-900 animate-fade-in p-4 space-y-1'>
             {NAV_ITEMS.map((item) => (
               <NavLink
                 key={item.to}
