@@ -232,7 +232,8 @@ Before TTS, run `speechFormatter.ts`:
 ### Deepgram (Current)
 - **Endpoint**: `POST https://api.deepgram.com/v1/speak?model=aura-asteria-en`.
 - **Backend**: `fastify/src/services/tts/deepgramService.ts` → `POST /api/voice/tts/speak`.
-- **Caching**: In-memory cache (50 entries, LRU eviction) via `audioCache.ts`.
+- **Caching**: In-memory cache (50 entries, LRU eviction) via `audioCache.ts
+- astify/src/ai/prompts/voiceCallPrompt.ts � Short conversational voice responses`.
 - **Errors**: 401 → "Invalid API key", 402 → "No credits remaining", 429 → "Rate limited".
 
 ### ElevenLabs (Target)
@@ -378,7 +379,12 @@ Before claiming voice is complete:
 - [x] Voice conversation loops (listen → speak → listen).
 - [x] Resources cleaned up on call end.
 - [x] TypeScript passes in both projects.
-- [x] Live voice chat bubbles (temporary Listening/Transcribing/Thinking bubbles).`n- [x] Latency timing logs ([VoiceLatency] STT/AI/TTS).`n- [x] Optimized VAD: 1.8s silence timeout.`n- [ ] True streaming TTS (full audio received before playback — future optimization).
+- [x] Live voice chat bubbles (Transcribing/Accepted/Ignored/Thinking/Responding)
+- [x] Language guard + stricter VAD (SPEECH_START_THRESHOLD=20, RMS tracking, 5 voiced frames minimum)
+- [x] Gradual text reveal during TTS playback
+- [x] Voice call prompt for short conversational responses
+- [x] Microphone stream reuse across call session
+- [x] Bubble placement fixed (Listening stays in panel, not chat) (temporary Listening/Transcribing/Thinking bubbles).`n- [x] Latency timing logs ([VoiceLatency] STT/AI/TTS).`n- [x] Optimized VAD: 1.8s silence timeout.`n- [ ] True streaming TTS (full audio received before playback — future optimization).
 - [ ] WebSocket-based STT (batch upload used currently — future optimization).
 - [ ] ElevenLabs credits (Deepgram used as fallback — switch when credits available).
 
@@ -398,6 +404,7 @@ Before claiming voice is complete:
 | `fastify/src/services/tts/ttsRoutes.ts` | `POST /api/voice/tts/speak` |
 | `fastify/src/services/tts/deepgramService.ts` | Deepgram API client |
 | `fastify/src/services/tts/speechFormatter.ts` | Text → speech-optimized |
-| `fastify/src/services/tts/audioCache.ts` | In-memory TTS cache |
+| `fastify/src/services/tts/audioCache.ts
+- astify/src/ai/prompts/voiceCallPrompt.ts � Short conversational voice responses` | In-memory TTS cache |
 | `fastify/src/modules/chat/aiService.ts` | DeepSeek/Ollama streaming |
 | `fastify/src/ai/prompts/buddySystemPrompt.ts` | Buddy personality |

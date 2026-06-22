@@ -1,3 +1,9 @@
+### Fix: Voice polish — VAD, language guard, voice prompt, gradual reveal
+- **Files created**: `fastify/src/ai/prompts/voiceCallPrompt.ts`
+- **Files modified**: `voiceRecorder.ts`, `VoiceCallPanel.tsx`, `Chat.tsx`, `prompts/index.ts`, `.ai/VOICE.md`
+- **Reason**: Fix false transcript hallucinations, improve VAD accuracy, add voice-specific prompt, gradual text reveal, mic reuse.
+- **Impact**: VAD thresholds increased (speech start 20, end 12, 5 voiced frames min). Language guard rejects unexpected characters. VoiceCallPrompt keeps responses short. Gradual reveal simulates streaming during TTS. Mic reused across call session.
+
 # CHANGELOG.md â€” Project Change History
 
 > Track important project changes so future AI agents understand what changed and why.
