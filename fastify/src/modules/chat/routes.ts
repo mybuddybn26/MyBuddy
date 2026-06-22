@@ -8,6 +8,7 @@ import {
   tokenLedger,
   transactions,
   budgets,
+  aiUsage,
 } from '../../db/schema.js';
 import type { AiPersona } from '../../db/schema.js';
 import { streamChat } from './aiService.js';
@@ -240,6 +241,7 @@ export default fp(async (app: FastifyInstance) => {
       let fullResponse = '';
       let totalTokens = 0;
       let savedConversationId: string | undefined;
+      let usageData: { promptTokens: number; completionTokens: number; model: string; provider: string } | null = null;
 
       try {
         for await (const chunk of streamChat(messages, persona)) {
@@ -250,6 +252,7 @@ export default fp(async (app: FastifyInstance) => {
             );
           } else if (chunk.type === 'done') {
             totalTokens = chunk.tokens || 0;
+            if (chunk.usage) usageData = chunk.usage;
           }
         }
       } catch (err) {
@@ -346,6 +349,24 @@ export default fp(async (app: FastifyInstance) => {
         changeAmount: -1,
         reason: 'task_use',
       });
+
+      if (usageData) {
+        const costPer1M = usageData.provider === 'deepseek'
+          ? (usageData.completionTokens * config.DEEPSEEK_OUTPUT_COST_PER_1M + usageData.promptTokens * config.DEEPSEEK_INPUT_COST_PER_1M) / 1_000_000
+          : 0;
+        await app.db.insert(aiUsage).values({
+          userId,
+          conversationId: savedConversationId,
+          model: usageData.model,
+          provider: usageData.provider,
+          promptTokens: usageData.promptTokens,
+          completionTokens: usageData.completionTokens,
+          totalTokens: usageData.promptTokens + usageData.completionTokens,
+          estimatedCost: String(costPer1M),
+          feature: body.input_type === 'voice' ? 'voice' : 'chat',
+          status: 'success',
+        });
+      }
 
       reply.raw.write(
         `data: ${JSON.stringify({ type: 'done', token_balance: user.tokenBalance - 1, conversationId: savedConversationId })}\n\n`,

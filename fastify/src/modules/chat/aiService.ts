@@ -20,7 +20,7 @@ function buildMessages(
 
 async function* streamDeepSeek(
   messages: Array<{ role: string; content: string }>,
-): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number }> {
+): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number; usage?: { promptTokens: number; completionTokens: number; model: string; provider: string } }> {
   const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -71,6 +71,12 @@ async function* streamDeepSeek(
             type: 'done',
             content: '',
             tokens: promptTokens + completionTokens,
+            usage: {
+              promptTokens,
+              completionTokens,
+              model: config.DEEPSEEK_MODEL,
+              provider: 'deepseek',
+            },
           };
         }
       } catch (_e) {
@@ -83,7 +89,7 @@ async function* streamDeepSeek(
 async function* streamOllama(
   messages: Array<{ role: string; content: string }>,
   model: string,
-): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number }> {
+): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number; usage?: { promptTokens: number; completionTokens: number; model: string; provider: string } }> {
   const response = await fetch(`${config.OLLAMA_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -137,7 +143,7 @@ export async function* streamChat(
   }>,
   persona: AiPersona,
   task?: TaskType,
-): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number }> {
+): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number; usage?: { promptTokens: number; completionTokens: number; model: string; provider: string } }> {
   const formatted = buildMessages(messages, persona, task);
 
   if (config.DEEPSEEK_API_KEY) {

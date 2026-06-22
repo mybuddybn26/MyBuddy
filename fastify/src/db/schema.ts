@@ -151,4 +151,27 @@ export const feedback = pgTable('feedback', {
     .defaultNow(),
 });
 
+// ─── 8. ai_usage (DeepSeek token tracking) ───
+export const aiUsage = pgTable('ai_usage', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  conversationId: uuid('conversation_id')
+    .references(() => conversations.id, { onDelete: 'set null' }),
+  model: text('model').notNull(),
+  provider: text('provider').notNull().default('deepseek'),
+  promptTokens: integer('prompt_tokens').notNull().default(0),
+  completionTokens: integer('completion_tokens').notNull().default(0),
+  totalTokens: integer('total_tokens').notNull().default(0),
+  estimatedCost: numeric('estimated_cost', { precision: 10, scale: 6 })
+    .notNull()
+    .default('0'),
+  feature: text('feature').notNull().default('chat'),
+  status: text('status').notNull().default('success'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // projx-anchor: tables

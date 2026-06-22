@@ -258,4 +258,17 @@ export const api = {
       method: 'DELETE',
       body: JSON.stringify({ conversationId }),
     }),
+
+  usageMe: () =>
+    request<{
+      summary: { totalRequests: number; totalTokens: number; estimatedCost: string };
+      byFeature: Array<{ feature: string; tokens: number }>;
+      byModel: Array<{ model: string; tokens: number }>;
+      daily: Array<{ date: string; tokens: number; cost: string }>;
+    }>('/api/usage/me'),
+
+  usageHistory: (limit = 50, offset = 0) =>
+    request<{ data: Array<Record<string, unknown>>; count: number }>(
+      `/api/usage/me/history?limit=${limit}&offset=${offset}`,
+    ),
 };
