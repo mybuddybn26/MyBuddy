@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: API.md
+### Created: SECURITY.md
+- **Files created**: `.ai/SECURITY.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/security.md`
+- **Reason**: Permanent security specification — data classification, threat model, gap analysis, and verification checklist.
+- **Impact**: 17 sections covering data classification (8 types), auth, authz, secrets, API security, upload safety, document/voice/financial security, threat model (10 threats), and 9 documented security gaps with severity ratings.
 - **Files created**: `.ai/API.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/fastify.md`
 - **Reason**: Permanent API contract — every endpoint documented with method, path, purpose, auth, request/response formats, and source file.
 - **Impact**: 16 sections covering 38 endpoints across 12 modules. Backend/API skill selection now includes API.md.

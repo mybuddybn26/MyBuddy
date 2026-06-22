@@ -1,5 +1,7 @@
 # Security
 
+> For the complete security specification, threat model, data classification, and gap analysis, see `.ai/SECURITY.md`.
+
 ## Environment Variables
 
 - All secrets in `.env` (gitignored).
