@@ -195,6 +195,7 @@ BUDDY.md            ← Project conventions and memory
 ├── DEPLOYMENT.md   ← Deployment specification
 ├── ROADMAP.md      ← Product roadmap + priorities
 ├── FEATURES.md     ← Feature catalog + statuses
+├── MEMORY.md       ← Memory architecture (future)
 ├── DECISIONS.md    ← Architecture Decision Records
 ├── CHANGELOG.md    ← Project change history
 ├── LESSONS.md      ← Recurring mistakes and rules

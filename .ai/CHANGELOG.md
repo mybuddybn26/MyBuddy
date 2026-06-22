@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: FEATURES.md
+### Created: MEMORY.md
+- **Files created**: `.ai/MEMORY.md`, modified: `AGENTS.md`, `BUDDY.md`
+- **Reason**: Design document for future long-term memory system — architecture, database schema, privacy rules, and implementation roadmap.
+- **Impact**: 14 sections covering memory types, current state (none), future architecture, proposed DB schema, creation rules, security, voice integration, and 4-phase roadmap.
 - **Files created**: `.ai/FEATURES.md`, modified: `AGENTS.md`, `BUDDY.md`
 - **Reason**: Permanent feature catalog — every user-facing feature documented with status, location, APIs, dependencies, and completion checklist.
 - **Impact**: 16 sections covering all 13 features with COMPLETE/PARTIAL/PLANNED statuses, feature dependency map, and feature completion checklist.
