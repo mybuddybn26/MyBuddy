@@ -47,7 +47,7 @@ Context Proof:
 - Read: AGENTS.md
 - Read: BUDDY.md
 - Loaded skills: .ai/skills/ai.md, .ai/skills/typescript.md
-- Inspected source files: src/ai/prompts/index.ts, src/modules/chat/claude.ts
+- Inspected source files: src/ai/prompts/index.ts, src/modules/chat/aiService.ts
 - Assumptions: none
 ```
 

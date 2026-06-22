@@ -10,7 +10,7 @@ import {
   budgets,
 } from '../../db/schema.js';
 import type { AiPersona } from '../../db/schema.js';
-import { streamChat } from './claude.js';
+import { streamChat } from './aiService.js';
 import { config } from '../../config.js';
 
 const ChatBody = Type.Object({

@@ -138,7 +138,7 @@ mybuddy/
 │   │   │   ├── financialAssistantPrompt.ts
 │   │   │   └── codingAssistantPrompt.ts
 │   │   ├── modules/                  ← Feature modules (routes per domain)
-│   │   │   ├── chat/claude.ts        ← DeepSeek + Ollama streaming
+│   │   │   ├── chat/aiService.ts      ← DeepSeek + Ollama streaming
 │   │   │   ├── chat/routes.ts        ← POST /api/chat, GET /api/chat/history
 │   │   │   ├── voice/routes.ts       ← POST /api/voice/transcribe + /tts
 │   │   │   ├── feedback/routes.ts    ← POST + DELETE /api/feedback

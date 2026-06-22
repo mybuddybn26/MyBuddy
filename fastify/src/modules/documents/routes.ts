@@ -158,7 +158,7 @@ export default fp(async (app: FastifyInstance) => {
       };
 
       // Run AI analysis
-      const { analyzeImage } = await import('../chat/claude.js');
+      const { analyzeImage } = await import('../chat/aiService.js');
       let summary = '';
       let docType = 'other';
 

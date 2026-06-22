@@ -44,7 +44,7 @@ codingAssistantPrompt.ts    ← Coding assistance instructions
 
 ## Common Mistakes
 
-- Hardcoding system prompt strings in `claude.ts` or route files.
+- Hardcoding system prompt strings in `aiService.ts` or route files.
 - Duplicating personality content across multiple files.
 - Not using `buildFullSystemPrompt()` in new AI features.
 

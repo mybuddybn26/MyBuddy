@@ -293,7 +293,7 @@ Each line item must have: id, category, allocated_amount, spent_amount.
 Only change what the user asked for. Keep existing IDs for unchanged items.`;
 
       try {
-        const { streamChat } = await import('../chat/claude.js');
+        const { streamChat } = await import('../chat/aiService.js');
         const messages = [{ role: 'user' as const, content: aiPrompt }];
 
         let fullText = '';
