@@ -4,6 +4,7 @@ export { documentAnalysisPrompt } from './documentAnalysisPrompt.js';
 export { translationPrompt } from './translationPrompt.js';
 export { financialAssistantPrompt } from './financialAssistantPrompt.js';
 export { codingAssistantPrompt } from './codingAssistantPrompt.js';
+export { voiceCallPrompt } from './voiceCallPrompt.js';
 
 import type { AiPersona } from '../../db/schema.js';
 import { buddySystemPrompt } from './buddySystemPrompt.js';
@@ -11,13 +12,15 @@ import { documentAnalysisPrompt } from './documentAnalysisPrompt.js';
 import { translationPrompt } from './translationPrompt.js';
 import { financialAssistantPrompt } from './financialAssistantPrompt.js';
 import { codingAssistantPrompt } from './codingAssistantPrompt.js';
+import { voiceCallPrompt } from './voiceCallPrompt.js';
 
 export type TaskType =
   | 'general'
   | 'document'
   | 'translation'
   | 'financial'
-  | 'coding';
+  | 'coding'
+  | 'voiceCall';
 
 export interface PromptContext {
   persona: AiPersona;
@@ -34,6 +37,8 @@ export function buildTaskPrompt(task: TaskType): string {
       return financialAssistantPrompt;
     case 'coding':
       return codingAssistantPrompt;
+    case 'voiceCall':
+      return voiceCallPrompt;
     default:
       return '';
   }

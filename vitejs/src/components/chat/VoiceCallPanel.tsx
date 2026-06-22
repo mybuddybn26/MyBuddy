@@ -9,6 +9,7 @@ interface VoiceCallPanelProps {
   open: boolean;
   onClose: () => void;
   onBubble?: (phase: string, role: 'user' | 'assistant', content: string) => void;
+  onRevealText?: (text: string) => void;
 }
 
 const FALSE_POSITIVES = new Set([
@@ -16,7 +17,15 @@ const FALSE_POSITIVES = new Set([
   'hmm', 'uh', 'um', 'oh', 'ah', 'hi', 'hello', 'hey',
 ]);
 
-function shouldIgnoreTranscript(text: string): string | null {
+const UNEXPECTED_LANGUAGES = ['is', 'fo', 'ga', 'cy', 'eu', 'lt', 'lv', 'et', 'mt'];
+
+function containsUnexpectedChars(text: string): boolean {
+  const unusual = text.match(/[\u00C0-\u00FF\u0100-\u024F\u1E00-\u1EFF]/g);
+  if (!unusual) return false;
+  return unusual.length > text.length * 0.3;
+}
+
+function shouldIgnoreTranscript(text: string, peak: number, avgRms: number, duration: number): string | null {
   const trimmed = text.trim();
   if (!trimmed) return 'empty';
   if (trimmed.length < 3) return 'too short';
@@ -24,6 +33,9 @@ function shouldIgnoreTranscript(text: string): string | null {
   if (words.length < 2) return 'too few meaningful words';
   const lower = trimmed.toLowerCase().replace(/[.!?,]$/, '').trim();
   if (FALSE_POSITIVES.has(lower)) return `false positive: "${lower}"`;
+  if (peak < 25 && duration < 1200) return 'low energy + short duration — likely noise';
+  if (avgRms < 8) return `low average RMS (${avgRms.toFixed(1)}) — likely silence`;
+  if (containsUnexpectedChars(trimmed)) return 'unexpected characters — likely hallucinated';
   return null;
 }
 
@@ -52,7 +64,7 @@ function Waveform({ active, level, color }: { active: boolean; level: number; co
   );
 }
 
-export function VoiceCallPanel({ open, onClose, onBubble }: VoiceCallPanelProps) {
+export function VoiceCallPanel({ open, onClose, onBubble, onRevealText }: VoiceCallPanelProps) {
   const [state, setState] = useState<VoiceCallState>('idle');
   const [userTranscript, setUserTranscript] = useState('');
   const [assistantTranscript, setAssistantTranscript] = useState('');
@@ -87,12 +99,23 @@ export function VoiceCallPanel({ open, onClose, onBubble }: VoiceCallPanelProps)
     const cleaned = text.replace(/```[\s\S]*?```/g, '').replace(/`[^`]+`/g, '$1').trim();
     if (!cleaned) { startListening(); return; }
     isSpeakingRef.current = true;
+
+    const words = cleaned.split(' ');
+    const estimatedDuration = Math.max(2000, words.length * 300);
+    let revealed = 0;
+    const interval = estimatedDuration / Math.max(1, words.length);
+
+    const revealTimer = setInterval(() => {
+      revealed = Math.min(words.length, revealed + Math.max(1, Math.ceil(words.length / (estimatedDuration / 200))));
+      const partial = words.slice(0, revealed).join(' ');
+      if (partial) onRevealText?.(partial);
+    }, 200);
+
     try {
       const { ensureFreshToken, getToken } = await import('../../auth');
       await ensureFreshToken();
       const token = getToken();
       const BASE = import.meta.env.VITE_API_URL || '';
-      const t0 = performance.now();
       const res = await fetch(`${BASE}/api/voice/tts/speak`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -101,19 +124,27 @@ export function VoiceCallPanel({ open, onClose, onBubble }: VoiceCallPanelProps)
       if (!res.ok) throw new Error('TTS failed');
       const blob = await res.blob();
       if (blob.size < 100) throw new Error('Empty audio');
-      console.log(`[VoiceLatency] TTS: ${Math.round(performance.now() - t0)}ms`);
       const player = new VoicePlayer();
       playerRef.current = player;
-      player.onEnd(() => { isSpeakingRef.current = false; if (isCallActive(stateRef.current)) startListening(); });
+      player.onEnd(() => {
+        clearInterval(revealTimer);
+        onRevealText?.(cleaned);
+        isSpeakingRef.current = false;
+        if (isCallActive(stateRef.current)) startListening();
+      });
       await player.play(blob);
+      clearInterval(revealTimer);
+      onRevealText?.(cleaned);
       playerRef.current = null;
       isSpeakingRef.current = false;
     } catch (err) {
+      clearInterval(revealTimer);
+      onRevealText?.(cleaned);
       console.error('[VoiceCall] TTS error:', err);
       isSpeakingRef.current = false;
       if (isCallActive(stateRef.current)) { setError('Speech unavailable'); setTimeout(() => { if (isCallActive(stateRef.current)) startListening(); }, 2000); }
     }
-  }, [setCallState]);
+  }, [setCallState, onRevealText]);
 
   const think = useCallback(async (text: string) => {
     if (!isCallActive(stateRef.current) || processingRef.current) return;
@@ -138,15 +169,12 @@ export function VoiceCallPanel({ open, onClose, onBubble }: VoiceCallPanelProps)
         }
       }
       const cleaned = fullText.replace(/```[\s\S]*?```/g, '').trim();
-      const aiTime = Math.round(performance.now() - t0);
-      console.log(`[VoiceLatency] AI: ${aiTime}ms`);
+      console.log(`[VoiceLatency] AI: ${Math.round(performance.now() - t0)}ms`);
       if (cleaned) {
         historyRef.current.push({ role: 'assistant', content: cleaned });
         onBubble?.('responding', 'assistant', cleaned);
         processingRef.current = false;
-        const t1 = performance.now();
         await speak(cleaned);
-        console.log(`[VoiceLatency] Total: ${Math.round(performance.now() - t1 + aiTime)}ms`);
       } else { processingRef.current = false; startListening(); }
     } catch (err) {
       console.error('[VoiceCall] AI error:', err);
@@ -157,20 +185,25 @@ export function VoiceCallPanel({ open, onClose, onBubble }: VoiceCallPanelProps)
 
   const onTranscribe = useCallback(async (blob: Blob, recorder: VoiceRecorder) => {
     try {
-      if (isSpeakingRef.current) { console.log('[VoiceCall] Ignoring: Buddy is speaking'); startListening(); return; }
-      if (!recorder.hadRealSpeech) { console.log('[VoiceCall] Ignoring: no real speech'); onBubble?.('ignored', 'user', ''); startListening(); return; }
-      if (!recorder.minDurationMet) { console.log('[VoiceCall] Ignoring: too short'); onBubble?.('ignored', 'user', ''); startListening(); return; }
+      if (isSpeakingRef.current) { console.log('[VoiceCall] Ignoring: Buddy speaking'); startListening(); return; }
+      if (!recorder.hadRealSpeech) { console.log('[VoiceCall] Ignoring: no real speech'); startListening(); return; }
+      if (!recorder.minDurationMet) { console.log('[VoiceCall] Ignoring: too short'); startListening(); return; }
 
       const t0 = performance.now();
       onBubble?.('transcribing', 'user', '');
       const result = await api.transcribe(blob);
-      const sttTime = Math.round(performance.now() - t0);
-      console.log(`[VoiceLatency] STT: ${sttTime}ms`);
+      console.log(`[VoiceLatency] STT: ${Math.round(performance.now() - t0)}ms`);
       const text = result.transcript?.trim();
 
       if (!text) { onBubble?.('ignored', 'user', ''); startListening(); return; }
-      const ignoreReason = shouldIgnoreTranscript(text);
-      if (ignoreReason) { console.log(`[VoiceCall] Ignoring: ${ignoreReason} — "${text}"`); onBubble?.('ignored', 'user', ''); startListening(); return; }
+
+      const ignoreReason = shouldIgnoreTranscript(text, recorder.peakLevel || 0, recorder.averageRMS || 0, recorder.recordingDuration || 0);
+      if (ignoreReason) {
+        console.log(`[VoiceFilter] Rejected: ${ignoreReason} — "${text}"`);
+        onBubble?.('ignored', 'user', '');
+        startListening();
+        return;
+      }
 
       console.log('[VoiceCall] Accepted:', text);
       setUserTranscript(text);
@@ -193,6 +226,7 @@ export function VoiceCallPanel({ open, onClose, onBubble }: VoiceCallPanelProps)
     recorderRef.current?.dispose();
     const recorder = new VoiceRecorder({
       onAudioLevel: setAudioLevel,
+      onSpeechDetected: () => { console.log('[VoiceCall] Speech started'); },
       onSilenceDetected: () => {
         const blob = recorder.stop();
         recorderRef.current = null;
@@ -200,11 +234,10 @@ export function VoiceCallPanel({ open, onClose, onBubble }: VoiceCallPanelProps)
         else if (isCallActive(stateRef.current)) startListening();
       },
       onError: (msg) => { setError(msg); setCallState('disconnected'); },
-    }, 1800);
+    });
     recorderRef.current = recorder;
     recorder.start();
-    onBubble?.('listening', 'user', '');
-  }, [onTranscribe, setCallState, onBubble]);
+  }, [onTranscribe, setCallState]);
 
   const interrupt = useCallback(() => {
     if (stateRef.current !== 'speaking') return;
@@ -258,7 +291,10 @@ export function VoiceCallPanel({ open, onClose, onBubble }: VoiceCallPanelProps)
   return (
     <div className='border-t-2 border-primary-200 bg-white animate-fade-in'>
       <div className='flex items-center justify-between px-4 py-2 bg-primary-50/50'>
-        <div className='flex items-center gap-2'><span className='w-2 h-2 rounded-full bg-green-400 animate-pulse' /><span className='text-xs font-medium text-primary-700'>{STATE_LABELS[state]}</span></div>
+        <div className='flex items-center gap-2'>
+          <span className='w-2 h-2 rounded-full bg-green-400 animate-pulse' />
+          <span className='text-xs font-medium text-primary-700'>{STATE_LABELS[state]}</span>
+        </div>
         <div className='flex items-center gap-2'>
           <button onClick={interrupt} className='text-xs text-primary-500 hover:text-primary-700 font-medium'>Interrupt</button>
           <button onClick={handleEnd} className='p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors' aria-label='End call'><PhoneOff size={14} /></button>

@@ -132,12 +132,10 @@ export function Chat() {
 
   const onVoiceBubble = useCallback((phase: string, role: 'user' | 'assistant', content: string) => {
     const b = voiceBubbleRef.current;
-    if (phase === 'listening' && role === 'user') {
+    if (phase === 'transcribing' && role === 'user') {
       const id = crypto.randomUUID();
       b.userId = id;
-      setMessages((prev) => [...prev, { id, role: 'user', content: 'Listening...', streaming: true }]);
-    } else if (phase === 'transcribing' && b.userId) {
-      setMessages((prev) => prev.map((m) => m.id === b.userId ? { ...m, content: 'Transcribing...' } : m));
+      setMessages((prev) => [...prev, { id, role: 'user', content: 'Transcribing...', streaming: true }]);
     } else if (phase === 'accepted' && b.userId) {
       setMessages((prev) => prev.map((m) => m.id === b.userId ? { ...m, content, streaming: false, input_type: 'voice' } : m));
       b.userId = undefined;
@@ -154,6 +152,13 @@ export function Chat() {
     } else if (phase === 'cleanup') {
       if (b.userId) { setMessages((prev) => prev.filter((m) => m.id !== b.userId)); b.userId = undefined; }
       if (b.assistantId) { setMessages((prev) => prev.filter((m) => m.id !== b.assistantId)); b.assistantId = undefined; }
+    }
+  }, []);
+
+  const onVoiceReveal = useCallback((text: string) => {
+    const b = voiceBubbleRef.current;
+    if (b.assistantId) {
+      setMessages((prev) => prev.map((m) => m.id === b.assistantId ? { ...m, content: text } : m));
     }
   }, []);
 
@@ -332,7 +337,7 @@ export function Chat() {
         </form>
       </div>
 
-      <VoiceCallPanel open={voiceCallOpen} onClose={() => setVoiceCallOpen(false)} onBubble={onVoiceBubble} />
+      <VoiceCallPanel open={voiceCallOpen} onClose={() => setVoiceCallOpen(false)} onBubble={onVoiceBubble} onRevealText={onVoiceReveal} />
     </div>
   );
 }
