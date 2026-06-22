@@ -78,12 +78,14 @@ Background: `#FFFFF7` (warm white, like fresh snow in sunlight).
 - White text: `text-white` (on primary/hero backgrounds)
 
 ### Rules
-- **Never hardcode hex values** in component JSX.
+- **Never hardcode hex values** in component JSX — use Tailwind theme classes or `var(--color-*)` inline.
 - **Use Tailwind classes** that reference the theme tokens above.
 - **Selected navigation** must remain readable (white text on primary gradient, or `bg-white/20 text-white`).
 - **Maintain WCAG AA contrast** in both light and dark modes.
 - **Aspen Snow background** (#FFFFF7) must be the default page background.
 - **Cards** should use `white` or `#FEFEF0` backgrounds.
+- **Waveform colors** should use `var(--color-success)` for listening, `var(--color-primary-500)` for speaking.
+- **Recording indicators** should use `var(--color-danger)` with opacity/transparency, never hardcoded `#ef4444`.
 
 ### Avoid
 - Purple undertones in primary blue (do not use indigo, violet, or purple-tinged blues).

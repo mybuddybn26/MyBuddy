@@ -1,3 +1,8 @@
+### Fix: Aspen Snow UI audit — hardcoded hex colors, waveform variables, recording bar polish
+- **Files modified**: `Chat.tsx`, `VoiceCallPanel.tsx`, `VoiceCallModal.tsx`, `index.css`, `.ai/DESIGN.md`
+- **Reason**: UI audit found hardcoded hex colors inconsistent with Aspen Snow theme.
+- **Impact**: Recording bar uses `var(--color-danger)`. Waveform uses `var(--color-success)`/`var(--color-primary-500)`. Input field uses `bg-surface` instead of `bg-slate-50`. DESIGN.md updated with new rules for inline CSS variables.
+
 ### Added: Tools / Function Calling Phase 1
 - **Files created**: `fastify/src/ai/tools/index.ts`, `fastify/src/ai/prompts/toolPrompt.ts`, `fastify/src/modules/tools/routes.ts`
 - **Files modified**: `aiService.ts`, `chat/routes.ts`, `api.ts`, `Chat.tsx`, `app.ts`
