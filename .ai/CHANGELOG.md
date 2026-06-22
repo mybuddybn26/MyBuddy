@@ -1,3 +1,8 @@
+### Fix: Smart auto-scroll + jump-to-latest button
+- **Files modified**: `Chat.tsx`
+- **Reason**: Chat auto-scrolled to bottom when loading older messages. No way to quickly return to latest.
+- **Impact**: Smart scroll: only follows messages when user is within 200px of bottom. Scrolling up stops auto-follow. Floating ArrowDown button appears when scrolled up, clicks smooth-scrolls to latest.
+
 ### Fix: Infinite scroll chat history
 - **Files modified**: `Chat.tsx`
 - **Reason**: Chat only loaded 30 messages — older messages disappeared when scrolling up.
