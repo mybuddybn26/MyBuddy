@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
-import { Save, User, Globe, Palette, Volume2, Coins, Brain } from 'lucide-react';
+import { Save, User, Globe, Palette, Volume2, Brain, Coins } from 'lucide-react';
 
 interface Persona {
   name: string;
@@ -15,7 +15,6 @@ interface TokenInfo {
   usage_percent: number;
 }
 
-import { UsageSection } from '../components/UsageSection';
 import { MemorySection } from '../components/MemorySection';
 
 export function Settings() {
@@ -212,21 +211,12 @@ export function Settings() {
       </div>
 
       {/* ─── Memory Section ─── */}
-      <div className='mt-6'>
-        <div className='flex items-center gap-2 mb-3'>
+      <div className='glass-card p-5 space-y-4'>
+        <div className='flex items-center gap-2'>
           <Brain size={18} className='text-primary-500' />
           <h3 className='text-sm font-bold text-slate-700'>Memory</h3>
         </div>
         <MemorySection />
-      </div>
-
-      {/* ─── AI Usage Section ─── */}
-      <div className='mt-6'>
-        <div className='flex items-center gap-2 mb-3'>
-          <Coins size={18} className='text-primary-500' />
-          <h3 className='text-sm font-bold text-slate-700'>AI Usage</h3>
-        </div>
-        <UsageSection />
       </div>
     </div>
   );

@@ -296,7 +296,7 @@ export function Chat() {
                   <span>Voice</span>
                 </div>
               )}
-              {msg.budgets && msg.budgets.length > 0 && (
+              {msg.budgets && msg.budgets.length > 0 && msg.budgets.some((b) => b.items && b.items.length > 0) && (
                 <div className='mt-3 space-y-3'>
                   {msg.budgets.map((budget) => (
                     <div key={budget.id} className='bg-white rounded-lg border border-emerald-200 overflow-hidden'>
