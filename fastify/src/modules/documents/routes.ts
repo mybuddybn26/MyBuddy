@@ -2,7 +2,7 @@ import fp from 'fastify-plugin';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { eq, desc } from 'drizzle-orm';
 import { Type } from '@sinclair/typebox';
-import { documents, users } from '../../db/schema.js';
+import { documents, users, aiUsage } from '../../db/schema.js';
 import type { AiPersona } from '../../db/schema.js';
 import { config } from '../../config.js';
 import { documentAnalysisPrompt } from '../../ai/prompts/index.js';
@@ -192,6 +192,24 @@ export default fp(async (app: FastifyInstance) => {
           lower.includes('account')
         ) {
           docType = 'statement';
+        }
+
+        // Record usage
+        if (result.usage) {
+          const costPer1M = result.usage.provider === 'deepseek'
+            ? (result.usage.completionTokens * config.DEEPSEEK_OUTPUT_COST_PER_1M + result.usage.promptTokens * config.DEEPSEEK_INPUT_COST_PER_1M) / 1_000_000
+            : 0;
+          await app.db.insert(aiUsage).values({
+            userId,
+            model: result.usage.model,
+            provider: result.usage.provider,
+            promptTokens: result.usage.promptTokens,
+            completionTokens: result.usage.completionTokens,
+            totalTokens: result.usage.promptTokens + result.usage.completionTokens,
+            estimatedCost: String(costPer1M),
+            feature: 'document',
+            status: 'success',
+          }).catch(() => {});
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'AI analysis failed';

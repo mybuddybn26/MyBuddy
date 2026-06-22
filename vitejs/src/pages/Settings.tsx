@@ -15,6 +15,8 @@ interface TokenInfo {
   usage_percent: number;
 }
 
+import { UsageSection } from '../components/UsageSection';
+
 export function Settings() {
   const [persona, setPersona] = useState<Persona>({
     name: 'Buddy',
@@ -206,6 +208,15 @@ export function Settings() {
             </p>
           </div>
         )}
+      </div>
+
+      {/* ─── AI Usage Section ─── */}
+      <div className='mt-6'>
+        <div className='flex items-center gap-2 mb-3'>
+          <Coins size={18} className='text-primary-500' />
+          <h3 className='text-sm font-bold text-slate-700'>AI Usage</h3>
+        </div>
+        <UsageSection />
       </div>
     </div>
   );

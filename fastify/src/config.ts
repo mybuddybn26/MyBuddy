@@ -43,6 +43,7 @@ const ConfigSchema = Type.Object({
   DEEPSEEK_MODEL: Type.String({ default: 'deepseek-chat' }),
   DEEPSEEK_INPUT_COST_PER_1M: Type.Number({ default: 0.14 }),
   DEEPSEEK_OUTPUT_COST_PER_1M: Type.Number({ default: 0.28 }),
+  MONTHLY_TOKEN_LIMIT: Type.Number({ default: 1000000 }),
 
   // ─── Kokoro TTS ───
   KOKORO_TTS_URL: Type.String({ default: 'http://127.0.0.1:8001' }),
@@ -101,6 +102,7 @@ function loadConfig(): Config {
     DEEPSEEK_MODEL: process.env.DEEPSEEK_MODEL ?? 'deepseek-chat',
     DEEPSEEK_INPUT_COST_PER_1M: Number(process.env.DEEPSEEK_INPUT_COST_PER_1M ?? 0.14),
     DEEPSEEK_OUTPUT_COST_PER_1M: Number(process.env.DEEPSEEK_OUTPUT_COST_PER_1M ?? 0.28),
+    MONTHLY_TOKEN_LIMIT: Number(process.env.MONTHLY_TOKEN_LIMIT ?? 1000000),
 
     // Kokoro TTS
     KOKORO_TTS_URL: process.env.KOKORO_TTS_URL ?? 'http://127.0.0.1:8001',

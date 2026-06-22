@@ -260,6 +260,14 @@ export default fp(async (app: FastifyInstance) => {
         reply.raw.write(
           `data: ${JSON.stringify({ type: 'error', content: msg })}\n\n`,
         );
+        // Record failed usage
+        await app.db.insert(aiUsage).values({
+          userId,
+          model: config.DEEPSEEK_MODEL,
+          provider: 'deepseek',
+          feature: 'chat',
+          status: 'failed',
+        }).catch(() => {});
       }
 
       // Save assistant response
