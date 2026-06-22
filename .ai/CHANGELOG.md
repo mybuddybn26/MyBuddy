@@ -1,3 +1,8 @@
+### Fix: Infinite scroll chat history
+- **Files modified**: `Chat.tsx`
+- **Reason**: Chat only loaded 30 messages — older messages disappeared when scrolling up.
+- **Impact**: Added `loadOlderMessages()` with scroll detection. Loads 30 more messages when scrolling near top. Prepend preserves scroll position. Shows loading indicator + "Beginning of conversation" when exhausted. AI prompt context remains limited to last 10-12 messages.
+
 ### Fix: Aspen Snow premium UI redesign
 - **Files modified**: Layout.tsx, Chat.tsx, .ai/DESIGN.md
 - **Reason**: Sidebar felt generic SaaS. Chat input lacked polish. Overall UI needed premium feel.
