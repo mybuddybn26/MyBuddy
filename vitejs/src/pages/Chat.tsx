@@ -65,24 +65,14 @@ export function Chat() {
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
   useEffect(() => {
-    Promise.all([
-      api.chatHistory(30).catch(() => ({ data: [], count: 0 })),
-      api.budgets().catch(() => ({ data: [], count: 0 })),
-    ]).then(([chatRes, budgetRes]) => {
-      const history = (
-        chatRes.data as Array<{ id: string; role: string; content: string; input_type: string }>
-      ).map((m): Message => ({ id: m.id, role: m.role as 'user' | 'assistant', content: m.content, input_type: m.input_type }));
-      if (budgetRes.data && budgetRes.data.length > 0) {
-        const lastBudget = budgetRes.data[0] as { id: string; title: string; lineItems: Array<{ id: string; category: string; allocated_amount: number; spent_amount: number }>; budgetType: string; period: string };
-        for (let i = history.length - 1; i >= 0; i--) {
-          if (history[i].role === 'assistant') {
-            history[i] = { ...history[i], budgets: [{ id: lastBudget.id, title: lastBudget.title, items: lastBudget.lineItems, budget_type: lastBudget.budgetType, period: lastBudget.period }] };
-            break;
-          }
-        }
-      }
-      setMessages(history);
-    });
+      Promise.all([
+        api.chatHistory(30).catch(() => ({ data: [], count: 0 })),
+      ]).then(([chatRes]) => {
+        const history = (
+          chatRes.data as Array<{ id: string; role: string; content: string; input_type: string }>
+        ).map((m): Message => ({ id: m.id, role: m.role as 'user' | 'assistant', content: m.content, input_type: m.input_type }));
+        setMessages(history);
+      });
   }, []);
 
   const sendMessage = useCallback(async (text: string, inputType = 'text') => {
