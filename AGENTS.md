@@ -34,11 +34,83 @@ When in doubt, load `architecture.md` and `typescript.md` as the minimum baselin
 
 ---
 
+## Context Proof (MANDATORY)
+
+**Before answering any project-specific question or modifying any code, you MUST state what context you used.** This prevents guessing and proves you actually read the relevant files.
+
+### Format
+
+Begin every response with a Context Proof block:
+
+```
+Context Proof:
+- Read: AGENTS.md
+- Read: BUDDY.md
+- Loaded skills: .ai/skills/ai.md, .ai/skills/typescript.md
+- Inspected source files: src/ai/prompts/index.ts, src/modules/chat/claude.ts
+- Assumptions: none
+```
+
+### Rules by Task Type
+
+| Task Type | Minimum Required |
+|---|---|
+| **General question** | AGENTS.md + BUDDY.md. State: _"Project files not inspected because this is a general explanation."_ |
+| **Architecture question** | AGENTS.md + BUDDY.md + relevant skill files + inspect source files. Source inspection is mandatory. |
+| **Implementation** | AGENTS.md + BUDDY.md + skill files + inspect ALL affected source files. File inspection is mandatory. |
+| **Bug fix** | AGENTS.md + BUDDY.md + skill files + inspect the broken file AND any related files. Source inspection is mandatory. |
+| **UI change** | AGENTS.md + BUDDY.md + `.ai/skills/ui.md` + `.ai/skills/typescript.md` + inspect affected components. Design skill inspection is mandatory. |
+| **Voice feature** | AGENTS.md + BUDDY.md + `.ai/skills/voice.md` + `.ai/skills/ai.md` + `.ai/skills/typescript.md` + `.ai/skills/testing.md`. All four skill files are mandatory. |
+| **AI/prompt change** | AGENTS.md + BUDDY.md + `.ai/skills/ai.md` + `.ai/skills/prompts.md` + `.ai/skills/architecture.md`. |
+| **Database change** | AGENTS.md + BUDDY.md + `.ai/skills/drizzle.md` + `.ai/skills/fastify.md` + `.ai/skills/typescript.md`. |
+
+### Rules
+
+1. **Never pretend** — if you haven't read a file, don't claim you did.
+2. **General explanations** (no code) — state that source files were not inspected and explain why.
+3. **Implementation tasks** — file inspection is mandatory. List every file you read.
+4. **Architecture questions** — documentation inspection is mandatory.
+5. **Bug fixes** — source-file inspection of the broken file is mandatory.
+6. **UI changes** — design and UI skill inspection is mandatory.
+7. **Voice features** — voice, AI, typescript, and testing skills must be loaded.
+8. **Assumptions** — if you make any assumptions, state them explicitly with your reasoning.
+
+### Examples
+
+**For a general question (no code):**
+```
+Context Proof:
+- Read: AGENTS.md, BUDDY.md
+- Project files not inspected because this is a general explanation.
+```
+
+**For an implementation task:**
+```
+Context Proof:
+- Read: AGENTS.md, BUDDY.md
+- Loaded skills: .ai/skills/fastify.md, .ai/skills/typescript.md
+- Inspected source files: src/modules/chat/routes.ts, src/ai/prompts/index.ts, src/db/schema.ts
+- Assumptions: none
+```
+
+**For a bug fix:**
+```
+Context Proof:
+- Read: AGENTS.md, BUDDY.md
+- Loaded skills: .ai/skills/voice.md, .ai/skills/typescript.md
+- Inspected source files: src/components/chat/SpeechControls.tsx, src/voice/voicePlayer.ts
+- Assumptions: AudioContext is suspended (standard browser behavior)
+```
+
+---
+
 ## Workflow
 
 Every task must follow this exact sequence:
 
 ```
+0. State Context Proof (MANDATORY — see section above)
+       ↓
 1. Read AGENTS.md (this file)
        ↓
 2. Read BUDDY.md

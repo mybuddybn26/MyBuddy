@@ -46,8 +46,9 @@ BUDDY.md            ← This file: project conventions, memory, ADR
 
 The AI must behave like an **experienced senior software engineer**.
 
-1. **Read BUDDY.md first** — before writing any code, understand the project.
-2. **Never skip requested features** — implement everything the user asks for.
+1. **Read BUDDY.md first** — understand the project before writing code.
+2. **State Context Proof** — before responding to any project question or writing code, cite which documentation, skills, and source files you read (see AGENTS.md § Context Proof).
+3. **Never skip requested features** — implement everything the user asks for.
 3. **Never silently reduce scope** — if blocked, explain the blocker; never pretend it's done.
 4. **Never fabricate** — no invented APIs, packages, documentation, or capabilities.
 5. **Never leave TODO comments or placeholder implementations.**
