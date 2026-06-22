@@ -166,6 +166,12 @@ function extractBudgets(text: string): {
   return { parsed, cleaned };
 }
 
+const FINANCIAL_KEYWORDS = /\b(budget|budgets|spend|spent|spending|cost|costs|costing|price|prices|expensive|cheap|save|saving|savings|income|earn|earned|earning|profit|profits|revenue|expense|expenses|transaction|transactions|sale|sales|sell|sold|pay|paid|payment|payments|bill|bills|invoice|invoices|money|fund|funds|wallet|balance|credit|debit|loan|loans|owe|owed|tax|taxes|wage|wages|salary|total|amount|price|funds|financial|finance|accounting|bookkeeping)/i;
+
+function hasFinancialIntent(message: string): boolean {
+  return FINANCIAL_KEYWORDS.test(message);
+}
+
 export default fp(async (app: FastifyInstance) => {
   // ─── Stream Chat (SSE) ───
   app.post(
@@ -272,78 +278,91 @@ export default fp(async (app: FastifyInstance) => {
 
       // Save assistant response
       if (fullResponse) {
-        // Extract and process any transaction JSON blocks
-        const txResult = extractTransactions(fullResponse);
-        // Also extract budget blocks
-        const budgetResult = extractBudgets(txResult.cleaned);
+        const hasIntent = hasFinancialIntent(body.message);
 
-        for (const tx of txResult.parsed) {
-          try {
-            await app.db.insert(transactions).values({
-              userId,
-              type: tx.type,
-              amount: String(tx.amount),
-              description: tx.description,
-              category: tx.category,
-              rawVoiceLog: body.input_type === 'voice' ? body.message : null,
-            });
-            request.log.info(
-              `Auto-parsed transaction: ${tx.type} $${tx.amount} — ${tx.description}`,
-            );
-          } catch (dbErr) {
-            request.log.warn(
-              `Failed to insert auto-parsed transaction: ${dbErr instanceof Error ? dbErr.message : String(dbErr)}`,
-            );
-          }
-        }
+        if (hasIntent) {
+          request.log.info(`[BudgetExtractor] financial intent detected in user message`);
+          // Extract and process any transaction JSON blocks
+          const txResult = extractTransactions(fullResponse);
+          const budgetResult = extractBudgets(txResult.cleaned);
 
-        // Insert budgets into DB — store line items with generated IDs
-        for (const budget of budgetResult.parsed) {
-          try {
-            const lineItems = budget.items.map((item) => ({
-              id: crypto.randomUUID(),
-              category: item.category,
-              allocated_amount: item.allocated_amount,
-              spent_amount: 0,
-            }));
-            const isRecurring = budget.period !== 'one_time';
-
-            const [saved] = await app.db
-              .insert(budgets)
-              .values({
+          for (const tx of txResult.parsed) {
+            try {
+              await app.db.insert(transactions).values({
                 userId,
-                title: budget.title,
-                budgetType: isRecurring ? 'recurring' : 'snapshot',
-                period: budget.period || 'one_time',
-                totalAmount: String(budget.total || 0),
-                lineItems,
-                source: 'ai_generated',
-                status: 'active',
-              })
-              .returning();
-            reply.raw.write(
-              `data: ${JSON.stringify({ type: 'budget', id: saved.id, title: budget.title, items: lineItems, budget_type: isRecurring ? 'recurring' : 'snapshot', period: budget.period })}\n\n`,
-            );
-          } catch (dbErr) {
-            request.log.warn(
-              `Failed to insert budget: ${dbErr instanceof Error ? dbErr.message : String(dbErr)}`,
-            );
+                type: tx.type,
+                amount: String(tx.amount),
+                description: tx.description,
+                category: tx.category,
+                rawVoiceLog: body.input_type === 'voice' ? body.message : null,
+              });
+              request.log.info(
+                `Auto-parsed transaction: ${tx.type} $${tx.amount} — ${tx.description}`,
+              );
+            } catch (dbErr) {
+              request.log.warn(
+                `Failed to insert auto-parsed transaction: ${dbErr instanceof Error ? dbErr.message : String(dbErr)}`,
+              );
+            }
           }
-        }
 
-        // Save cleaned response (without raw JSON blocks) to conversations
-        const displayText =
-          txResult.parsed.length > 0 || budgetResult.parsed.length > 0
-            ? budgetResult.cleaned
-            : fullResponse;
-        const [saved] = await app.db.insert(conversations).values({
-          userId,
-          role: 'assistant',
-          content: displayText,
-          inputType: 'text',
-          tokensUsed: totalTokens,
-        }).returning({ id: conversations.id });
-        savedConversationId = saved.id;
+          // Insert budgets into DB — store line items with generated IDs
+          for (const budget of budgetResult.parsed) {
+            try {
+              const lineItems = budget.items.map((item) => ({
+                id: crypto.randomUUID(),
+                category: item.category,
+                allocated_amount: item.allocated_amount,
+                spent_amount: 0,
+              }));
+              const isRecurring = budget.period !== 'one_time';
+
+              const [saved] = await app.db
+                .insert(budgets)
+                .values({
+                  userId,
+                  title: budget.title,
+                  budgetType: isRecurring ? 'recurring' : 'snapshot',
+                  period: budget.period || 'one_time',
+                  totalAmount: String(budget.total || 0),
+                  lineItems,
+                  source: 'ai_generated',
+                  status: 'active',
+                })
+                .returning();
+              reply.raw.write(
+                `data: ${JSON.stringify({ type: 'budget', id: saved.id, title: budget.title, items: lineItems, budget_type: isRecurring ? 'recurring' : 'snapshot', period: budget.period })}\n\n`,
+              );
+            } catch (dbErr) {
+              request.log.warn(
+                `Failed to insert budget: ${dbErr instanceof Error ? dbErr.message : String(dbErr)}`,
+              );
+            }
+          }
+
+          const displayText =
+            txResult.parsed.length > 0 || budgetResult.parsed.length > 0
+              ? budgetResult.cleaned
+              : fullResponse;
+          const [saved] = await app.db.insert(conversations).values({
+            userId,
+            role: 'assistant',
+            content: displayText,
+            inputType: 'text',
+            tokensUsed: totalTokens,
+          }).returning({ id: conversations.id });
+          savedConversationId = saved.id;
+        } else {
+          request.log.debug(`[BudgetExtractor] skipped: no financial intent in user message`);
+          const [savedConv] = await app.db.insert(conversations).values({
+            userId,
+            role: 'assistant',
+            content: fullResponse.replace(/```transaction\s*\n[\s\S]*?\n```\n?/g, '').replace(/```budget\s*\n[\s\S]*?\n```\n?/g, ''),
+            inputType: 'text',
+            tokensUsed: totalTokens,
+          }).returning({ id: conversations.id });
+          savedConversationId = savedConv.id;
+        }
       }
 
       // Deduct 1 token
