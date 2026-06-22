@@ -13,17 +13,13 @@ AGENTS.md           ← Start here: workflow, skill selection
     ↓
 BUDDY.md            ← This file: project conventions, memory, ADR
     ↓
-.ai/skills/         ← Reusable engineering skills
-    ├── architecture.md   ← Project structure, plugin order
-    ├── typescript.md     ← TS conventions, strict rules
-    ├── fastify.md        ← Backend route patterns
-    ├── drizzle.md        ← Database schema + queries
-    ├── ui.md             ← Frontend components, theme tokens
-    ├── voice.md          ← Voice pipeline, recorder/player
-    ├── ai.md             ← AI providers, prompt system
-    ├── prompts.md        ← Prompt architecture details
-    ├── testing.md        ← Test location, quality gates
-    └── security.md       ← Auth, secrets, upload limits
+.ai/
+├── PROJECT.md      ← Product + engineering overview
+├── DECISIONS.md    ← Architecture decisions
+├── CHANGELOG.md    ← Change history
+├── LESSONS.md      ← Mistakes + rules
+└── skills/         ← Reusable engineering skills
+    ├── ... (10 skill files)
 ```
 
 ---

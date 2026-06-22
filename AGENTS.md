@@ -10,9 +10,9 @@ When starting ANY task on this project, read files in this exact order:
 
 1. **AGENTS.md** (this file) — workflow and skill selection
 2. **BUDDY.md** — project conventions, philosophy, lessons learned
-3. `.ai/DECISIONS.md` — architecture decisions (ADR)
-4. `.ai/LESSONS.md` — recurring mistakes to avoid
-5. **PROJECT.md** — project overview (if it exists)
+3. `.ai/PROJECT.md` — product overview, architecture, features
+4. `.ai/DECISIONS.md` — architecture decisions (ADR)
+5. `.ai/LESSONS.md` — recurring mistakes to avoid
 
 Then, based on the task type, load the relevant skill files from `.ai/skills/`.
 
@@ -172,6 +172,7 @@ AGENTS.md           ← Master workflow (this file)
 BUDDY.md            ← Project conventions and memory
     ↓
 .ai/
+├── PROJECT.md      ← Product + engineering overview
 ├── DECISIONS.md    ← Architecture Decision Records
 ├── CHANGELOG.md    ← Project change history
 ├── LESSONS.md      ← Recurring mistakes and rules

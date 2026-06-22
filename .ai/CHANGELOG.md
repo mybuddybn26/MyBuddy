@@ -6,6 +6,12 @@
 
 ## 2026-06-22
 
+### Created: PROJECT.md
+- **Files created**: `.ai/PROJECT.md`
+- **Files modified**: `AGENTS.md`
+- **Reason**: Provide a single high-level overview covering product, architecture, features, and development workflow.
+- **Impact**: Future AI agents now read PROJECT.md for medium/large tasks to understand what Buddy is and how systems fit together.
+
 ### Renamed: `claude.ts` → `aiService.ts`
 
 - **Files affected**: `fastify/src/modules/chat/claude.ts` (renamed), `chat/routes.ts`, `budgets/routes.ts`, `documents/routes.ts`, `BUDDY.md`, `AGENTS.md`, `.ai/skills/prompts.md`
