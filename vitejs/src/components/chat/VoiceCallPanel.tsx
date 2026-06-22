@@ -328,7 +328,7 @@ export function VoiceCallPanel({ open, onClose, onBubble, onRevealText }: VoiceC
     );
   }
 
-  const color = state === 'listening' ? '#22c55e' : state === 'speaking' ? '#3b82f6' : '#6366f1';
+  const color = state === 'listening' ? 'var(--color-success)' : state === 'speaking' ? 'var(--color-primary-500)' : 'var(--color-primary-400)';
 
   return (
     <div className='border-t-2 border-primary-200 bg-white animate-fade-in'>

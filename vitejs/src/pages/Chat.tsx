@@ -346,8 +346,8 @@ export function Chat() {
       </div>
 
       {isRecording && (
-        <div className='bg-red-50 border-t border-red-200 px-4 py-2 flex items-center gap-3'>
-          <div className='flex items-center gap-0.5 flex-1'>{levelBars.map((bar, i) => (<div key={i} className='flex-1 rounded-sm transition-all duration-75' style={{ height: `${8 + (i + 1) * 2}px`, backgroundColor: bar.active ? '#ef4444' : '#fca5a5', opacity: bar.active ? 1 : 0.4 }} />))}</div>
+        <div className='bg-red-50/80 border-t border-red-200 px-4 py-2 flex items-center gap-3'>
+          <div className='flex items-center gap-0.5 flex-1'>{levelBars.map((bar, i) => (<div key={i} className='flex-1 rounded-sm transition-all duration-75' style={{ height: `${8 + (i + 1) * 2}px`, backgroundColor: bar.active ? 'var(--color-danger)' : 'rgba(239,68,68,0.3)', opacity: bar.active ? 1 : 0.6 }} />))}</div>
           <span className='text-red-600 font-mono text-sm font-medium tabular-nums min-w-[3ch]'>{formatDuration(recordingDuration)}</span>
           <div className='w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse' />
           <button onClick={cancelRecording} className='w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 transition-colors' aria-label='Cancel recording'>✕</button>
@@ -359,7 +359,7 @@ export function Chat() {
         <form onSubmit={handleSubmit} className='flex items-center gap-2'>
           <button type='button' onClick={() => fileInputRef.current?.click()} className='p-2.5 text-slate-400 hover:text-primary-500 hover:bg-primary-50 rounded-xl transition-colors' aria-label='Upload photo'><Camera size={20} /></button>
           <input ref={fileInputRef} type='file' accept='image/*' capture='environment' className='hidden' onChange={handleImageUpload} />
-          <input type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? 'Listening...' : 'Type a message…'} disabled={isStreaming || isRecording} className='flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all disabled:opacity-50' />
+           <input type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? 'Listening...' : 'Type a message…'} disabled={isStreaming || isRecording} className='flex-1 px-4 py-2.5 bg-surface border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all disabled:opacity-50' />
           {input.trim() ? (
             <button type='submit' disabled={isStreaming} className='p-2.5 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors disabled:opacity-50' aria-label='Send message'><Send size={20} /></button>
           ) : (

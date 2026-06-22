@@ -283,7 +283,7 @@ export function VoiceCallModal({ open, onClose }: VoiceCallModalProps) {
     );
   }
 
-  const waveformColor = state === 'listening' ? '#22c55e' : state === 'speaking' ? '#3b82f6' : '#6366f1';
+  const waveformColor = state === 'listening' ? 'var(--color-success)' : state === 'speaking' ? 'var(--color-primary-500)' : 'var(--color-primary-400)';
 
   return (
     <div className='fixed inset-0 z-50 flex flex-col bg-slate-900 text-white' onClick={handleEnd}>
