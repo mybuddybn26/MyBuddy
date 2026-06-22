@@ -93,6 +93,9 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
       await ensureFreshToken();
       const token = getToken();
       const BASE = import.meta.env.VITE_API_URL || '';
+      const voiceId = localStorage.getItem('buddy-tts-voice') || undefined;
+      const body: Record<string, string> = { text: trimmed.slice(0, 5000) };
+      if (voiceId) body.voice_id = voiceId;
 
       const res = await fetch(`${BASE}/api/voice/tts/speak`, {
         method: 'POST',
@@ -100,7 +103,7 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ text: trimmed.slice(0, 5000) }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {

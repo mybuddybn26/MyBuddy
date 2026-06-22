@@ -8,11 +8,16 @@ export interface TTSResult {
   contentType: string;
 }
 
+export const VALID_VOICES = [
+  'aura-asteria-en', 'aura-luna-en', 'aura-stella-en', 'aura-athena-en', 'aura-hera-en',
+  'aura-orpheus-en', 'aura-arcas-en', 'aura-angus-en', 'aura-zeus-en',
+];
+
 function hashText(text: string): string {
   return createHash('sha256').update(text).digest('hex').slice(0, 16);
 }
 
-export async function synthesizeSpeech(text: string): Promise<TTSResult> {
+export async function synthesizeSpeech(text: string, voiceId?: string): Promise<TTSResult> {
   const cleaned = formatForSpeech(text);
 
   if (!cleaned || cleaned.length < 2) {
@@ -30,7 +35,7 @@ export async function synthesizeSpeech(text: string): Promise<TTSResult> {
     throw new Error('DEEPGRAM_API_KEY is not configured');
   }
 
-  const voice = 'aura-asteria-en';
+  const voice = voiceId && VALID_VOICES.includes(voiceId) ? voiceId : 'aura-asteria-en';
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);

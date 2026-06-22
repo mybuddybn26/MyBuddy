@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '../api';
-import { Mic, MicOff, Send, Camera, PhoneCall } from 'lucide-react';
+import { Mic, MicOff, Send, Camera, PhoneCall, AudioLines } from 'lucide-react';
 import { MessageActions } from '../components/chat/MessageActions';
 import { VoiceCallPanel } from '../components/chat/VoiceCallPanel';
 
@@ -10,6 +10,7 @@ interface Message {
   content: string;
   input_type?: string;
   streaming?: boolean;
+  voice?: boolean;
   conversationId?: string;
   budgets?: Array<{
     id: string;
@@ -137,7 +138,7 @@ export function Chat() {
       b.userId = id;
       setMessages((prev) => [...prev, { id, role: 'user', content: 'Transcribing...', streaming: true }]);
     } else if (phase === 'accepted' && b.userId) {
-      setMessages((prev) => prev.map((m) => m.id === b.userId ? { ...m, content, streaming: false, input_type: 'voice' } : m));
+      setMessages((prev) => prev.map((m) => m.id === b.userId ? { ...m, content, streaming: false, input_type: 'voice', voice: true } : m));
       b.userId = undefined;
     } else if (phase === 'ignored' && b.userId) {
       setMessages((prev) => prev.filter((m) => m.id !== b.userId));
@@ -284,11 +285,17 @@ export function Chat() {
         )}
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={msg.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-assistant'}>
+            <div className={msg.voice ? (msg.role === 'user' ? 'chat-bubble-user-voice' : 'chat-bubble-assistant-voice') : (msg.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-assistant')}>
               <div className='whitespace-pre-wrap text-sm leading-relaxed'>
                 {msg.content}
                 {msg.streaming && <span className='inline-block w-1.5 h-4 bg-primary-400 ml-0.5 animate-pulse rounded-sm' />}
               </div>
+              {msg.voice && (
+                <div className='voice-indicator'>
+                  <AudioLines size={10} />
+                  <span>Voice</span>
+                </div>
+              )}
               {msg.budgets && msg.budgets.length > 0 && (
                 <div className='mt-3 space-y-3'>
                   {msg.budgets.map((budget) => (

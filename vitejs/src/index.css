@@ -139,6 +139,38 @@
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
     animation: var(--animate-slide-up);
   }
+
+  .chat-bubble-user-voice {
+    background: linear-gradient(135deg, var(--color-primary-400), var(--color-primary-500));
+    color: white;
+    border-radius: 20px 20px 4px 20px;
+    padding: 12px 18px;
+    max-width: 80%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    animation: var(--animate-slide-up);
+  }
+
+  .chat-bubble-assistant-voice {
+    background: #f0f7ff;
+    color: #1e293b;
+    border: 1px solid #bfdbfe;
+    border-radius: 20px 20px 20px 4px;
+    padding: 12px 18px;
+    max-width: 85%;
+    box-shadow: 0 1px 4px rgba(59, 130, 246, 0.08);
+    animation: var(--animate-slide-up);
+  }
+
+  .voice-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--color-primary-400);
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(59, 130, 246, 0.15);
+  }
 }
 
 /* ─── Voice Button ─── */

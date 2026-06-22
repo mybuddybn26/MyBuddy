@@ -119,7 +119,7 @@ export const api = {
       { transcript: string } & { url: string }
     >,
 
-  tts: async (text: string) => {
+  tts: async (text: string, voiceId?: string) => {
     await ensureFreshToken();
     const token = getToken();
     return fetch(`${BASE}/api/voice/tts/speak`, {
@@ -128,9 +128,12 @@ export const api = {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ text: text.slice(0, 5000) }),
+      body: JSON.stringify({ text: text.slice(0, 5000), ...(voiceId ? { voice_id: voiceId } : {}) }),
     });
   },
+
+  ttsVoices: () =>
+    request<{ voices: Array<{ id: string; label: string }>; default: string }>('/api/voice/tts/voices'),
 
   // Upload
   uploadImage: (file: File) => uploadFile('/api/upload/image', file, file.name),
