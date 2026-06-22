@@ -365,6 +365,9 @@ Before claiming voice is complete:
 - [x] Microphone captures real audio (AudioContext resumed, analyser working).
 - [x] Waveform reacts to real microphone amplitude.
 - [x] AssemblyAI receives audio and returns transcripts.
+- [x] False positives filtered (15 common words/phrases rejected).
+- [x] Low-quality audio ignored (minimum duration + peak level).
+- [x] Echo prevention while Buddy is speaking.
 - [x] Transcript displayed in UI.
 - [x] DeepSeek receives transcript and generates response.
 - [x] Buddy responds with streaming text.

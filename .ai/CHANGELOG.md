@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: VoiceCallPanel (embedded voice in chat)
+### Fix: Voice call transcript filtering + VAD + chat saving
+- **Files modified**: `vitejs/src/voice/voiceRecorder.ts`, `vitejs/src/components/chat/VoiceCallPanel.tsx`, `vitejs/src/pages/Chat.tsx`, `.ai/VOICE.md`
+- **Reason**: Fix false transcripts, improve VAD, prevent TTS echo, save voice messages to chat.
+- **Impact**: 15-word false positive filter, 2.2s silence timeout with 0.8s minimum speech, peak level >15 threshold, echo guard while Buddy speaks, voice messages now appear in chat history.
 - **Files created**: `vitejs/src/components/chat/VoiceCallPanel.tsx`, modified: `vitejs/src/pages/Chat.tsx`, `.ai/VOICE.md`, `.ai/FEATURES.md`
 - **Reason**: Replace full-screen VoiceCallModal with compact embedded panel inside chat. Voice calls now stay in-context without leaving the chat page.
 - **Impact**: Same voice pipeline (VoiceRecorder → AssemblyAI → DeepSeek → Deepgram → VoicePlayer) now runs in a compact panel between messages and input bar. Voice Call feature status upgraded from PARTIAL to COMPLETE.
