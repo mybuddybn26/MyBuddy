@@ -1,3 +1,8 @@
+### Fix: Budget extraction intent gate
+- **Files modified**: `fastify/src/modules/chat/routes.ts`, `fastify/src/ai/prompts/buddySystemPrompt.ts`
+- **Reason**: Budget/transaction blocks were being parsed and displayed even in non-financial conversations.
+- **Impact**: `hasFinancialIntent()` checks user message against 45+ financial keywords before extraction. Prompt updated: blocks only when explicitly asked. [BudgetExtractor] logs intent decisions.
+
 ### Completed: AI usage tracking
 - **Files created**: `vitejs/src/components/UsageSection.tsx`
 - **Files modified**: `aiService.ts`, `chat/routes.ts`, `documents/routes.ts`, `config.ts`, `Settings.tsx`
