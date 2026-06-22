@@ -12,6 +12,7 @@ interface Message {
   streaming?: boolean;
   voice?: boolean;
   conversationId?: string;
+  toolConfirm?: { confirmationId: string; tool: string; params: Record<string, unknown>; label: string };
   budgets?: Array<{
     id: string;
     title: string;
@@ -104,6 +105,11 @@ export function Chat() {
               setMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, content: displayText } : m));
             } else if (data.type === 'budget') {
               setMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, budgets: [...(m.budgets || []), { id: data.id, title: data.title, items: data.items }] } : m));
+            } else if (data.type === 'tool_confirm') {
+              setMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, streaming: false, toolConfirm: { confirmationId: data.confirmationId, tool: data.tool, params: data.params, label: data.label } } : m));
+            } else if (data.type === 'tool_result') {
+              fullText += `\n✅ ${data.tool.replace('create', '').replace(/([A-Z])/g, ' $1').trim()} completed.`;
+              setMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, content: stripBudgetBlocks(stripTransactionBlocks(fullText)), toolConfirm: undefined } : m));
             } else if (data.type === 'error') {
               fullText = `⚠️ ${data.content}`;
               setMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, content: fullText, streaming: false } : m));
@@ -154,6 +160,24 @@ export function Chat() {
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); sendMessage(input); };
+
+  const handleToolConfirm = useCallback(async (msgId: string, confirmationId: string) => {
+    try {
+      const result = await api.toolConfirm(confirmationId);
+      if (result.ok) {
+        setMessages((prev) => prev.map((m) => m.id === msgId ? { ...m, content: m.content + `\n✅ Completed.`, toolConfirm: undefined } : m));
+      }
+    } catch {
+      setMessages((prev) => prev.map((m) => m.id === msgId ? { ...m, toolConfirm: undefined } : m));
+    }
+  }, []);
+
+  const handleToolCancel = useCallback(async (msgId: string, confirmationId: string) => {
+    try {
+      await api.toolCancel(confirmationId);
+    } catch {}
+    setMessages((prev) => prev.map((m) => m.id === msgId ? { ...m, content: m.content + '\n_Action cancelled._', toolConfirm: undefined } : m));
+  }, []);
 
   const handleRetry = (assistantMsgId: string) => {
     setMessages((prev) => {
@@ -301,7 +325,18 @@ export function Chat() {
                   ))}
                 </div>
               )}
-              {msg.role === 'assistant' && !msg.streaming && msg.content && (
+              {msg.role === 'assistant' && !msg.streaming && msg.toolConfirm && (
+                <div className='mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl'>
+                  <div className='flex items-center justify-between mb-2'>
+                    <span className='text-xs font-semibold text-amber-700'>{msg.toolConfirm.label}</span>
+                  </div>
+                  <div className='flex gap-2'>
+                    <button onClick={() => handleToolConfirm(msg.id, msg.toolConfirm!.confirmationId)} className='flex-1 py-1.5 bg-primary-500 text-white rounded-lg text-xs font-medium hover:bg-primary-600 transition-colors'>Confirm</button>
+                    <button onClick={() => handleToolCancel(msg.id, msg.toolConfirm!.confirmationId)} className='flex-1 py-1.5 border border-slate-200 text-slate-500 rounded-lg text-xs font-medium hover:bg-slate-50 transition-colors'>Cancel</button>
+                  </div>
+                </div>
+              )}
+              {msg.role === 'assistant' && !msg.streaming && msg.content && !msg.toolConfirm && (
                 <MessageActions content={msg.content} conversationId={msg.conversationId || msg.id} onRetry={() => handleRetry(msg.id)} />
               )}
             </div>

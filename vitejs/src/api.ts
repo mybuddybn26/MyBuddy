@@ -279,6 +279,12 @@ export const api = {
   updateMemory: (id: string, data: Record<string, unknown>) =>
     request<Record<string, unknown>>(`/api/memories/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
+  toolConfirm: (confirmationId: string) =>
+    request<{ ok: boolean; tool: string; data?: unknown }>('/api/tools/confirm', { method: 'POST', body: JSON.stringify({ confirmationId }) }),
+
+  toolCancel: (confirmationId: string) =>
+    request<{ ok: boolean }>('/api/tools/cancel', { method: 'POST', body: JSON.stringify({ confirmationId }) }),
+
   deleteMemory: (id: string) =>
     request<void>(`/api/memories/${id}`, { method: 'DELETE' }),
 };

@@ -1,6 +1,7 @@
 import type { AiPersona } from '../../db/schema.js';
 import { config } from '../../config.js';
 import { buildFullSystemPrompt, type TaskType } from '../../ai/prompts/index.js';
+import { buildToolPrompt } from '../../ai/prompts/toolPrompt.js';
 
 function buildMessages(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
@@ -9,9 +10,12 @@ function buildMessages(
   memoryTexts?: string[],
 ) {
   const systemPrompt = buildFullSystemPrompt({ persona, task });
-  let fullPrompt = systemPrompt;
+  const toolPrompt = buildToolPrompt();
+  let fullPrompt = `${systemPrompt}
+
+${toolPrompt}`;
   if (memoryTexts && memoryTexts.length > 0) {
-    fullPrompt = `${systemPrompt}
+    fullPrompt = `${fullPrompt}
 
 IMPORTANT CONTEXT ABOUT THIS USER:
 ${memoryTexts.map((m) => `- ${m}`).join('\n')}

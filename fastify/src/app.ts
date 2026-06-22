@@ -27,6 +27,7 @@ import budgetRoutes from './modules/budgets/routes.js';
 import feedbackRoutes from './modules/feedback/routes.js';
 import usageRoutes from './modules/usage/routes.js';
 import memoryRoutes from './modules/memory/routes.js';
+import toolsRoutes from './modules/tools/routes.js';
 // projx-anchor: imports
 // projx-anchor: entity-imports
 
@@ -134,6 +135,7 @@ export async function buildApp(
   await app.register(feedbackRoutes);
   await app.register(usageRoutes);
   await app.register(memoryRoutes);
+  await app.register(toolsRoutes);
 
   // projx-anchor: entity-registrations
 
