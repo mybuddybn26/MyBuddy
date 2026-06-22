@@ -213,6 +213,13 @@ export default fp(async (app: FastifyInstance) => {
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'AI analysis failed';
+        await app.db.insert(aiUsage).values({
+          userId,
+          model: config.DEEPSEEK_MODEL,
+          provider: 'deepseek',
+          feature: 'document',
+          status: 'failed',
+        }).catch(() => {});
         return reply.status(502).send({ detail: msg });
       }
 

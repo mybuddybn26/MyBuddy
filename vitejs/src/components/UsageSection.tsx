@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
-import { LoaderCircle, Coins } from 'lucide-react';
+import { LoaderCircle, Coins, TriangleAlert } from 'lucide-react';
 
 export function UsageSection() {
   const [usage, setUsage] = useState<{
@@ -10,11 +10,12 @@ export function UsageSection() {
     daily: Array<{ date: string; tokens: number; cost: string }>;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api.usageMe()
       .then(setUsage)
-      .catch(() => {})
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load usage'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -26,9 +27,21 @@ export function UsageSection() {
     );
   }
 
-  if (!usage) return null;
+  if (error) {
+    return (
+      <div className='flex items-center gap-2 py-4 text-sm text-slate-400'>
+        <TriangleAlert size={16} />
+        <span>Could not load usage data.</span>
+      </div>
+    );
+  }
+
+  if (!usage || usage.summary.totalRequests === 0) {
+    return <p className='text-sm text-slate-400 py-4'>No AI usage recorded yet. Start chatting to see your usage.</p>;
+  }
 
   const cost = parseFloat(usage.summary.estimatedCost);
+  const monthlyLimit = 1000000;
 
   return (
     <div className='space-y-6'>
@@ -50,12 +63,27 @@ export function UsageSection() {
         <div className='bg-white rounded-xl border border-slate-200 p-3'>
           <div className='text-xs text-slate-400 mb-0.5'>Avg per Request</div>
           <div className='text-lg font-bold text-slate-800'>
-            {usage.summary.totalRequests > 0
-              ? Math.round(usage.summary.totalTokens / usage.summary.totalRequests)
-              : 0}
+            {Math.round(usage.summary.totalTokens / usage.summary.totalRequests).toLocaleString()}
           </div>
         </div>
       </div>
+
+      {usage.summary.totalTokens > 0 && (
+        <div>
+          <div className='flex items-center justify-between text-xs text-slate-500 mb-1.5'>
+            <span>Monthly token usage</span>
+            <span>{usage.summary.totalTokens.toLocaleString()} / {monthlyLimit.toLocaleString()}</span>
+          </div>
+          <div className='token-bar' style={{ background: '#e2e8f0' }}>
+            <div className='token-bar-fill' style={{ width: `${Math.min(100, (usage.summary.totalTokens / monthlyLimit) * 100)}%` }} />
+          </div>
+          {usage.summary.totalTokens > monthlyLimit * 0.8 && (
+            <p className='text-xs text-amber-600 mt-1 flex items-center gap-1'>
+              <TriangleAlert size={12} /> You've used over 80% of your monthly token limit.
+            </p>
+          )}
+        </div>
+      )}
 
       {usage.byFeature.length > 0 && (
         <div>
