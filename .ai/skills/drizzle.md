@@ -1,5 +1,7 @@
 # Drizzle ORM
 
+> For the complete database specification, table details, relationships, and migration rules, see `.ai/DATABASE.md`.
+
 ## Schema
 
 - Tables defined in `fastify/src/db/schema.ts` using `pgTable`.

@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: PROMPTS.md
+### Created: DATABASE.md
+- **Files created**: `.ai/DATABASE.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/drizzle.md`
+- **Reason**: Permanent database specification — every table documented with purpose, columns, relationships, and usage. Migration rules, query patterns, security, and performance guidance.
+- **Impact**: 15 sections covering all 7 tables with full schema details. Database skill selection now includes DATABASE.md.
 - **Files created**: `.ai/PROMPTS.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/prompts.md`
 - **Reason**: Permanent specification for the AI prompt system — Buddy's personality, task prompts, speech formatting, safety rules, and verification.
 - **Impact**: 15 sections documenting every prompt file, how tasks are selected, how to add new prompts, injection safety, and testing. AI/prompt skill selection now includes PROMPTS.md.
