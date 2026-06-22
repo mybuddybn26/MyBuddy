@@ -183,7 +183,8 @@ export function Billing() {
         )}
 
         <p className='text-xs text-slate-400 text-center'>
-          Phase 1 / demo flow. production requires BIBD merchant services integration.
+          Phase 1 / demo flow. production requires BIBD merchant services
+          integration.
         </p>
       </div>
     </div>

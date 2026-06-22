@@ -6,3 +6,4 @@ coverage
 __tests__
 playwright-report
 test-results
+pnpm-workspace.yaml

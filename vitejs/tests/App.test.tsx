@@ -13,12 +13,8 @@ vi.mock('../src/api', () => ({
     tokenBalance: vi.fn(() =>
       Promise.reject(new Error('not configured in test')),
     ),
-    chatHistory: vi.fn(() =>
-      Promise.resolve({ data: [] }),
-    ),
-    budgets: vi.fn(() =>
-      Promise.resolve({ data: [], count: 0 }),
-    ),
+    chatHistory: vi.fn(() => Promise.resolve({ data: [] })),
+    budgets: vi.fn(() => Promise.resolve({ data: [], count: 0 })),
   },
 }));
 

@@ -5,3 +5,4 @@ dist/
 coverage/
 .turbo/
 fastify/coverage
+pnpm-workspace.yaml

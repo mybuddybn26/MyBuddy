@@ -7,8 +7,16 @@ import type { BudgetLineItem, AiPersona } from '../../db/schema.js';
 
 const CreateBudgetBody = Type.Object({
   title: Type.String({ minLength: 1 }),
-  budget_type: Type.Optional(Type.Union([Type.Literal('snapshot'), Type.Literal('recurring')])),
-  period: Type.Optional(Type.Union([Type.Literal('weekly'), Type.Literal('monthly'), Type.Literal('one_time')])),
+  budget_type: Type.Optional(
+    Type.Union([Type.Literal('snapshot'), Type.Literal('recurring')]),
+  ),
+  period: Type.Optional(
+    Type.Union([
+      Type.Literal('weekly'),
+      Type.Literal('monthly'),
+      Type.Literal('one_time'),
+    ]),
+  ),
   total_amount: Type.Optional(Type.Number()),
   line_items: Type.Array(
     Type.Object({
@@ -32,8 +40,16 @@ const UpdateBudgetBody = Type.Object({
       }),
     ),
   ),
-  status: Type.Optional(Type.Union([Type.Literal('active'), Type.Literal('archived')])),
-  source: Type.Optional(Type.Union([Type.Literal('ai_generated'), Type.Literal('manual'), Type.Literal('ai_edited')])),
+  status: Type.Optional(
+    Type.Union([Type.Literal('active'), Type.Literal('archived')]),
+  ),
+  source: Type.Optional(
+    Type.Union([
+      Type.Literal('ai_generated'),
+      Type.Literal('manual'),
+      Type.Literal('ai_edited'),
+    ]),
+  ),
 });
 
 const AiEditBody = Type.Object({
@@ -57,7 +73,8 @@ export default fp(async (app: FastifyInstance) => {
         .orderBy(desc(budgets.updatedAt))
         .limit(50);
 
-      const filtered = status === 'all' ? rows : rows.filter((r) => r.status === status);
+      const filtered =
+        status === 'all' ? rows : rows.filter((r) => r.status === status);
 
       return reply.send({ data: filtered, count: filtered.length });
     },
@@ -176,7 +193,9 @@ export default fp(async (app: FastifyInstance) => {
           spent_amount: item.spent_amount || 0,
         }));
         updates.lineItems = lineItems;
-        updates.totalAmount = String(lineItems.reduce((s, i) => s + i.allocated_amount, 0));
+        updates.totalAmount = String(
+          lineItems.reduce((s, i) => s + i.allocated_amount, 0),
+        );
       }
 
       const [updated] = await app.db
@@ -247,12 +266,14 @@ export default fp(async (app: FastifyInstance) => {
       };
 
       // Build prompt for AI to propose budget edits
-      const currentBudget = JSON.stringify((budget.lineItems as BudgetLineItem[]).map((item) => ({
-        id: item.id,
-        category: item.category,
-        allocated_amount: item.allocated_amount,
-        spent_amount: item.spent_amount,
-      })));
+      const currentBudget = JSON.stringify(
+        (budget.lineItems as BudgetLineItem[]).map((item) => ({
+          id: item.id,
+          category: item.category,
+          allocated_amount: item.allocated_amount,
+          spent_amount: item.spent_amount,
+        })),
+      );
 
       const aiPrompt = `The user wants to edit their budget titled "${budget.title}".
 
@@ -273,9 +294,7 @@ Only change what the user asked for. Keep existing IDs for unchanged items.`;
 
       try {
         const { streamChat } = await import('../chat/claude.js');
-        const messages = [
-          { role: 'user' as const, content: aiPrompt },
-        ];
+        const messages = [{ role: 'user' as const, content: aiPrompt }];
 
         let fullText = '';
         for await (const chunk of streamChat(messages, persona)) {
@@ -289,14 +308,19 @@ Only change what the user asked for. Keep existing IDs for unchanged items.`;
         if (match) {
           const proposal = JSON.parse(match[1].trim());
           const summary = proposal.summary || 'Budget updated by AI';
-          const proposedItems = (proposal.line_items as Array<Record<string, unknown>>).map((item) => ({
+          const proposedItems = (
+            proposal.line_items as Array<Record<string, unknown>>
+          ).map((item) => ({
             id: String(item.id || ''),
             category: String(item.category || ''),
             allocated_amount: Number(item.allocated_amount || 0),
             spent_amount: Number(item.spent_amount || 0),
           }));
 
-          const proposedTotal = proposedItems.reduce((s, i) => s + i.allocated_amount, 0);
+          const proposedTotal = proposedItems.reduce(
+            (s, i) => s + i.allocated_amount,
+            0,
+          );
 
           return reply.send({
             summary,
@@ -307,7 +331,12 @@ Only change what the user asked for. Keep existing IDs for unchanged items.`;
           });
         }
 
-        return reply.status(422).send({ detail: 'AI could not generate a valid proposal. Try rephrasing your request.' });
+        return reply
+          .status(422)
+          .send({
+            detail:
+              'AI could not generate a valid proposal. Try rephrasing your request.',
+          });
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'AI edit failed';
         return reply.status(502).send({ detail: msg });

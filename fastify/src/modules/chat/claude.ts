@@ -57,7 +57,8 @@ function buildMessages(
     { role: 'system', content: buildSystemPrompt(persona) },
     ...messages.map((m) => ({
       role: m.role,
-      content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
+      content:
+        typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
     })),
   ];
 }
@@ -111,7 +112,11 @@ async function* streamDeepSeek(
         if (json.choices?.[0]?.finish_reason) {
           const promptTokens = json.usage?.prompt_tokens ?? 0;
           const completionTokens = json.usage?.completion_tokens ?? 0;
-          yield { type: 'done', content: '', tokens: promptTokens + completionTokens };
+          yield {
+            type: 'done',
+            content: '',
+            tokens: promptTokens + completionTokens,
+          };
         }
       } catch (_e) {
         // ignore parse errors on partial chunks
@@ -146,9 +151,7 @@ async function* streamOllama(
     buffer += decoder.decode(chunk, { stream: true });
     const raw = buffer.split('\n');
     buffer = raw.pop() || '';
-    const lines = raw
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
+    const lines = raw.map((l) => l.trim()).filter((l) => l.length > 0);
 
     for (const line of lines) {
       try {
@@ -159,7 +162,11 @@ async function* streamOllama(
         if (json.done) {
           const promptTokens = json.prompt_eval_count ?? 0;
           const completionTokens = json.eval_count ?? 0;
-          yield { type: 'done', content: '', tokens: promptTokens + completionTokens };
+          yield {
+            type: 'done',
+            content: '',
+            tokens: promptTokens + completionTokens,
+          };
         }
       } catch (_e) {
         // ignore
@@ -205,8 +212,7 @@ export async function analyzeImage(
   persona: AiPersona,
 ): Promise<{ text: string; tokens: number }> {
   const prompt =
-    userPrompt ||
-    'What does this document say? Explain it in simple language.';
+    userPrompt || 'What does this document say? Explain it in simple language.';
 
   // Try DeepSeek Vision
   if (config.DEEPSEEK_API_KEY) {
@@ -246,16 +252,24 @@ export async function analyzeImage(
 
       if (response.ok) {
         const json = (await response.json()) as Record<string, unknown>;
-        const choices = json['choices'] as Array<Record<string, unknown>> | undefined;
+        const choices = json['choices'] as
+          | Array<Record<string, unknown>>
+          | undefined;
         const text = choices?.[0]?.['message']
-          ? String((choices[0]['message'] as Record<string, unknown>)['content'] || '')
+          ? String(
+              (choices[0]['message'] as Record<string, unknown>)['content'] ||
+                '',
+            )
           : '';
         const usage = json['usage'] as Record<string, number> | undefined;
-        const tokens = (usage?.['prompt_tokens'] ?? 0) + (usage?.['completion_tokens'] ?? 0);
+        const tokens =
+          (usage?.['prompt_tokens'] ?? 0) + (usage?.['completion_tokens'] ?? 0);
         return { text, tokens };
       }
     } catch (err) {
-      console.warn(`DeepSeek Vision failed, falling back to Ollama: ${err instanceof Error ? err.message : 'unknown'}`);
+      console.warn(
+        `DeepSeek Vision failed, falling back to Ollama: ${err instanceof Error ? err.message : 'unknown'}`,
+      );
     }
   }
 
@@ -284,7 +298,6 @@ export async function analyzeImage(
   const msg = json['message'] as Record<string, unknown> | undefined;
   const text = msg?.['content'] ? String(msg['content']) : '';
   const tokens =
-    (Number(json['prompt_eval_count'] ?? 0)) +
-    (Number(json['eval_count'] ?? 0));
+    Number(json['prompt_eval_count'] ?? 0) + Number(json['eval_count'] ?? 0);
   return { text, tokens };
 }

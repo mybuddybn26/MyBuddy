@@ -1,6 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
-import { Plus, Trash2, Save, Archive, Mic, MicOff, Loader2 } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  Save,
+  Archive,
+  Mic,
+  MicOff,
+  Loader2,
+} from 'lucide-react';
 
 interface LineItem {
   id: string;
@@ -66,11 +74,13 @@ export function Budgets() {
   };
 
   // Edit a cell
-  const updateItem = (id: string, field: keyof LineItem, value: string | number) => {
+  const updateItem = (
+    id: string,
+    field: keyof LineItem,
+    value: string | number,
+  ) => {
     setEditingItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item,
-      ),
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
     );
   };
 
@@ -145,14 +155,18 @@ export function Budgets() {
       };
       recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        const blob = new Blob(chunksRef.current, {
+          type: recorder.mimeType || 'audio/webm',
+        });
         if (blob.size < 500) return;
         try {
           const result = await api.transcribe(blob);
           if (result.transcript) {
             setAiInput((prev) => prev + ' ' + result.transcript);
           }
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       };
       recorder.start();
       mediaRecorderRef.current = recorder;
@@ -183,11 +197,13 @@ export function Budgets() {
     setAiInput('');
     try {
       const proposal = await api.aiEditBudget(selected.id, aiInput.trim());
-      setAiProposal(proposal as unknown as {
-        summary: string;
-        proposed_line_items: LineItem[];
-        proposed_total: number;
-      });
+      setAiProposal(
+        proposal as unknown as {
+          summary: string;
+          proposed_line_items: LineItem[];
+          proposed_total: number;
+        },
+      );
     } catch (err) {
       alert(err instanceof Error ? err.message : 'AI edit failed');
     }
@@ -223,9 +239,12 @@ export function Budgets() {
         {/* Header */}
         <div className='flex items-center justify-between'>
           <div>
-            <h1 className='text-xl font-bold text-slate-800'>📊 Budget Sheets</h1>
+            <h1 className='text-xl font-bold text-slate-800'>
+              📊 Budget Sheets
+            </h1>
             <p className='text-sm text-slate-500'>
-              {budgets.length} active {budgets.length === 1 ? 'budget' : 'budgets'}
+              {budgets.length} active{' '}
+              {budgets.length === 1 ? 'budget' : 'budgets'}
             </p>
           </div>
         </div>
@@ -252,7 +271,9 @@ export function Budgets() {
                       {b.title}
                     </h3>
                     <p className='text-xs text-slate-400 mt-0.5'>
-                      {formatPeriod(b.period)} · {b.budgetType === 'recurring' ? 'Recurring' : 'Snapshot'} · {b.source?.replace('_', ' ') || b.source}
+                      {formatPeriod(b.period)} ·{' '}
+                      {b.budgetType === 'recurring' ? 'Recurring' : 'Snapshot'}{' '}
+                      · {b.source?.replace('_', ' ') || b.source}
                     </p>
                   </div>
                   <div className='text-right'>
@@ -272,7 +293,10 @@ export function Budgets() {
           <>
             {/* Back button */}
             <button
-              onClick={() => { setSelected(null); setAiProposal(null); }}
+              onClick={() => {
+                setSelected(null);
+                setAiProposal(null);
+              }}
               className='text-sm text-primary-500 hover:text-primary-700'
             >
               ← Back to budgets
@@ -282,17 +306,32 @@ export function Budgets() {
             <div className='flex items-center justify-between'>
               <input
                 value={selected.title}
-                onChange={(e) => setSelected({ ...selected, title: e.target.value })}
+                onChange={(e) =>
+                  setSelected({ ...selected, title: e.target.value })
+                }
                 className='text-lg font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-primary-400 focus:outline-none px-1'
               />
               <div className='flex items-center gap-1'>
-                <button onClick={save} disabled={saving} className='p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg' aria-label='Save'>
+                <button
+                  onClick={save}
+                  disabled={saving}
+                  className='p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg'
+                  aria-label='Save'
+                >
                   <Save size={16} />
                 </button>
-                <button onClick={archive} className='p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg' aria-label='Archive'>
+                <button
+                  onClick={archive}
+                  className='p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg'
+                  aria-label='Archive'
+                >
                   <Archive size={16} />
                 </button>
-                <button onClick={() => deleteBudget(selected.id)} className='p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg' aria-label='Delete'>
+                <button
+                  onClick={() => deleteBudget(selected.id)}
+                  className='p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg'
+                  aria-label='Delete'
+                >
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -300,9 +339,15 @@ export function Budgets() {
 
             {/* Period and type info */}
             <div className='flex gap-2 text-xs text-slate-400'>
-              <span className='bg-slate-100 px-2 py-0.5 rounded'>{formatPeriod(selected.period)}</span>
-              <span className='bg-slate-100 px-2 py-0.5 rounded'>{selected.budgetType}</span>
-              <span className='bg-slate-100 px-2 py-0.5 rounded'>Total: ${total.toFixed(2)}</span>
+              <span className='bg-slate-100 px-2 py-0.5 rounded'>
+                {formatPeriod(selected.period)}
+              </span>
+              <span className='bg-slate-100 px-2 py-0.5 rounded'>
+                {selected.budgetType}
+              </span>
+              <span className='bg-slate-100 px-2 py-0.5 rounded'>
+                Total: ${total.toFixed(2)}
+              </span>
             </div>
 
             {/* AI Proposal Diff */}
@@ -338,19 +383,30 @@ export function Budgets() {
               <table className='w-full text-sm'>
                 <thead>
                   <tr className='border-b border-slate-200 bg-slate-50'>
-                    <th className='text-left px-3 py-2 text-xs font-semibold text-slate-500'>Category</th>
-                    <th className='text-right px-3 py-2 text-xs font-semibold text-slate-500 w-28'>Allocated</th>
-                    <th className='text-right px-3 py-2 text-xs font-semibold text-slate-500 w-28'>Spent</th>
+                    <th className='text-left px-3 py-2 text-xs font-semibold text-slate-500'>
+                      Category
+                    </th>
+                    <th className='text-right px-3 py-2 text-xs font-semibold text-slate-500 w-28'>
+                      Allocated
+                    </th>
+                    <th className='text-right px-3 py-2 text-xs font-semibold text-slate-500 w-28'>
+                      Spent
+                    </th>
                     <th className='w-8' />
                   </tr>
                 </thead>
                 <tbody>
                   {editingItems.map((item) => (
-                    <tr key={item.id} className='border-b border-slate-100 hover:bg-slate-50/50'>
+                    <tr
+                      key={item.id}
+                      className='border-b border-slate-100 hover:bg-slate-50/50'
+                    >
                       <td className='px-3 py-1.5'>
                         <input
                           value={item.category}
-                          onChange={(e) => updateItem(item.id, 'category', e.target.value)}
+                          onChange={(e) =>
+                            updateItem(item.id, 'category', e.target.value)
+                          }
                           className='w-full bg-transparent text-slate-700 focus:outline-none focus:border-b focus:border-primary-300'
                         />
                       </td>
@@ -359,7 +415,13 @@ export function Budgets() {
                           type='number'
                           step='0.01'
                           value={item.allocated_amount || ''}
-                          onChange={(e) => updateItem(item.id, 'allocated_amount', parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            updateItem(
+                              item.id,
+                              'allocated_amount',
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
                           className='w-full text-right font-mono bg-transparent text-emerald-600 focus:outline-none focus:border-b focus:border-primary-300'
                         />
                       </td>
@@ -368,7 +430,13 @@ export function Budgets() {
                           type='number'
                           step='0.01'
                           value={item.spent_amount || ''}
-                          onChange={(e) => updateItem(item.id, 'spent_amount', parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            updateItem(
+                              item.id,
+                              'spent_amount',
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
                           className='w-full text-right font-mono bg-transparent text-slate-400 focus:outline-none focus:border-b focus:border-primary-300'
                         />
                       </td>
@@ -387,7 +455,10 @@ export function Budgets() {
                 <tfoot>
                   <tr className='bg-slate-50'>
                     <td className='px-3 py-1.5'>
-                      <button onClick={addRow} className='flex items-center gap-1 text-xs text-primary-500 hover:text-primary-700'>
+                      <button
+                        onClick={addRow}
+                        className='flex items-center gap-1 text-xs text-primary-500 hover:text-primary-700'
+                      >
                         <Plus size={14} /> Add item
                       </button>
                     </td>
@@ -409,8 +480,13 @@ export function Budgets() {
             {aiOpen ? (
               <div className='bg-white rounded-xl shadow-xl border border-slate-200 w-80 p-3 space-y-2'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-xs font-semibold text-slate-600'>🤖 AI Budget Assistant</span>
-                  <button onClick={() => setAiOpen(false)} className='text-slate-400 hover:text-slate-600 text-xs'>
+                  <span className='text-xs font-semibold text-slate-600'>
+                    🤖 AI Budget Assistant
+                  </span>
+                  <button
+                    onClick={() => setAiOpen(false)}
+                    className='text-slate-400 hover:text-slate-600 text-xs'
+                  >
                     ✕
                   </button>
                 </div>
@@ -435,7 +511,11 @@ export function Budgets() {
                     disabled={aiLoading || !aiInput.trim()}
                     className='p-1.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50'
                   >
-                    {aiLoading ? <Loader2 size={16} className='animate-spin' /> : '→'}
+                    {aiLoading ? (
+                      <Loader2 size={16} className='animate-spin' />
+                    ) : (
+                      '→'
+                    )}
                   </button>
                 </div>
               </div>

@@ -119,7 +119,10 @@ export const budgets = pgTable('budgets', {
   totalAmount: numeric('total_amount', { precision: 10, scale: 2 })
     .notNull()
     .default('0.00'),
-  lineItems: jsonb('line_items').$type<BudgetLineItem[]>().notNull().default([]),
+  lineItems: jsonb('line_items')
+    .$type<BudgetLineItem[]>()
+    .notNull()
+    .default([]),
   status: text('status').notNull().default('active'), // 'active' | 'archived'
   source: text('source').notNull().default('ai_generated'), // 'ai_generated' | 'manual' | 'ai_edited'
   createdAt: timestamp('created_at', { withTimezone: true })

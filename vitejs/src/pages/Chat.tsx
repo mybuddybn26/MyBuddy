@@ -11,7 +11,12 @@ interface Message {
   budgets?: Array<{
     id: string;
     title: string;
-    items: Array<{ id: string; category: string; allocated_amount: number; spent_amount: number }>;
+    items: Array<{
+      id: string;
+      category: string;
+      allocated_amount: number;
+      spent_amount: number;
+    }>;
     budget_type?: string;
     period?: string;
   }>;
@@ -70,21 +75,39 @@ export function Chat() {
           role: string;
           content: string;
           input_type: string;
-          budgets?: Array<{ id: string; title: string; items: Array<{ id: string; category: string; allocated_amount: number; spent_amount: number }>; budget_type?: string; period?: string }>;
+          budgets?: Array<{
+            id: string;
+            title: string;
+            items: Array<{
+              id: string;
+              category: string;
+              allocated_amount: number;
+              spent_amount: number;
+            }>;
+            budget_type?: string;
+            period?: string;
+          }>;
         }>
-      ).map((m): Message => ({
-        id: m.id,
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-        input_type: m.input_type,
-      }));
+      ).map(
+        (m): Message => ({
+          id: m.id,
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+          input_type: m.input_type,
+        }),
+      );
 
       // Attach most recent budget to the last assistant message
       if (budgetRes.data && budgetRes.data.length > 0) {
         const lastBudget = budgetRes.data[0] as {
           id: string;
           title: string;
-          lineItems: Array<{ id: string; category: string; allocated_amount: number; spent_amount: number }>;
+          lineItems: Array<{
+            id: string;
+            category: string;
+            allocated_amount: number;
+            spent_amount: number;
+          }>;
           budgetType: string;
           period: string;
         };
@@ -93,13 +116,15 @@ export function Chat() {
           if (history[i].role === 'assistant') {
             history[i] = {
               ...history[i],
-              budgets: [{
-                id: lastBudget.id,
-                title: lastBudget.title,
-                items: lastBudget.lineItems,
-                budget_type: lastBudget.budgetType,
-                period: lastBudget.period,
-              }],
+              budgets: [
+                {
+                  id: lastBudget.id,
+                  title: lastBudget.title,
+                  items: lastBudget.lineItems,
+                  budget_type: lastBudget.budgetType,
+                  period: lastBudget.period,
+                },
+              ],
             };
             break;
           }
@@ -158,7 +183,9 @@ export function Chat() {
             const data = JSON.parse(line.slice(6));
             if (data.type === 'text') {
               fullText += data.content;
-              const displayText = stripBudgetBlocks(stripTransactionBlocks(fullText));
+              const displayText = stripBudgetBlocks(
+                stripTransactionBlocks(fullText),
+              );
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantMsg.id ? { ...m, content: displayText } : m,
@@ -290,7 +317,12 @@ export function Chat() {
         }
 
         const allChunks = [...chunksRef.current];
-        console.log('Total chunks:', allChunks.length, 'total bytes:', allChunks.reduce((s, c) => s + c.size, 0));
+        console.log(
+          'Total chunks:',
+          allChunks.length,
+          'total bytes:',
+          allChunks.reduce((s, c) => s + c.size, 0),
+        );
 
         if (allChunks.length === 0) {
           setMessages((prev) => [
@@ -356,7 +388,9 @@ export function Chat() {
       setRecordingDuration(0);
 
       timerRef.current = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - recordingStartRef.current) / 1000);
+        const elapsed = Math.floor(
+          (Date.now() - recordingStartRef.current) / 1000,
+        );
         setRecordingDuration(elapsed);
         setAudioLevel(Math.random() * 60 + 20); // Pulsing fake level for visual feedback
       }, 200);
@@ -376,7 +410,10 @@ export function Chat() {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = 0;
     }
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === 'recording'
+    ) {
       mediaRecorderRef.current.stop();
     }
     mediaRecorderRef.current = null;
@@ -457,37 +494,67 @@ export function Chat() {
               {msg.budgets && msg.budgets.length > 0 && (
                 <div className='mt-3 space-y-3'>
                   {msg.budgets.map((budget) => (
-                    <div key={budget.id} className='bg-white rounded-lg border border-emerald-200 overflow-hidden'>
+                    <div
+                      key={budget.id}
+                      className='bg-white rounded-lg border border-emerald-200 overflow-hidden'
+                    >
                       <div className='bg-emerald-50 px-3 py-2 border-b border-emerald-200 flex items-center justify-between'>
                         <span className='text-xs font-semibold text-emerald-700'>
                           📊 {budget.title}
                         </span>
                         <span className='text-xs text-emerald-500'>
-                          {budget.period === 'weekly' ? 'Weekly' : budget.period === 'monthly' ? 'Monthly' : 'One-time'}
+                          {budget.period === 'weekly'
+                            ? 'Weekly'
+                            : budget.period === 'monthly'
+                              ? 'Monthly'
+                              : 'One-time'}
                         </span>
                       </div>
                       <table className='w-full text-xs'>
                         <thead>
                           <tr className='border-b border-slate-100'>
-                            <th className='text-left px-3 py-1.5 text-slate-500 font-medium'>Category</th>
-                            <th className='text-right px-3 py-1.5 text-slate-500 font-medium'>Allocated</th>
-                            <th className='text-right px-3 py-1.5 text-slate-500 font-medium'>Spent</th>
+                            <th className='text-left px-3 py-1.5 text-slate-500 font-medium'>
+                              Category
+                            </th>
+                            <th className='text-right px-3 py-1.5 text-slate-500 font-medium'>
+                              Allocated
+                            </th>
+                            <th className='text-right px-3 py-1.5 text-slate-500 font-medium'>
+                              Spent
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {budget.items.map((item) => (
-                            <tr key={item.id} className='border-b border-slate-50 last:border-0'>
-                              <td className='px-3 py-1.5 text-slate-700 font-medium'>{item.category}</td>
-                              <td className='px-3 py-1.5 text-right text-emerald-600 font-mono'>${item.allocated_amount.toFixed(2)}</td>
+                            <tr
+                              key={item.id}
+                              className='border-b border-slate-50 last:border-0'
+                            >
+                              <td className='px-3 py-1.5 text-slate-700 font-medium'>
+                                {item.category}
+                              </td>
+                              <td className='px-3 py-1.5 text-right text-emerald-600 font-mono'>
+                                ${item.allocated_amount.toFixed(2)}
+                              </td>
                               <td className='px-3 py-1.5 text-right text-slate-400 font-mono'>
-                                {item.spent_amount > 0 ? `$${item.spent_amount.toFixed(2)}` : '-'}
+                                {item.spent_amount > 0
+                                  ? `$${item.spent_amount.toFixed(2)}`
+                                  : '-'}
                               </td>
                             </tr>
                           ))}
                           <tr className='bg-slate-50'>
-                            <td className='px-3 py-1.5 font-bold text-slate-700'>Total</td>
+                            <td className='px-3 py-1.5 font-bold text-slate-700'>
+                              Total
+                            </td>
                             <td className='px-3 py-1.5 text-right font-bold font-mono text-emerald-700'>
-                              ${budget.items.reduce((sum, item) => sum + item.allocated_amount, 0).toFixed(2)}
+                              $
+                              {budget.items
+                                .reduce(
+                                  (sum, item) => sum + item.allocated_amount,
+                                  0,
+                                )
+                                .toFixed(2)}
                             </td>
                             <td />
                           </tr>

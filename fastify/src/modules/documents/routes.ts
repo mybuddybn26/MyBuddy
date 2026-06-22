@@ -8,9 +8,14 @@ import { config } from '../../config.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-function getMimeFromExt(filename: string): 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' {
+function getMimeFromExt(
+  filename: string,
+): 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' {
   const ext = filename.split('.').pop()?.toLowerCase() || 'jpg';
-  const map: Record<string, 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'> = {
+  const map: Record<
+    string,
+    'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+  > = {
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
     png: 'image/png',
@@ -128,7 +133,9 @@ export default fp(async (app: FastifyInstance) => {
       const filepath = join(config.UPLOAD_DIR, filename);
 
       if (!existsSync(filepath)) {
-        return reply.status(404).send({ detail: 'Image file not found on disk' });
+        return reply
+          .status(404)
+          .send({ detail: 'Image file not found on disk' });
       }
 
       const imageBuffer = readFileSync(filepath);
@@ -165,13 +172,24 @@ export default fp(async (app: FastifyInstance) => {
 
         // Try to infer doc_type from AI response
         const lower = summary.toLowerCase();
-        if (lower.includes('bill') || lower.includes('invoice') || lower.includes('receipt')) {
+        if (
+          lower.includes('bill') ||
+          lower.includes('invoice') ||
+          lower.includes('receipt')
+        ) {
           docType = 'bill';
-        } else if (lower.includes('letter') || lower.includes('correspondence')) {
+        } else if (
+          lower.includes('letter') ||
+          lower.includes('correspondence')
+        ) {
           docType = 'letter';
         } else if (lower.includes('permit') || lower.includes('license')) {
           docType = 'permit';
-        } else if (lower.includes('statement') || lower.includes('bank') || lower.includes('account')) {
+        } else if (
+          lower.includes('statement') ||
+          lower.includes('bank') ||
+          lower.includes('account')
+        ) {
           docType = 'statement';
         }
       } catch (err) {

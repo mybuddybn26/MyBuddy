@@ -88,7 +88,9 @@ export const api = {
     ),
 
   budgets: () =>
-    request<{ data: Array<Record<string, unknown>>; count: number }>('/api/budgets'),
+    request<{ data: Array<Record<string, unknown>>; count: number }>(
+      '/api/budgets',
+    ),
 
   createBudget: (data: Record<string, unknown>) =>
     request<Record<string, unknown>>('/api/budgets', {
@@ -174,9 +176,12 @@ export const api = {
     ),
 
   analyzeDocument: (id: string) =>
-    request<{ summary: string; doc_type: string }>(`/api/documents/${id}/analyze`, {
-      method: 'POST',
-    }),
+    request<{ summary: string; doc_type: string }>(
+      `/api/documents/${id}/analyze`,
+      {
+        method: 'POST',
+      },
+    ),
 
   updateDocument: (id: string, data: Record<string, unknown>) =>
     request<Record<string, unknown>>(`/api/documents/${id}`, {
@@ -188,7 +193,10 @@ export const api = {
     request<void>(`/api/documents/${id}`, { method: 'DELETE' }),
 
   // PDF
-  async generatePdf(title: string, sections: Array<{ heading: string; body: string }>) {
+  async generatePdf(
+    title: string,
+    sections: Array<{ heading: string; body: string }>,
+  ) {
     await ensureFreshToken();
     const token = getToken();
     const res = await fetch(`${BASE}/api/pdf/generate`, {
@@ -200,7 +208,9 @@ export const api = {
       body: JSON.stringify({ title, content: { sections } }),
     });
     if (!res.ok) {
-      const body = await res.json().catch(() => ({ detail: 'PDF generation failed' }));
+      const body = await res
+        .json()
+        .catch(() => ({ detail: 'PDF generation failed' }));
       throw new Error(body.detail || 'PDF generation failed');
     }
     return res.blob();

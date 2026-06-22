@@ -14,7 +14,8 @@ export default defineConfig({
       manifest: {
         name: 'MyBuddy — AI Voice Assistant',
         short_name: 'MyBuddy',
-        description: 'Empowering local businesses and communities through AI-powered voice assistance',
+        description:
+          'Empowering local businesses and communities through AI-powered voice assistance',
         theme_color: '#1e40af',
         background_color: '#f8fafc',
         display: 'standalone',

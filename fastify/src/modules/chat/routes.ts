@@ -2,7 +2,13 @@ import fp from 'fastify-plugin';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { eq, desc } from 'drizzle-orm';
 import { Type } from '@sinclair/typebox';
-import { conversations, users, tokenLedger, transactions, budgets } from '../../db/schema.js';
+import {
+  conversations,
+  users,
+  tokenLedger,
+  transactions,
+  budgets,
+} from '../../db/schema.js';
 import type { AiPersona } from '../../db/schema.js';
 import { streamChat } from './claude.js';
 import { config } from '../../config.js';
@@ -33,7 +39,10 @@ interface ParsedTransaction {
   category: string;
 }
 
-function extractTransactions(text: string): { parsed: ParsedTransaction[]; cleaned: string } {
+function extractTransactions(text: string): {
+  parsed: ParsedTransaction[];
+  cleaned: string;
+} {
   const parsed: ParsedTransaction[] = [];
   const cleaned = text.replace(
     /```transaction\s*\n([\s\S]*?)\n```/g,
@@ -80,7 +89,10 @@ interface ParsedBudget {
   total?: number;
 }
 
-function extractBudgets(text: string): { parsed: ParsedBudget[]; cleaned: string } {
+function extractBudgets(text: string): {
+  parsed: ParsedBudget[];
+  cleaned: string;
+} {
   const parsed: ParsedBudget[] = [];
   const cleaned = text.replace(
     /```budget\s*\n([\s\S]*?)\n```/g,
@@ -99,26 +111,32 @@ function extractBudgets(text: string): { parsed: ParsedBudget[]; cleaned: string
         } else {
           return _match;
         }
-        const valid = (items as unknown[]).filter(
-          (i: unknown) => {
-            const it = i as Record<string, unknown>;
-            return (
-              typeof it.category === 'string' &&
-              it.category.length > 0 &&
-              typeof it.allocated_amount === 'number'
-            );
-          },
-        );
+        const valid = (items as unknown[]).filter((i: unknown) => {
+          const it = i as Record<string, unknown>;
+          return (
+            typeof it.category === 'string' &&
+            it.category.length > 0 &&
+            typeof it.allocated_amount === 'number'
+          );
+        });
         if (valid.length > 0) {
           // Infer period from data or title
-          const title = data?.title || data?.name || data?.budget_name || 'Budget';
+          const title =
+            data?.title || data?.name || data?.budget_name || 'Budget';
           const titleLower = title.toLowerCase();
           let period = 'one_time';
-          if (titleLower.includes('weekly') || titleLower.includes('week')) period = 'weekly';
-          else if (titleLower.includes('monthly') || titleLower.includes('month')) period = 'monthly';
+          if (titleLower.includes('weekly') || titleLower.includes('week'))
+            period = 'weekly';
+          else if (
+            titleLower.includes('monthly') ||
+            titleLower.includes('month')
+          )
+            period = 'monthly';
 
           const total = (valid as unknown[]).reduce(
-            (sum: number, i: unknown) => sum + Number((i as Record<string, unknown>).allocated_amount || 0),
+            (sum: number, i: unknown) =>
+              sum +
+              Number((i as Record<string, unknown>).allocated_amount || 0),
             0,
           );
 
@@ -255,8 +273,7 @@ export default fp(async (app: FastifyInstance) => {
               amount: String(tx.amount),
               description: tx.description,
               category: tx.category,
-              rawVoiceLog:
-                body.input_type === 'voice' ? body.message : null,
+              rawVoiceLog: body.input_type === 'voice' ? body.message : null,
             });
             request.log.info(
               `Auto-parsed transaction: ${tx.type} $${tx.amount} — ${tx.description}`,
@@ -279,16 +296,19 @@ export default fp(async (app: FastifyInstance) => {
             }));
             const isRecurring = budget.period !== 'one_time';
 
-            const [saved] = await app.db.insert(budgets).values({
-              userId,
-              title: budget.title,
-              budgetType: isRecurring ? 'recurring' : 'snapshot',
-              period: budget.period || 'one_time',
-              totalAmount: String(budget.total || 0),
-              lineItems,
-              source: 'ai_generated',
-              status: 'active',
-            }).returning();
+            const [saved] = await app.db
+              .insert(budgets)
+              .values({
+                userId,
+                title: budget.title,
+                budgetType: isRecurring ? 'recurring' : 'snapshot',
+                period: budget.period || 'one_time',
+                totalAmount: String(budget.total || 0),
+                lineItems,
+                source: 'ai_generated',
+                status: 'active',
+              })
+              .returning();
             reply.raw.write(
               `data: ${JSON.stringify({ type: 'budget', id: saved.id, title: budget.title, items: lineItems, budget_type: isRecurring ? 'recurring' : 'snapshot', period: budget.period })}\n\n`,
             );
