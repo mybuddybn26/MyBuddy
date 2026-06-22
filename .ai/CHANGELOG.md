@@ -1,3 +1,9 @@
+### Completed: AI usage tracking
+- **Files created**: `vitejs/src/components/UsageSection.tsx`
+- **Files modified**: `aiService.ts`, `chat/routes.ts`, `documents/routes.ts`, `config.ts`, `Settings.tsx`
+- **Reason**: Complete usage tracking: documents, failures, frontend UI, cost config.
+- **Impact**: `analyzeImage()` returns usage data. Document AI tracked. Failed requests recorded. Settings page shows usage dashboard. MONTHLY_TOKEN_LIMIT config.
+
 ### Added: DeepSeek usage tracking
 - **Files created**: `fastify/src/modules/usage/routes.ts`
 - **Files modified**: `db/schema.ts`, `config.ts`, `aiService.ts`, `chat/routes.ts`, `app.ts`, `vitejs/src/api.ts`
