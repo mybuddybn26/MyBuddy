@@ -44,8 +44,14 @@ export function Chat() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioLevel, setAudioLevel] = useState(0);
   const [voiceCallOpen, setVoiceCallOpen] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMoreHistory, setHasMoreHistory] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const olderOffsetRef = useRef(0);
+  const loadingOlderRef = useRef(false);
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -66,15 +72,47 @@ export function Chat() {
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
   useEffect(() => {
-      Promise.all([
-        api.chatHistory(30).catch(() => ({ data: [], count: 0 })),
-      ]).then(([chatRes]) => {
-        const history = (
-          chatRes.data as Array<{ id: string; role: string; content: string; input_type: string }>
-        ).map((m): Message => ({ id: m.id, role: m.role as 'user' | 'assistant', content: m.content, input_type: m.input_type }));
-        setMessages(history);
-      });
+    api.chatHistory(30).catch(() => ({ data: [], count: 0 })).then((chatRes) => {
+      olderOffsetRef.current = (chatRes.data as Array<Record<string, unknown>>).length;
+      setHasMoreHistory(olderOffsetRef.current >= 30);
+      const history = (
+        chatRes.data as Array<{ id: string; role: string; content: string; input_type: string }>
+      ).map((m): Message => ({ id: m.id, role: m.role as 'user' | 'assistant', content: m.content, input_type: m.input_type }));
+      setMessages(history);
+    });
   }, []);
+
+  const loadOlderMessages = useCallback(async () => {
+    if (loadingOlderRef.current || !hasMoreHistory) return;
+    loadingOlderRef.current = true;
+    setLoadingOlder(true);
+    try {
+      const container = messagesContainerRef.current;
+      const prevScrollHeight = container?.scrollHeight || 0;
+      const prevScrollTop = container?.scrollTop || 0;
+
+      const res = await api.chatHistory(30, olderOffsetRef.current);
+      const data = res.data as Array<{ id: string; role: string; content: string; input_type: string }>;
+
+      if (data.length === 0) { setHasMoreHistory(false); return; }
+
+      olderOffsetRef.current += data.length;
+      setHasMoreHistory(data.length >= 30);
+
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map((m) => m.id));
+        const newMsgs = data
+          .filter((m) => !existingIds.has(m.id))
+          .map((m): Message => ({ id: m.id, role: m.role as 'user' | 'assistant', content: m.content, input_type: m.input_type }));
+        if (newMsgs.length === 0) return prev;
+        requestAnimationFrame(() => {
+          if (container) { container.scrollTop = container.scrollHeight - prevScrollHeight + prevScrollTop; }
+        });
+        return [...newMsgs, ...prev];
+      });
+    } catch { /* ignore */ }
+    finally { loadingOlderRef.current = false; setLoadingOlder(false); }
+  }, [hasMoreHistory]);
 
   const sendMessage = useCallback(async (text: string, inputType = 'text') => {
     if (!text.trim() || isStreaming) return;
@@ -284,7 +322,26 @@ export function Chat() {
 
   return (
     <div className='flex flex-col h-full'>
-      <div className='flex-1 overflow-y-auto p-4 space-y-3'>
+      <div
+        ref={messagesContainerRef}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          if (el.scrollTop < 80 && hasMoreHistory && !loadingOlderRef.current) {
+            loadOlderMessages();
+          }
+        }}
+        className='flex-1 overflow-y-auto p-4 space-y-3'
+      >
+        {loadingOlder && (
+          <div className='flex justify-center py-3'>
+            <span className='text-xs text-slate-400 animate-pulse'>Loading older messages...</span>
+          </div>
+        )}
+        {!hasMoreHistory && messages.length > 0 && (
+          <div className='flex justify-center py-3'>
+            <span className='text-xs text-slate-300'>Beginning of conversation</span>
+          </div>
+        )}
         {messages.length === 0 && (
           <div className='flex flex-col items-center justify-center h-full text-center animate-fade-in'>
             <div className='text-6xl mb-4'>🤖</div>
