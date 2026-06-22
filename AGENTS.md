@@ -193,6 +193,7 @@ BUDDY.md            ← Project conventions and memory
 ├── PERFORMANCE.md  ← Performance engineering specification
 ├── TESTING.md      ← Verification specification
 ├── DEPLOYMENT.md   ← Deployment specification
+├── ROADMAP.md      ← Product roadmap + priorities
 ├── DECISIONS.md    ← Architecture Decision Records
 ├── CHANGELOG.md    ← Project change history
 ├── LESSONS.md      ← Recurring mistakes and rules

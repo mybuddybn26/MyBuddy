@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: DEPLOYMENT.md
+### Created: ROADMAP.md
+- **Files created**: `.ai/ROADMAP.md`, modified: `AGENTS.md`, `BUDDY.md`
+- **Reason**: Define long-term vision, feature direction, and priorities so future agents align implementation with product goals.
+- **Impact**: 12 sections covering vision, principles, all 12 current features with statuses, short/medium/long-term plans, priority system, technical roadmap, and feature evaluation framework.
 - **Files created**: `.ai/DEPLOYMENT.md`, modified: `AGENTS.md`, `BUDDY.md`
 - **Reason**: Permanent deployment specification — Docker architecture, env vars, build process, security checklist, and production readiness assessment.
 - **Impact**: 14 sections covering Docker Compose services, all required env vars, build/deploy commands, file storage, SSL, rollback plan, and 5 documented production gaps.
