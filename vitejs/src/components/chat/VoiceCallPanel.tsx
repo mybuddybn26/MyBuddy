@@ -8,7 +8,7 @@ import { api } from '../../api';
 interface VoiceCallPanelProps {
   open: boolean;
   onClose: () => void;
-  onMessage?: (role: 'user' | 'assistant', content: string) => void;
+  onBubble?: (phase: string, role: 'user' | 'assistant', content: string) => void;
 }
 
 const FALSE_POSITIVES = new Set([
@@ -52,7 +52,7 @@ function Waveform({ active, level, color }: { active: boolean; level: number; co
   );
 }
 
-export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps) {
+export function VoiceCallPanel({ open, onClose, onBubble }: VoiceCallPanelProps) {
   const [state, setState] = useState<VoiceCallState>('idle');
   const [userTranscript, setUserTranscript] = useState('');
   const [assistantTranscript, setAssistantTranscript] = useState('');
@@ -67,7 +67,6 @@ export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps
   const isSpeakingRef = useRef(false);
 
   const setCallState = useCallback((s: VoiceCallState) => {
-    console.log(`[VoiceCall] ${stateRef.current} → ${s}`);
     stateRef.current = s;
     setState(s);
   }, []);
@@ -79,7 +78,8 @@ export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps
     playerRef.current = null;
     processingRef.current = false;
     isSpeakingRef.current = false;
-  }, []);
+    onBubble?.('cleanup', 'user', '');
+  }, [onBubble]);
 
   const speak = useCallback(async (text: string) => {
     setCallState('speaking');
@@ -92,6 +92,7 @@ export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps
       await ensureFreshToken();
       const token = getToken();
       const BASE = import.meta.env.VITE_API_URL || '';
+      const t0 = performance.now();
       const res = await fetch(`${BASE}/api/voice/tts/speak`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -100,22 +101,17 @@ export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps
       if (!res.ok) throw new Error('TTS failed');
       const blob = await res.blob();
       if (blob.size < 100) throw new Error('Empty audio');
+      console.log(`[VoiceLatency] TTS: ${Math.round(performance.now() - t0)}ms`);
       const player = new VoicePlayer();
       playerRef.current = player;
-      player.onEnd(() => {
-        isSpeakingRef.current = false;
-        if (isCallActive(stateRef.current)) startListening();
-      });
+      player.onEnd(() => { isSpeakingRef.current = false; if (isCallActive(stateRef.current)) startListening(); });
       await player.play(blob);
       playerRef.current = null;
       isSpeakingRef.current = false;
     } catch (err) {
       console.error('[VoiceCall] TTS error:', err);
       isSpeakingRef.current = false;
-      if (isCallActive(stateRef.current)) {
-        setError('Speech unavailable');
-        setTimeout(() => { if (isCallActive(stateRef.current)) startListening(); }, 2000);
-      }
+      if (isCallActive(stateRef.current)) { setError('Speech unavailable'); setTimeout(() => { if (isCallActive(stateRef.current)) startListening(); }, 2000); }
     }
   }, [setCallState]);
 
@@ -125,6 +121,7 @@ export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps
     setCallState('thinking');
     try {
       const history = historyRef.current.slice(-12);
+      const t0 = performance.now();
       const response = await api.chatStream(text, 'voice', history);
       if (!response.body) throw new Error('No stream');
       const reader = response.body.getReader();
@@ -141,69 +138,51 @@ export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps
         }
       }
       const cleaned = fullText.replace(/```[\s\S]*?```/g, '').trim();
+      const aiTime = Math.round(performance.now() - t0);
+      console.log(`[VoiceLatency] AI: ${aiTime}ms`);
       if (cleaned) {
         historyRef.current.push({ role: 'assistant', content: cleaned });
-        onMessage?.('assistant', cleaned);
+        onBubble?.('responding', 'assistant', cleaned);
         processingRef.current = false;
+        const t1 = performance.now();
         await speak(cleaned);
-      } else {
-        processingRef.current = false;
-        startListening();
-      }
+        console.log(`[VoiceLatency] Total: ${Math.round(performance.now() - t1 + aiTime)}ms`);
+      } else { processingRef.current = false; startListening(); }
     } catch (err) {
       console.error('[VoiceCall] AI error:', err);
       processingRef.current = false;
       if (isCallActive(stateRef.current)) { setError('AI unavailable'); setCallState('disconnected'); }
     }
-  }, [setCallState, speak, onMessage]);
+  }, [setCallState, speak, onBubble]);
 
   const onTranscribe = useCallback(async (blob: Blob, recorder: VoiceRecorder) => {
-    console.log('[VoiceCall] Transcribing...');
     try {
-      if (isSpeakingRef.current) {
-        console.log('[VoiceCall] Ignoring: Buddy is speaking (possible echo)');
-        startListening();
-        return;
-      }
+      if (isSpeakingRef.current) { console.log('[VoiceCall] Ignoring: Buddy is speaking'); startListening(); return; }
+      if (!recorder.hadRealSpeech) { console.log('[VoiceCall] Ignoring: no real speech'); onBubble?.('ignored', 'user', ''); startListening(); return; }
+      if (!recorder.minDurationMet) { console.log('[VoiceCall] Ignoring: too short'); onBubble?.('ignored', 'user', ''); startListening(); return; }
 
-      if (!recorder.hadRealSpeech) {
-        console.log('[VoiceCall] Ignoring: no real speech detected (peak too low)');
-        startListening();
-        return;
-      }
-
-      if (!recorder.minDurationMet) {
-        console.log('[VoiceCall] Ignoring: recording too short');
-        startListening();
-        return;
-      }
-
+      const t0 = performance.now();
+      onBubble?.('transcribing', 'user', '');
       const result = await api.transcribe(blob);
+      const sttTime = Math.round(performance.now() - t0);
+      console.log(`[VoiceLatency] STT: ${sttTime}ms`);
       const text = result.transcript?.trim();
 
-      if (!text) {
-        console.log('[VoiceCall] Empty transcript, restarting');
-        startListening();
-        return;
-      }
-
+      if (!text) { onBubble?.('ignored', 'user', ''); startListening(); return; }
       const ignoreReason = shouldIgnoreTranscript(text);
-      if (ignoreReason) {
-        console.log(`[VoiceCall] Ignoring transcript: ${ignoreReason} — "${text}"`);
-        startListening();
-        return;
-      }
+      if (ignoreReason) { console.log(`[VoiceCall] Ignoring: ${ignoreReason} — "${text}"`); onBubble?.('ignored', 'user', ''); startListening(); return; }
 
-      console.log('[VoiceCall] Accepted transcript:', text);
+      console.log('[VoiceCall] Accepted:', text);
       setUserTranscript(text);
       historyRef.current.push({ role: 'user', content: text });
-      onMessage?.('user', text);
+      onBubble?.('accepted', 'user', text);
+      onBubble?.('thinking', 'assistant', '');
       await think(text);
     } catch (err) {
       console.error('[VoiceCall] STT error:', err);
       if (isCallActive(stateRef.current)) { setError('Speech recognition failed'); setCallState('disconnected'); }
     }
-  }, [think, setCallState, onMessage]);
+  }, [think, setCallState, onBubble]);
 
   const startListening = useCallback(() => {
     if (!isCallActive(stateRef.current)) return;
@@ -221,10 +200,11 @@ export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps
         else if (isCallActive(stateRef.current)) startListening();
       },
       onError: (msg) => { setError(msg); setCallState('disconnected'); },
-    });
+    }, 1800);
     recorderRef.current = recorder;
     recorder.start();
-  }, [onTranscribe, setCallState]);
+    onBubble?.('listening', 'user', '');
+  }, [onTranscribe, setCallState, onBubble]);
 
   const interrupt = useCallback(() => {
     if (stateRef.current !== 'speaking') return;
@@ -263,10 +243,7 @@ export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps
     return (
       <div className='border-t border-slate-200 bg-white p-4 animate-fade-in'>
         <div className='flex items-center justify-between mb-3'>
-          <div className='flex items-center gap-2'>
-            <span className='text-lg'>&#x1F916;</span>
-            <span className='text-sm font-semibold text-slate-700'>Voice Call</span>
-          </div>
+          <div className='flex items-center gap-2'><span className='text-lg'>&#x1F916;</span><span className='text-sm font-semibold text-slate-700'>Voice Call</span></div>
           <button onClick={onClose} className='p-1 text-slate-400 hover:text-slate-600 rounded-md' aria-label='Close'><X size={18} /></button>
         </div>
         <p className='text-xs text-slate-500 mb-3'>Talk naturally — Buddy listens and responds.</p>
@@ -281,42 +258,24 @@ export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps
   return (
     <div className='border-t-2 border-primary-200 bg-white animate-fade-in'>
       <div className='flex items-center justify-between px-4 py-2 bg-primary-50/50'>
+        <div className='flex items-center gap-2'><span className='w-2 h-2 rounded-full bg-green-400 animate-pulse' /><span className='text-xs font-medium text-primary-700'>{STATE_LABELS[state]}</span></div>
         <div className='flex items-center gap-2'>
-          <span className='w-2 h-2 rounded-full bg-green-400 animate-pulse' />
-          <span className='text-xs font-medium text-primary-700'>{STATE_LABELS[state]}</span>
-        </div>
-        <div className='flex items-center gap-2'>
-          <button onClick={interrupt} className='text-xs text-primary-500 hover:text-primary-700 font-medium' aria-label='Interrupt'>
-            Interrupt
-          </button>
-          <button onClick={handleEnd} className='p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors' aria-label='End call'>
-            <PhoneOff size={14} />
-          </button>
+          <button onClick={interrupt} className='text-xs text-primary-500 hover:text-primary-700 font-medium'>Interrupt</button>
+          <button onClick={handleEnd} className='p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors' aria-label='End call'><PhoneOff size={14} /></button>
         </div>
       </div>
-
       <div className='px-4 py-3'>
         <div className='flex items-center gap-3 mb-2'>
           <Waveform active level={audioLevel} color={color} />
           {state === 'thinking' && <LoaderCircle size={16} className='animate-spin text-primary-400' />}
-          <span className='text-xs text-slate-500'>
-            {state === 'listening' && "I'm listening\u2026"}
-            {state === 'thinking' && 'Thinking\u2026'}
-            {state === 'connecting' && 'Connecting\u2026'}
-            {state === 'interrupted' && 'Go ahead\u2026'}
-          </span>
+          <span className='text-xs text-slate-500'>{state === 'listening' && "I'm listening\u2026"}{state === 'thinking' && 'Thinking\u2026'}{state === 'connecting' && 'Connecting\u2026'}{state === 'interrupted' && 'Go ahead\u2026'}</span>
         </div>
-
         <div className='space-y-1.5 max-h-32 overflow-y-auto text-xs'>
           {userTranscript && <div className='text-slate-600 leading-relaxed'><span className='text-slate-400'>You: </span>{userTranscript}</div>}
           {assistantTranscript && <div className='text-primary-600 leading-relaxed'><span className='text-primary-400'>Buddy: </span>{assistantTranscript}</div>}
         </div>
-
         {state === 'disconnected' && error && (
-          <div className='mt-2 flex items-center gap-2'>
-            <p className='text-xs text-red-500'>{error}</p>
-            <button onClick={handleStart} className='text-xs text-primary-500 hover:text-primary-700 font-medium'>Retry</button>
-          </div>
+          <div className='mt-2 flex items-center gap-2'><p className='text-xs text-red-500'>{error}</p><button onClick={handleStart} className='text-xs text-primary-500 hover:text-primary-700 font-medium'>Retry</button></div>
         )}
       </div>
     </div>
