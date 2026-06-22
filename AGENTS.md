@@ -189,6 +189,7 @@ BUDDY.md            ← Project conventions and memory
 ├── DATABASE.md     ← Database engineering specification
 ├── API.md          ← API contract documentation
 ├── SECURITY.md     ← Security & privacy specification
+├── PERFORMANCE.md  ← Performance engineering specification
 ├── DECISIONS.md    ← Architecture Decision Records
 ├── CHANGELOG.md    ← Project change history
 ├── LESSONS.md      ← Recurring mistakes and rules

@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: SECURITY.md
+### Created: PERFORMANCE.md
+- **Files created**: `.ai/PERFORMANCE.md`, modified: `AGENTS.md`, `BUDDY.md`
+- **Reason**: Permanent performance specification — streaming, caching, memory management, database optimization, bundle performance, and latency targets.
+- **Impact**: 12 sections covering frontend, chat, AI cost, voice latency (<2s target), database, documents, API, memory, bundle, and monitoring. Documented 3 voice bottlenecks and 2 database risks.
 - **Files created**: `.ai/SECURITY.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/security.md`
 - **Reason**: Permanent security specification — data classification, threat model, gap analysis, and verification checklist.
 - **Impact**: 17 sections covering data classification (8 types), auth, authz, secrets, API security, upload safety, document/voice/financial security, threat model (10 threats), and 9 documented security gaps with severity ratings.
