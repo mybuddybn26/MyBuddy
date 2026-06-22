@@ -36,19 +36,20 @@ All colors are defined as CSS custom properties in `vitejs/src/index.css` via `@
 
 Background: `#FFFFF7` (warm white, like fresh snow in sunlight).
 
-### Primary Identity: Deep Professional Blue
+### Primary Identity: True Deep Royal Blue
 ```
---color-primary-50:  #eef2ff   ← Lightest backgrounds
---color-primary-100: #e0e7ff   ← Hover, subtle fills
---color-primary-200: #c7d2fe   ← Selection, borders
---color-primary-300: #a5b4fc   ← Active states
---color-primary-400: #818cf8   ← Accent elements
---color-primary-500: #6366f1   ← BUTTONS, primary actions
---color-primary-600: #4f46e5   ← Hover states
---color-primary-700: #4338ca   ← Active, gradient stops
---color-primary-800: #3730a3   ← Headings, emphasis
---color-primary-900: #312e81   ← Darkest text emphasis
+--color-primary-50:  #eff6ff   ← Lightest backgrounds
+--color-primary-100: #dbeafe   ← Hover, subtle fills
+--color-primary-200: #bfdbfe   ← Selection, borders
+--color-primary-300: #93c5fd   ← Active states
+--color-primary-400: #60a5fa   ← Accent elements
+--color-primary-500: #3b82f6   ← BUTTONS, primary actions
+--color-primary-600: #2563eb   ← Hover states
+--color-primary-700: #1d4ed8   ← Active, gradient stops
+--color-primary-800: #1e40af   ← Headings, emphasis
+--color-primary-900: #1e3a8a   ← Darkest text emphasis
 ```
+**Note:** True deep royal blue — no purple undertones. Avoid indigo or violet-tinged blues.
 
 ### Surface (Aspen Snow)
 ```
@@ -85,6 +86,7 @@ Background: `#FFFFF7` (warm white, like fresh snow in sunlight).
 - **Cards** should use `white` or `#FEFEF0` backgrounds.
 
 ### Avoid
+- Purple undertones in primary blue (do not use indigo, violet, or purple-tinged blues).
 - Green/nature palette (do not use green tones outside of `--color-success`).
 - Purple AI gradients (no purple-to-blue gradients).
 - Neon/fluorescent colors.
