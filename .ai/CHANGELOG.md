@@ -6,7 +6,10 @@
 
 ## 2026-06-22
 
-### Created: VOICE.md
+### Created: PROMPTS.md
+- **Files created**: `.ai/PROMPTS.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/prompts.md`
+- **Reason**: Permanent specification for the AI prompt system — Buddy's personality, task prompts, speech formatting, safety rules, and verification.
+- **Impact**: 15 sections documenting every prompt file, how tasks are selected, how to add new prompts, injection safety, and testing. AI/prompt skill selection now includes PROMPTS.md.
 - **Files created**: `.ai/VOICE.md`, modified: `AGENTS.md`, `BUDDY.md`, `.ai/skills/voice.md`
 - **Reason**: Permanent engineering specification for the entire voice system — pipeline, state machine, providers, latency targets, verification checklist.
 - **Impact**: 19 sections covering philosophy, modes, session manager, state machine, complete pipeline, mic rules, waveform, STT, AI, TTS, interruptions, latency, UI, errors, privacy, debugging, and file map. Voice skill selection now includes VOICE.md.

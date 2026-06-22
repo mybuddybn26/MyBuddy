@@ -1,5 +1,7 @@
 # Prompts
 
+> For the complete prompt specification, architecture, task types, safety rules, and verification checklist, see `.ai/PROMPTS.md`.
+
 ## Location
 
 All AI prompts: `fastify/src/ai/prompts/`
