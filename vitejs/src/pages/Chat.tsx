@@ -50,7 +50,6 @@ export function Chat() {
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number>(0);
   const recordingStartRef = useRef<number>(0);
   const shouldTranscribeRef = useRef<boolean>(false);
