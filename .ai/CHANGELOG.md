@@ -1,3 +1,9 @@
+### Added: DeepSeek usage tracking
+- **Files created**: `fastify/src/modules/usage/routes.ts`
+- **Files modified**: `db/schema.ts`, `config.ts`, `aiService.ts`, `chat/routes.ts`, `app.ts`, `vitejs/src/api.ts`
+- **Reason**: Track per-request AI token consumption and estimated cost for billing.
+- **Impact**: `ai_usage` table records prompt/completion tokens, model, feature, cost per request. Cost config: $0.14/1M input, $0.28/1M output. `GET /api/usage/me` returns summary + breakdown.
+
 ### Added: restart-dev.ps1 + duplicate server rule
 - **Files created**: `scripts/restart-dev.ps1`
 - **Files modified**: `AGENTS.md`, `.ai/LESSONS.md`
