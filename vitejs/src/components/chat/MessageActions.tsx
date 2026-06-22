@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ThumbsUp, ThumbsDown, RotateCcw, Share2 } from 'lucide-react';
 import { CopyButton } from './CopyButton';
 import { SpeechControls } from './SpeechControls';
@@ -17,26 +17,59 @@ export function MessageActions({ content, conversationId, onRetry }: MessageActi
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const toast = useToast();
 
-  const handleGood = async () => {
-    if (voted) return;
-    setVoted('good');
+  const handleVote = useCallback(
+    async (rating: 'good' | 'bad') => {
+      if (voted === rating) {
+        // Clicking again removes the vote
+        setVoted(null);
+        try {
+          await api.removeFeedback(conversationId);
+        } catch {
+          // silent
+        }
+        return;
+      }
+
+      // Swapping or setting new vote
+      setVoted(rating);
+      try {
+        await api.submitFeedback(conversationId, {
+          rating,
+          reasons: [],
+        });
+        toast('Thanks for your feedback!', 'success');
+      } catch {
+        setVoted(null);
+        toast('Failed to submit feedback.', 'error');
+      }
+    },
+    [voted, conversationId, toast],
+  );
+
+  const handleBad = useCallback(() => {
+    if (voted === 'bad') {
+      // Remove the bad vote if already voted bad
+      handleVote('bad');
+      return;
+    }
+    setFeedbackOpen(true);
+  }, [voted, handleVote]);
+
+  const handleFeedbackClose = useCallback(async () => {
+    setFeedbackOpen(false);
+    if (voted === 'bad') return;
+    setVoted('bad');
     try {
       await api.submitFeedback(conversationId, {
-        rating: 'good',
+        rating: 'bad',
         reasons: [],
       });
-      toast('Thanks for your feedback!', 'success');
     } catch {
-      toast('Failed to submit feedback.', 'error');
+      setVoted(null);
     }
-  };
+  }, [voted, conversationId]);
 
-  const handleBad = () => {
-    if (voted) return;
-    setFeedbackOpen(true);
-  };
-
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     const shareData = { text: content };
     if (navigator.share && navigator.canShare?.(shareData)) {
       try {
@@ -52,20 +85,7 @@ export function MessageActions({ content, conversationId, onRetry }: MessageActi
         toast('Sharing is not supported on this device.', 'error');
       }
     }
-  };
-
-  const handleFeedbackClose = async () => {
-    setFeedbackOpen(false);
-    setVoted('bad');
-    try {
-      await api.submitFeedback(conversationId, {
-        rating: 'bad',
-        reasons: [],
-      });
-    } catch {
-      // silent
-    }
-  };
+  }, [content, toast]);
 
   return (
     <>
@@ -76,29 +96,29 @@ export function MessageActions({ content, conversationId, onRetry }: MessageActi
       >
         <CopyButton text={content} />
         <button
-          onClick={handleGood}
-          disabled={voted !== null}
+          onClick={() => handleVote('good')}
           className={`flex items-center gap-1 px-2 py-1 text-xs rounded-md transition-colors ${
             voted === 'good'
               ? 'text-success bg-emerald-50'
               : 'text-slate-400 hover:text-success hover:bg-emerald-50'
-          } disabled:cursor-not-allowed`}
-          aria-label='Good response'
-          title='Good response'
+          }`}
+          aria-label={voted === 'good' ? 'Remove like' : 'Good response'}
+          aria-pressed={voted === 'good'}
+          title={voted === 'good' ? 'Remove like' : 'Good response'}
         >
           <ThumbsUp size={14} />
           <span className='hidden sm:inline'>Good</span>
         </button>
         <button
           onClick={handleBad}
-          disabled={voted !== null}
           className={`flex items-center gap-1 px-2 py-1 text-xs rounded-md transition-colors ${
             voted === 'bad'
               ? 'text-danger bg-red-50'
               : 'text-slate-400 hover:text-danger hover:bg-red-50'
-          } disabled:cursor-not-allowed`}
-          aria-label='Bad response'
-          title='Bad response'
+          }`}
+          aria-label={voted === 'bad' ? 'Remove dislike' : 'Bad response'}
+          aria-pressed={voted === 'bad'}
+          title={voted === 'bad' ? 'Remove dislike' : 'Bad response'}
         >
           <ThumbsDown size={14} />
           <span className='hidden sm:inline'>Bad</span>

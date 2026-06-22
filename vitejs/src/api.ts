@@ -249,4 +249,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ conversationId, ...data }),
     }),
+
+  removeFeedback: (conversationId: string) =>
+    request<{ status: string }>('/api/feedback', {
+      method: 'DELETE',
+      body: JSON.stringify({ conversationId }),
+    }),
 };

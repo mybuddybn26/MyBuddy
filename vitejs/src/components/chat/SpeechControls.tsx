@@ -1,12 +1,15 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Volume2, Pause, Play, Square } from 'lucide-react';
+import { Volume2, Pause, Play, Square, Loader2 } from 'lucide-react';
 
 interface SpeechControlsProps {
   text: string;
   label?: string;
 }
 
-type SpeechState = 'idle' | 'playing' | 'paused';
+type SpeechState = 'idle' | 'loading' | 'playing' | 'paused';
+
+const audioCache = new Map<string, string>();
+const activeAudioRef: { current: HTMLAudioElement | null } = { current: null };
 
 export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
   const [state, setState] = useState<SpeechState>('idle');
@@ -23,22 +26,55 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
       URL.revokeObjectURL(audioUrlRef.current);
       audioUrlRef.current = null;
     }
+    if (activeAudioRef.current === audioRef.current) {
+      activeAudioRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
     return cleanup;
   }, [cleanup]);
 
-  const speak = useCallback(async () => {
-    try {
-      const { api } = await import('../../api');
-      const { ensureFreshToken, getToken } = await import('../../auth');
+  const stopGlobalAudio = useCallback(() => {
+    if (activeAudioRef.current && activeAudioRef.current !== audioRef.current) {
+      activeAudioRef.current.pause();
+      activeAudioRef.current.src = '';
+      activeAudioRef.current = null;
+    }
+  }, []);
 
+  const speak = useCallback(async () => {
+    stopGlobalAudio();
+    setState('loading');
+
+    try {
+      const cachedUrl = audioCache.get(text);
+      if (cachedUrl) {
+        const audio = new Audio(cachedUrl);
+        audioRef.current = audio;
+        activeAudioRef.current = audio;
+        audioUrlRef.current = cachedUrl;
+
+        audio.onended = () => {
+          setState('idle');
+          cleanup();
+        };
+        audio.onerror = () => {
+          setState('idle');
+          cleanup();
+        };
+
+        await audio.play();
+        setState('playing');
+        return;
+      }
+
+      const { ensureFreshToken, getToken } = await import('../../auth');
       await ensureFreshToken();
       const token = getToken();
       const BASE = import.meta.env.VITE_API_URL || '';
 
-      const res = await fetch(`${BASE}/api/voice/tts`, {
+      const res = await fetch(`${BASE}/api/voice/tts/speak`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,16 +87,17 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
+      audioCache.set(text, url);
       audioUrlRef.current = url;
 
       const audio = new Audio(url);
       audioRef.current = audio;
+      activeAudioRef.current = audio;
 
       audio.onended = () => {
         setState('idle');
         cleanup();
       };
-
       audio.onerror = () => {
         setState('idle');
         cleanup();
@@ -71,7 +108,7 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
     } catch {
       setState('idle');
     }
-  }, [text, cleanup]);
+  }, [text, cleanup, stopGlobalAudio]);
 
   const togglePause = useCallback(() => {
     if (!audioRef.current) return;
@@ -89,6 +126,19 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
     setState('idle');
   }, [cleanup]);
 
+  if (state === 'loading') {
+    return (
+      <span
+        className='flex items-center gap-1 px-2 py-1 text-xs text-primary-500'
+        aria-label='Generating speech'
+        title='Generating speech'
+      >
+        <Loader2 size={14} className='animate-spin' />
+        <span className='hidden sm:inline'>Speaking...</span>
+      </span>
+    );
+  }
+
   if (state === 'idle') {
     return (
       <button
@@ -105,6 +155,20 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
 
   return (
     <div className='flex items-center gap-0.5' role='group' aria-label='Speech controls'>
+      {state === 'playing' && (
+        <span className='flex items-center gap-0.5 mr-0.5' aria-hidden='true'>
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className='w-0.5 bg-primary-400 rounded-full animate-pulse'
+              style={{
+                height: `${8 + i * 4}px`,
+                animationDelay: `${i * 100}ms`,
+              }}
+            />
+          ))}
+        </span>
+      )}
       <button
         onClick={togglePause}
         className='p-1 text-slate-400 hover:text-primary-500 hover:bg-primary-50 rounded-md transition-colors'

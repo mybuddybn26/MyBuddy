@@ -15,6 +15,7 @@ import { checkDatabase, closeDatabase, db } from './db/client.js';
 import authRoutes from './modules/auth/routes.js';
 import chatRoutes from './modules/chat/routes.js';
 import voiceRoutes from './modules/voice/routes.js';
+import ttsRoutes from './services/tts/ttsRoutes.js';
 import uploadRoutes from './modules/upload/routes.js';
 import transactionRoutes from './modules/transactions/routes.js';
 import documentRoutes from './modules/documents/routes.js';
@@ -119,6 +120,7 @@ export async function buildApp(
   await app.register(authRoutes);
   await app.register(chatRoutes);
   await app.register(voiceRoutes);
+  await app.register(ttsRoutes);
   await app.register(uploadRoutes);
   await app.register(transactionRoutes);
   await app.register(documentRoutes);
