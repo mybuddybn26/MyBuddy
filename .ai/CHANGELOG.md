@@ -1,3 +1,9 @@
+### Fix: Transcript scoring filter + dev-clean script
+- **Files created**: `scripts/dev-clean.ps1`
+- **Files modified**: `voiceRecorder.ts`, `VoiceCallPanel.tsx`, `.ai/VOICE.md`, `.ai/DEPLOYMENT.md`
+- **Reason**: Replace single-threshold RMS rejection with multi-signal scoring. Add clean dev restart script.
+- **Impact**: Transcript filter now uses 0-9 scoring (words, questions, peak, voiced frames, duration). `dev-clean.ps1` safely stops old Buddy processes before starting.
+
 ### Fix: Voice polish — VAD, language guard, voice prompt, gradual reveal
 - **Files created**: `fastify/src/ai/prompts/voiceCallPrompt.ts`
 - **Files modified**: `voiceRecorder.ts`, `VoiceCallPanel.tsx`, `Chat.tsx`, `prompts/index.ts`, `.ai/VOICE.md`
