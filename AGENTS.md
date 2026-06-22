@@ -1,0 +1,137 @@
+# AGENTS.md — AI Coding Agent Instructions
+
+> **This is the first file every AI agent must read before working on this project.**
+
+---
+
+## Required Reading Order
+
+When starting ANY task on this project, read files in this exact order:
+
+1. **AGENTS.md** (this file) — workflow and skill selection
+2. **BUDDY.md** — project conventions, philosophy, lessons learned
+3. **PROJECT.md** — project overview (if it exists)
+
+Then, based on the task type, load the relevant skill files from `.ai/skills/`.
+
+---
+
+## Skill Selection
+
+Determine the task category and load the matching skills automatically:
+
+| Task Category | Skills to Load |
+|---|---|
+| **Backend / API** | `fastify.md` → `architecture.md` → `typescript.md` → `testing.md` → `security.md` |
+| **Database / Schema** | `drizzle.md` → `fastify.md` → `typescript.md` |
+| **Frontend / UI** | `ui.md` → `typescript.md` → `architecture.md` → `testing.md` |
+| **Voice / Audio** | `voice.md` → `ai.md` → `architecture.md` |
+| **AI / Prompts** | `ai.md` → `prompts.md` → `architecture.md` |
+| **Security** | `security.md` → `architecture.md` |
+| **Cross-cutting / Refactor** | `architecture.md` → `typescript.md` → `ui.md` → `fastify.md` |
+
+When in doubt, load `architecture.md` and `typescript.md` as the minimum baseline.
+
+---
+
+## Workflow
+
+Every task must follow this exact sequence:
+
+```
+1. Read AGENTS.md (this file)
+       ↓
+2. Read BUDDY.md
+       ↓
+3. Determine task category
+       ↓
+4. Load matching skills from .ai/skills/
+       ↓
+5. Analyze existing code (read affected files)
+       ↓
+6. Search for reusable patterns (grep for similar implementations)
+       ↓
+7. Think carefully — consider edge cases, multiple approaches
+       ↓
+8. Implement the solution
+       ↓
+9. Verify:
+   - pnpm typecheck in fastify/ (0 errors)
+   - pnpm typecheck in vitejs/ (0 errors)
+   - No broken imports
+   - Existing functionality preserved
+   - All Definition of Done items checked
+       ↓
+10. Report completion
+```
+
+---
+
+## Core Behavior
+
+As an AI coding agent working on this project, you MUST:
+
+1. **Think before coding** — analyze, search, identify, consider, then implement.
+2. **Never skip requested features** — implement everything the user asks for.
+3. **Never create placeholder code or TODO comments.**
+4. **Never fabricate** — no invented APIs, packages, or capabilities.
+5. **Never break existing functionality.**
+6. **Always verify before reporting completion.**
+7. **Treat project documentation as permanent memory.**
+
+---
+
+## Documentation Hierarchy
+
+```
+AGENTS.md          ← Master workflow (this file)
+    ↓
+BUDDY.md           ← Project conventions and memory
+    ↓
+.ai/skills/        ← Reusable engineering skills
+    ├── architecture.md
+    ├── typescript.md
+    ├── fastify.md
+    ├── drizzle.md
+    ├── ui.md
+    ├── voice.md
+    ├── ai.md
+    ├── prompts.md
+    ├── testing.md
+    └── security.md
+```
+
+---
+
+## Verification
+
+Before reporting ANY task as complete:
+
+```bash
+cd fastify && pnpm typecheck   # 0 errors required
+cd vitejs && pnpm typecheck    # 0 errors required
+```
+
+Plus:
+- No broken imports
+- No unused files
+- No duplicate code
+- Existing features still work
+
+---
+
+## Quick Reference
+
+| Need | Where |
+|---|---|
+| Backend route pattern | `.ai/skills/fastify.md` |
+| Database schema pattern | `.ai/skills/drizzle.md` |
+| Frontend component pattern | `.ai/skills/ui.md` |
+| Voice pipeline | `.ai/skills/voice.md` |
+| AI prompt system | `.ai/skills/ai.md` + `.ai/skills/prompts.md` |
+| TypeScript conventions | `.ai/skills/typescript.md` |
+| Security rules | `.ai/skills/security.md` |
+| Project file structure | `BUDDY.md` |
+| Lessons learned | `BUDDY.md` § Lessons Learned |
+| Architecture decisions | `BUDDY.md` § ADR |
+| Definition of Done | `BUDDY.md` § Definition of Done |
