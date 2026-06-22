@@ -1,6 +1,7 @@
 # AGENTS.md — AI Coding Agent Instructions
 
 > **This is the first file every AI agent must read before working on this project.**
+> For a quick overview, see `.ai/START_HERE.md`.
 
 ---
 
