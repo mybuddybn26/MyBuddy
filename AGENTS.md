@@ -10,7 +10,9 @@ When starting ANY task on this project, read files in this exact order:
 
 1. **AGENTS.md** (this file) — workflow and skill selection
 2. **BUDDY.md** — project conventions, philosophy, lessons learned
-3. **PROJECT.md** — project overview (if it exists)
+3. `.ai/DECISIONS.md` — architecture decisions (ADR)
+4. `.ai/LESSONS.md` — recurring mistakes to avoid
+5. **PROJECT.md** — project overview (if it exists)
 
 Then, based on the task type, load the relevant skill files from `.ai/skills/`.
 
@@ -115,26 +117,35 @@ Every task must follow this exact sequence:
        ↓
 2. Read BUDDY.md
        ↓
-3. Determine task category
+3. Read .ai/DECISIONS.md (understand past architecture choices)
        ↓
-4. Load matching skills from .ai/skills/
+4. Read .ai/LESSONS.md (avoid repeating known mistakes)
        ↓
-5. Analyze existing code (read affected files)
+5. Determine task category
        ↓
-6. Search for reusable patterns (grep for similar implementations)
+6. Load matching skills from .ai/skills/
        ↓
-7. Think carefully — consider edge cases, multiple approaches
+7. Analyze existing code (read affected files)
        ↓
-8. Implement the solution
+8. Search for reusable patterns (grep for similar implementations)
        ↓
-9. Verify:
-   - pnpm typecheck in fastify/ (0 errors)
-   - pnpm typecheck in vitejs/ (0 errors)
-   - No broken imports
-   - Existing functionality preserved
-   - All Definition of Done items checked
+9. Think carefully — consider edge cases, multiple approaches
        ↓
-10. Report completion
+10. Implement the solution
+       ↓
+11. After implementation:
+    - If architecture changed: update .ai/DECISIONS.md
+    - If a mistake was discovered: update .ai/LESSONS.md
+    - Always: update .ai/CHANGELOG.md
+       ↓
+12. Verify:
+    - pnpm typecheck in fastify/ (0 errors)
+    - pnpm typecheck in vitejs/ (0 errors)
+    - No broken imports
+    - Existing functionality preserved
+    - All Definition of Done items checked
+       ↓
+13. Report completion
 ```
 
 ---
@@ -156,11 +167,15 @@ As an AI coding agent working on this project, you MUST:
 ## Documentation Hierarchy
 
 ```
-AGENTS.md          ← Master workflow (this file)
+AGENTS.md           ← Master workflow (this file)
     ↓
-BUDDY.md           ← Project conventions and memory
+BUDDY.md            ← Project conventions and memory
     ↓
-.ai/skills/        ← Reusable engineering skills
+.ai/
+├── DECISIONS.md    ← Architecture Decision Records
+├── CHANGELOG.md    ← Project change history
+├── LESSONS.md      ← Recurring mistakes and rules
+└── skills/         ← Reusable engineering skills
     ├── architecture.md
     ├── typescript.md
     ├── fastify.md
