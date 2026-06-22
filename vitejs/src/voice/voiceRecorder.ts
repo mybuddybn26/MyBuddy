@@ -14,8 +14,11 @@ export class VoiceRecorder {
   private rafId = 0;
   private silenceTimeout: number;
   private callbacks: VoiceRecorderCallbacks;
+  private recordingStartTime = 0;
+  private peakLevel = 0;
+  private hasSpeechDetected = false;
 
-  constructor(callbacks: VoiceRecorderCallbacks, silenceTimeout = 1500) {
+  constructor(callbacks: VoiceRecorderCallbacks, silenceTimeout = 2200) {
     this.callbacks = callbacks;
     this.silenceTimeout = silenceTimeout;
   }
@@ -24,11 +27,24 @@ export class VoiceRecorder {
     return this.recorder?.state === 'recording';
   }
 
+  get minDurationMet(): boolean {
+    return Date.now() - this.recordingStartTime >= 800;
+  }
+
+  get hadRealSpeech(): boolean {
+    return this.hasSpeechDetected && this.peakLevel > 15;
+  }
+
   async start(): Promise<void> {
     try {
       console.log('[VoiceRecorder] Requesting microphone...');
       this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1,
+        },
       });
       console.log('[VoiceRecorder] Microphone connected');
 
@@ -43,6 +59,10 @@ export class VoiceRecorder {
       console.log('[VoiceRecorder] Analyser connected');
 
       this.chunks = [];
+      this.recordingStartTime = Date.now();
+      this.peakLevel = 0;
+      this.hasSpeechDetected = false;
+
       this.recorder = new MediaRecorder(this.stream, { mimeType: 'audio/webm;codecs=opus' });
 
       this.recorder.ondataavailable = (e) => {
@@ -75,11 +95,14 @@ export class VoiceRecorder {
       const level = Math.min(100, Math.max(0, avg));
       this.callbacks.onAudioLevel(level);
 
-      if (level > 10) {
+      if (level > this.peakLevel) this.peakLevel = level;
+      if (level > 15) this.hasSpeechDetected = true;
+
+      if (level > 12) {
         if (this.silenceTimer) { clearTimeout(this.silenceTimer); this.silenceTimer = null; }
       } else if (!this.silenceTimer) {
         this.silenceTimer = setTimeout(() => {
-          console.log(`[VoiceRecorder] Silence detected (level: ${level.toFixed(1)})`);
+          console.log(`[VoiceRecorder] Silence detected (peak: ${this.peakLevel.toFixed(1)}, speech: ${this.hasSpeechDetected})`);
           this.callbacks.onSilenceDetected();
         }, this.silenceTimeout);
       }
@@ -114,7 +137,7 @@ export class VoiceRecorder {
     if (allChunks.length === 0) return null;
 
     const blob = new Blob(allChunks, { type: 'audio/webm' });
-    console.log(`[VoiceRecorder] Blob: ${blob.size} bytes`);
+    console.log(`[VoiceRecorder] Blob: ${blob.size} bytes, peak: ${this.peakLevel.toFixed(1)}, speech: ${this.hasSpeechDetected}, duration: ${Date.now() - this.recordingStartTime}ms`);
     return blob.size >= 500 ? blob : null;
   }
 

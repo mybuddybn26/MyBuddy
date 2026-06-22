@@ -136,6 +136,13 @@ export function Chat() {
     }
   }, [messages, isStreaming]);
 
+  const addVoiceMessage = useCallback((role: 'user' | 'assistant', content: string) => {
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role, content, input_type: 'voice' },
+    ]);
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); sendMessage(input); };
 
   const handleRetry = (assistantMsgId: string) => {
@@ -387,7 +394,7 @@ export function Chat() {
         </form>
       </div>
 
-      <VoiceCallPanel open={voiceCallOpen} onClose={() => setVoiceCallOpen(false)} />
+      <VoiceCallPanel open={voiceCallOpen} onClose={() => setVoiceCallOpen(false)} onMessage={addVoiceMessage} />
     </div>
   );
 }

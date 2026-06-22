@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { PhoneOff, Mic, MicOff, LoaderCircle, X } from 'lucide-react';
+import { PhoneOff, LoaderCircle, X } from 'lucide-react';
 import { VoiceRecorder } from '../../voice/voiceRecorder';
 import { VoicePlayer } from '../../voice/voicePlayer';
 import { type VoiceCallState, STATE_LABELS, isCallActive } from '../../voice/voiceState';
@@ -8,6 +8,23 @@ import { api } from '../../api';
 interface VoiceCallPanelProps {
   open: boolean;
   onClose: () => void;
+  onMessage?: (role: 'user' | 'assistant', content: string) => void;
+}
+
+const FALSE_POSITIVES = new Set([
+  'thank you', 'thanks', 'bye', 'you', 'okay', 'ok', 'yes', 'no',
+  'hmm', 'uh', 'um', 'oh', 'ah', 'hi', 'hello', 'hey',
+]);
+
+function shouldIgnoreTranscript(text: string): string | null {
+  const trimmed = text.trim();
+  if (!trimmed) return 'empty';
+  if (trimmed.length < 3) return 'too short';
+  const words = trimmed.split(/\s+/).filter((w) => w.length > 1);
+  if (words.length < 2) return 'too few meaningful words';
+  const lower = trimmed.toLowerCase().replace(/[.!?,]$/, '').trim();
+  if (FALSE_POSITIVES.has(lower)) return `false positive: "${lower}"`;
+  return null;
 }
 
 function Waveform({ active, level, color }: { active: boolean; level: number; color: string }) {
@@ -35,7 +52,7 @@ function Waveform({ active, level, color }: { active: boolean; level: number; co
   );
 }
 
-export function VoiceCallPanel({ open, onClose }: VoiceCallPanelProps) {
+export function VoiceCallPanel({ open, onClose, onMessage }: VoiceCallPanelProps) {
   const [state, setState] = useState<VoiceCallState>('idle');
   const [userTranscript, setUserTranscript] = useState('');
   const [assistantTranscript, setAssistantTranscript] = useState('');
@@ -47,6 +64,7 @@ export function VoiceCallPanel({ open, onClose }: VoiceCallPanelProps) {
   const playerRef = useRef<VoicePlayer | null>(null);
   const historyRef = useRef<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   const processingRef = useRef(false);
+  const isSpeakingRef = useRef(false);
 
   const setCallState = useCallback((s: VoiceCallState) => {
     console.log(`[VoiceCall] ${stateRef.current} → ${s}`);
@@ -60,6 +78,7 @@ export function VoiceCallPanel({ open, onClose }: VoiceCallPanelProps) {
     playerRef.current?.stop();
     playerRef.current = null;
     processingRef.current = false;
+    isSpeakingRef.current = false;
   }, []);
 
   const speak = useCallback(async (text: string) => {
@@ -67,6 +86,7 @@ export function VoiceCallPanel({ open, onClose }: VoiceCallPanelProps) {
     setAssistantTranscript(text);
     const cleaned = text.replace(/```[\s\S]*?```/g, '').replace(/`[^`]+`/g, '$1').trim();
     if (!cleaned) { startListening(); return; }
+    isSpeakingRef.current = true;
     try {
       const { ensureFreshToken, getToken } = await import('../../auth');
       await ensureFreshToken();
@@ -82,11 +102,16 @@ export function VoiceCallPanel({ open, onClose }: VoiceCallPanelProps) {
       if (blob.size < 100) throw new Error('Empty audio');
       const player = new VoicePlayer();
       playerRef.current = player;
-      player.onEnd(() => { if (isCallActive(stateRef.current)) startListening(); });
+      player.onEnd(() => {
+        isSpeakingRef.current = false;
+        if (isCallActive(stateRef.current)) startListening();
+      });
       await player.play(blob);
       playerRef.current = null;
+      isSpeakingRef.current = false;
     } catch (err) {
       console.error('[VoiceCall] TTS error:', err);
+      isSpeakingRef.current = false;
       if (isCallActive(stateRef.current)) {
         setError('Speech unavailable');
         setTimeout(() => { if (isCallActive(stateRef.current)) startListening(); }, 2000);
@@ -116,31 +141,69 @@ export function VoiceCallPanel({ open, onClose }: VoiceCallPanelProps) {
         }
       }
       const cleaned = fullText.replace(/```[\s\S]*?```/g, '').trim();
-      if (cleaned) { historyRef.current.push({ role: 'assistant', content: cleaned }); processingRef.current = false; await speak(cleaned); }
-      else { processingRef.current = false; startListening(); }
+      if (cleaned) {
+        historyRef.current.push({ role: 'assistant', content: cleaned });
+        onMessage?.('assistant', cleaned);
+        processingRef.current = false;
+        await speak(cleaned);
+      } else {
+        processingRef.current = false;
+        startListening();
+      }
     } catch (err) {
       console.error('[VoiceCall] AI error:', err);
       processingRef.current = false;
       if (isCallActive(stateRef.current)) { setError('AI unavailable'); setCallState('disconnected'); }
     }
-  }, [setCallState, speak]);
+  }, [setCallState, speak, onMessage]);
 
-  const onTranscribe = useCallback(async (blob: Blob) => {
+  const onTranscribe = useCallback(async (blob: Blob, recorder: VoiceRecorder) => {
     console.log('[VoiceCall] Transcribing...');
     try {
+      if (isSpeakingRef.current) {
+        console.log('[VoiceCall] Ignoring: Buddy is speaking (possible echo)');
+        startListening();
+        return;
+      }
+
+      if (!recorder.hadRealSpeech) {
+        console.log('[VoiceCall] Ignoring: no real speech detected (peak too low)');
+        startListening();
+        return;
+      }
+
+      if (!recorder.minDurationMet) {
+        console.log('[VoiceCall] Ignoring: recording too short');
+        startListening();
+        return;
+      }
+
       const result = await api.transcribe(blob);
       const text = result.transcript?.trim();
-      if (text) {
-        console.log('[VoiceCall] Transcript:', text);
-        setUserTranscript(text);
-        historyRef.current.push({ role: 'user', content: text });
-        await think(text);
-      } else { startListening(); }
+
+      if (!text) {
+        console.log('[VoiceCall] Empty transcript, restarting');
+        startListening();
+        return;
+      }
+
+      const ignoreReason = shouldIgnoreTranscript(text);
+      if (ignoreReason) {
+        console.log(`[VoiceCall] Ignoring transcript: ${ignoreReason} — "${text}"`);
+        startListening();
+        return;
+      }
+
+      console.log('[VoiceCall] Accepted transcript:', text);
+      setUserTranscript(text);
+      historyRef.current.push({ role: 'user', content: text });
+      onMessage?.('user', text);
+      await think(text);
     } catch (err) {
       console.error('[VoiceCall] STT error:', err);
       if (isCallActive(stateRef.current)) { setError('Speech recognition failed'); setCallState('disconnected'); }
     }
-  }, [think, setCallState]);
+  }, [think, setCallState, onMessage]);
 
   const startListening = useCallback(() => {
     if (!isCallActive(stateRef.current)) return;
@@ -154,7 +217,7 @@ export function VoiceCallPanel({ open, onClose }: VoiceCallPanelProps) {
       onSilenceDetected: () => {
         const blob = recorder.stop();
         recorderRef.current = null;
-        if (blob) onTranscribe(blob);
+        if (blob) onTranscribe(blob, recorder);
         else if (isCallActive(stateRef.current)) startListening();
       },
       onError: (msg) => { setError(msg); setCallState('disconnected'); },
@@ -168,6 +231,7 @@ export function VoiceCallPanel({ open, onClose }: VoiceCallPanelProps) {
     playerRef.current?.stop();
     playerRef.current = null;
     processingRef.current = false;
+    isSpeakingRef.current = false;
     setCallState('interrupted');
     setTimeout(() => { if (stateRef.current === 'interrupted') startListening(); }, 200);
   }, [setCallState, startListening]);
@@ -177,6 +241,7 @@ export function VoiceCallPanel({ open, onClose }: VoiceCallPanelProps) {
     setUserTranscript(''); setAssistantTranscript('');
     historyRef.current = [];
     processingRef.current = false;
+    isSpeakingRef.current = false;
     setCallState('connecting');
     setTimeout(() => { if (stateRef.current === 'connecting') startListening(); }, 500);
   }, [startListening, setCallState]);
