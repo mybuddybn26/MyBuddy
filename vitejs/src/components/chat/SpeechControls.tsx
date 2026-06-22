@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Volume2, Pause, Play, Square, Loader2 } from 'lucide-react';
+import { useToast } from '../Toast';
 
 interface SpeechControlsProps {
   text: string;
@@ -15,6 +16,7 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
   const [state, setState] = useState<SpeechState>('idle');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
+  const toast = useToast();
 
   const cleanup = useCallback(() => {
     if (audioRef.current) {
@@ -47,8 +49,14 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
     stopGlobalAudio();
     setState('loading');
 
+    const trimmed = text.trim();
+    if (!trimmed) {
+      setState('idle');
+      return;
+    }
+
     try {
-      const cachedUrl = audioCache.get(text);
+      const cachedUrl = audioCache.get(trimmed);
       if (cachedUrl) {
         const audio = new Audio(cachedUrl);
         audioRef.current = audio;
@@ -60,6 +68,7 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
           cleanup();
         };
         audio.onerror = () => {
+          console.error('Audio playback error (cached)');
           setState('idle');
           cleanup();
         };
@@ -80,14 +89,22 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ text: text.slice(0, 5000) }),
+        body: JSON.stringify({ text: trimmed.slice(0, 5000) }),
       });
 
-      if (!res.ok) throw new Error('TTS failed');
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({ detail: 'TTS request failed' }));
+        const detail = (errBody as { detail?: string }).detail || 'TTS request failed';
+        throw new Error(detail);
+      }
 
       const blob = await res.blob();
+      if (blob.size < 100) {
+        throw new Error('TTS returned empty audio');
+      }
+
       const url = URL.createObjectURL(blob);
-      audioCache.set(text, url);
+      audioCache.set(trimmed, url);
       audioUrlRef.current = url;
 
       const audio = new Audio(url);
@@ -99,27 +116,34 @@ export function SpeechControls({ text, label = 'Read' }: SpeechControlsProps) {
         cleanup();
       };
       audio.onerror = () => {
+        console.error('Audio playback error');
         setState('idle');
         cleanup();
       };
 
       await audio.play();
       setState('playing');
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Speech is currently unavailable.';
+      console.error('TTS error:', msg);
+      toast(msg, 'error');
       setState('idle');
     }
-  }, [text, cleanup, stopGlobalAudio]);
+  }, [text, cleanup, stopGlobalAudio, toast]);
 
   const togglePause = useCallback(() => {
     if (!audioRef.current) return;
     if (audioRef.current.paused) {
-      audioRef.current.play();
+      audioRef.current.play().catch(() => {
+        setState('idle');
+        cleanup();
+      });
       setState('playing');
     } else {
       audioRef.current.pause();
       setState('paused');
     }
-  }, []);
+  }, [cleanup]);
 
   const stop = useCallback(() => {
     cleanup();
