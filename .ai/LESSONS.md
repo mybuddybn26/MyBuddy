@@ -119,3 +119,14 @@ if (audioCtx.state === 'suspended') {
 ```powershell
 Start-Process powershell -ArgumentList "pnpm dev"  # creates duplicate window
 Get-Process -Name node | Stop-Process               # kills unrelated processes
+
+---
+
+## Lesson 10: Internal AI Cost Analytics Are Not User-Facing
+
+- **Date**: 2026-06-23
+- **Category**: Security / UX
+
+**Problem**: The AI usage dashboard exposed DeepSeek token costs and provider pricing to normal users. This is business/internal data, not customer information.
+
+**Rule**: Internal cost/profit analytics must never appear in normal user-facing UI. Create separate admin endpoints (ole === 'admin') for financial data. Users should only see feature usage counts.

@@ -1,3 +1,8 @@
+### Fix: Budget cards, settings layout, remove AI Usage from user
+- **Files modified**: `Chat.tsx`, `Settings.tsx`
+- **Reason**: Budget cards shown for unrelated messages. Memory section had broken layout. AI Usage exposed internal costs to users.
+- **Impact**: Budget cards require `items.length > 0`. Memory section wrapped in glass-card. AI Usage removed from Settings (admin endpoint only).
+
 ### Added: Long-Term Memory Phase 1
 - **Files created**: `fastify/src/modules/memory/routes.ts`, `vitejs/src/components/MemorySection.tsx`
 - **Files modified**: `db/schema.ts`, `app.ts`, `aiService.ts`, `chat/routes.ts`, `budgets/routes.ts`, `api.ts`, `Settings.tsx`
