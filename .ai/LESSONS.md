@@ -271,3 +271,17 @@ openssl req -x509 -newkey rsa:2048 -nodes \
 sed -i "s|/etc/nginx/ssl/fullchain\.pem|$TMPDIR/fullchain.pem|g" "$TMPDIR/nginx.conf"
 sed -i "s|/etc/nginx/ssl/privkey\.pem|$TMPDIR/privkey.pem|g" "$TMPDIR/nginx.conf"
 ```
+
+---
+
+## Lesson 18: Set Adequate worker_connections in Nginx Validation Wrappers
+
+- **Date**: 2026-06-23
+- **Category**: CI / Nginx
+  **Problem**: Nginx config validation failed with `1 worker_connections are not enough for 2 listening sockets`. The validation wrapper used `events { worker_connections 1; }` which is insufficient when the server block listens on multiple ports (80 + 443). Nginx requires at least 1 connection per listening socket.
+  **Rule**: Set `worker_connections` to at least 1024 in validation wrapper configs. The production nginx binary uses its own `nginx.conf` with adequate defaults — this only affects the CI validation wrapper.
+  **Correct**:
+
+```nginx
+events { worker_connections 1024; }
+```

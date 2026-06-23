@@ -1,3 +1,9 @@
+### Fix: Increase nginx validation worker_connections from 1 to 1024
+
+- **Files modified**: `scripts/validate-nginx-config.sh`
+- **Reason**: Nginx config validation failed: `1 worker_connections are not enough for 2 listening sockets`. The validation wrapper had `worker_connections 1` which is insufficient when the server block listens on both port 80 and port 443.
+- **Impact**: Changed `events { worker_connections 1; }` → `events { worker_connections 1024; }` in the validation wrapper only. Production config has no `events` block (it's generated at runtime).
+
 ### Fix: Generate dummy SSL certs for nginx config validation in CI
 
 - **Files modified**: `scripts/validate-nginx-config.sh`

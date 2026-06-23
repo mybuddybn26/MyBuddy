@@ -57,7 +57,7 @@ cat > "$TMPDIR/nginx.conf" <<'HEADER'
 worker_processes 1;
 error_log /dev/stderr;
 pid /tmp/nginx-test.pid;
-events { worker_connections 1; }
+events { worker_connections 1024; }
 http {
   access_log off;
 HEADER
