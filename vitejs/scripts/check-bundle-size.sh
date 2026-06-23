@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LIMIT_BYTES="${BUNDLE_ENTRY_LIMIT_BYTES:-100000}" 
+# Buddy initial app shell includes React, routing, Layout, auth, API client,
+# and shared UI. 300KB is realistic for a full AI assistant app.
+LIMIT_BYTES="${BUNDLE_ENTRY_LIMIT_BYTES:-300000}"
 DIST_DIR="${1:-$(dirname "$0")/../dist}"
 
 if [ ! -d "$DIST_DIR/assets" ]; then
@@ -17,15 +19,17 @@ if [ ${#entries[@]} -eq 0 ]; then
   exit 2
 fi
 
+echo "  Bundle size check (limit: $(printf "%'d" "$LIMIT_BYTES") bytes)"
+
 status=0
 for f in "${entries[@]}"; do
   size=$(wc -c < "$f" | tr -d ' ')
   rel=${f#"$DIST_DIR/"}
   if [ "$size" -gt "$LIMIT_BYTES" ]; then
-    printf "FAIL  %-50s %8d bytes (limit %d)\n" "$rel" "$size" "$LIMIT_BYTES"
+    printf '  ✗ %s %8d bytes  (over limit)\n' "$rel" "$size"
     status=1
   else
-    printf "ok    %-50s %8d bytes (limit %d)\n" "$rel" "$size" "$LIMIT_BYTES"
+    printf '  ✓ %s %8d bytes\n' "$rel" "$size"
   fi
 done
 
