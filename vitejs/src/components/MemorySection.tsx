@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api';
 import {
   LoaderCircle,
-  Brain,
   Trash2,
   Plus,
   X,

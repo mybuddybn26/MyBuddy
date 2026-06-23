@@ -8,7 +8,6 @@ import {
   FileDown,
   Trash2,
   TriangleAlert,
-  FileText,
 } from 'lucide-react';
 
 interface Doc {

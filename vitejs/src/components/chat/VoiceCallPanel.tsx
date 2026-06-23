@@ -93,7 +93,6 @@ function scoreTranscript(
 ): { accept: boolean; reason: string } {
   const trimmed = text.trim();
   const w = words(trimmed);
-  const wCount = w.length;
   const meaningWords = w.filter((x) => x.length > 1);
   const mwCount = meaningWords.length;
   const lower = trimmed
@@ -224,6 +223,9 @@ export function VoiceCallPanel({
   >([]);
   const processingRef = useRef(false);
   const isSpeakingRef = useRef(false);
+  const startListeningRef = useRef<() => void>(() => {});
+  const speakRef = useRef<(text: string) => Promise<void>>(async () => {});
+  const thinkRef = useRef<(text: string) => Promise<void>>(async () => {});
 
   const setCallState = useCallback((s: VoiceCallState) => {
     stateRef.current = s;
@@ -249,7 +251,7 @@ export function VoiceCallPanel({
         .replace(/`[^`]+`/g, '$1')
         .trim();
       if (!cleaned) {
-        startListening();
+        startListeningRef.current();
         return;
       }
       isSpeakingRef.current = true;
@@ -257,7 +259,6 @@ export function VoiceCallPanel({
       const words = cleaned.split(' ');
       const estimatedDuration = Math.max(2000, words.length * 300);
       let revealed = 0;
-      const interval = estimatedDuration / Math.max(1, words.length);
 
       const revealTimer = setInterval(() => {
         revealed = Math.min(
@@ -294,7 +295,7 @@ export function VoiceCallPanel({
           clearInterval(revealTimer);
           onRevealText?.(cleaned);
           isSpeakingRef.current = false;
-          if (isCallActive(stateRef.current)) startListening();
+          if (isCallActive(stateRef.current)) startListeningRef.current();
         });
         await player.play(blob);
         clearInterval(revealTimer);
@@ -309,7 +310,7 @@ export function VoiceCallPanel({
         if (isCallActive(stateRef.current)) {
           setError('Speech unavailable');
           setTimeout(() => {
-            if (isCallActive(stateRef.current)) startListening();
+            if (isCallActive(stateRef.current)) startListeningRef.current();
           }, 2000);
         }
       }
@@ -357,10 +358,10 @@ export function VoiceCallPanel({
           historyRef.current.push({ role: 'assistant', content: cleaned });
           onBubble?.('responding', 'assistant', cleaned);
           processingRef.current = false;
-          await speak(cleaned);
+          await speakRef.current(cleaned);
         } else {
           processingRef.current = false;
-          startListening();
+          startListeningRef.current();
         }
       } catch (err) {
         console.error('[VoiceCall] AI error:', err);
@@ -371,7 +372,7 @@ export function VoiceCallPanel({
         }
       }
     },
-    [setCallState, speak, onBubble],
+    [setCallState, onBubble],
   );
 
   const onTranscribe = useCallback(
@@ -379,17 +380,17 @@ export function VoiceCallPanel({
       try {
         if (isSpeakingRef.current) {
           console.log('[VoiceCall] Ignoring: Buddy speaking');
-          startListening();
+          startListeningRef.current();
           return;
         }
         if (!recorder.hadRealSpeech) {
           console.log('[VoiceCall] Ignoring: no real speech');
-          startListening();
+          startListeningRef.current();
           return;
         }
         if (!recorder.minDurationMet) {
           console.log('[VoiceCall] Ignoring: too short');
-          startListening();
+          startListeningRef.current();
           return;
         }
 
@@ -403,7 +404,7 @@ export function VoiceCallPanel({
 
         if (!text) {
           onBubble?.('ignored', 'user', '');
-          startListening();
+          startListeningRef.current();
           return;
         }
 
@@ -419,7 +420,7 @@ export function VoiceCallPanel({
             `[VoiceFilter] Rejected: ${filterResult.reason} — "${text}"`,
           );
           onBubble?.('ignored', 'user', '');
-          startListening();
+          startListeningRef.current();
           return;
         }
         console.log(
@@ -431,7 +432,7 @@ export function VoiceCallPanel({
         historyRef.current.push({ role: 'user', content: text });
         onBubble?.('accepted', 'user', text);
         onBubble?.('thinking', 'assistant', '');
-        await think(text);
+        await thinkRef.current(text);
       } catch (err) {
         console.error('[VoiceCall] STT error:', err);
         if (isCallActive(stateRef.current)) {
@@ -440,7 +441,7 @@ export function VoiceCallPanel({
         }
       }
     },
-    [think, setCallState, onBubble],
+    [setCallState, onBubble],
   );
 
   const startListening = useCallback(() => {
@@ -459,7 +460,7 @@ export function VoiceCallPanel({
         const blob = recorder.stop();
         recorderRef.current = null;
         if (blob) onTranscribe(blob, recorder);
-        else if (isCallActive(stateRef.current)) startListening();
+        else if (isCallActive(stateRef.current)) startListeningRef.current();
       },
       onError: (msg) => {
         setError(msg);
@@ -478,9 +479,9 @@ export function VoiceCallPanel({
     isSpeakingRef.current = false;
     setCallState('interrupted');
     setTimeout(() => {
-      if (stateRef.current === 'interrupted') startListening();
+      if (stateRef.current === 'interrupted') startListeningRef.current();
     }, 200);
-  }, [setCallState, startListening]);
+  }, [setCallState]);
 
   const handleStart = useCallback(() => {
     setError(null);
@@ -491,9 +492,9 @@ export function VoiceCallPanel({
     isSpeakingRef.current = false;
     setCallState('connecting');
     setTimeout(() => {
-      if (stateRef.current === 'connecting') startListening();
+      if (stateRef.current === 'connecting') startListeningRef.current();
     }, 500);
-  }, [startListening, setCallState]);
+  }, [setCallState]);
 
   const handleEnd = useCallback(() => {
     setCallState('ending');
@@ -504,6 +505,16 @@ export function VoiceCallPanel({
     setError(null);
     onClose();
   }, [cleanup, setCallState, onClose]);
+
+  useEffect(() => {
+    speakRef.current = speak;
+  }, [speak]);
+  useEffect(() => {
+    thinkRef.current = think;
+  }, [think]);
+  useEffect(() => {
+    startListeningRef.current = startListening;
+  }, [startListening]);
 
   useEffect(() => {
     return cleanup;

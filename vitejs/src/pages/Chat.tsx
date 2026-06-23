@@ -441,7 +441,9 @@ export function Chat() {
     async (msgId: string, confirmationId: string) => {
       try {
         await api.toolCancel(confirmationId);
-      } catch {}
+      } catch {
+        // Tool cancel is best-effort
+      }
       setMessages((prev) =>
         prev.map((m) =>
           m.id === msgId
