@@ -429,7 +429,14 @@ export default fp(async (app: FastifyInstance) => {
                   rawVoiceLog:
                     body.input_type === 'voice' ? body.message : null,
                 });
-              } catch {}
+              } catch (dbErr) {
+                request.log.warn(
+                  {
+                    err: dbErr instanceof Error ? dbErr.message : String(dbErr),
+                  },
+                  'Legacy transaction insert failed',
+                );
+              }
             }
             for (const budget of budgetResult.parsed) {
               try {
@@ -456,7 +463,14 @@ export default fp(async (app: FastifyInstance) => {
                 reply.raw.write(
                   `data: ${JSON.stringify({ type: 'budget', id: saved.id, title: budget.title, items: lineItems, budget_type: isRecurring ? 'recurring' : 'snapshot', period: budget.period })}\n\n`,
                 );
-              } catch {}
+              } catch (dbErr) {
+                request.log.warn(
+                  {
+                    err: dbErr instanceof Error ? dbErr.message : String(dbErr),
+                  },
+                  'Legacy budget insert failed',
+                );
+              }
             }
           }
         }
