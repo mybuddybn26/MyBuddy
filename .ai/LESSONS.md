@@ -252,3 +252,22 @@ cat "$NGINX_CONF" >> "$TMPDIR/nginx.conf"
 echo "}" >> "$TMPDIR/nginx.conf"
 sed -i "s|include /etc/nginx/conf.d/security-headers\.inc;|include $TMPDIR/security-headers.inc;|g" "$TMPDIR/nginx.conf"
 ```
+
+---
+
+## Lesson 17: Generate Dummy Certificates for SSL Config Validation in CI
+
+- **Date**: 2026-06-23
+- **Category**: CI / Nginx / SSL
+  **Problem**: After fixing include paths, nginx `-t` failed because the config references SSL certificate files (`ssl_certificate`, `ssl_certificate_key`, `ssl_trusted_certificate`) at production paths like `/etc/nginx/ssl/fullchain.pem` that exist in Docker but not on the CI runner. Nginx's syntax check requires the certificate files to exist even though it only validates syntax.
+  **Rule**: For CI validation of SSL-enabled nginx configs, generate temporary self-signed dummy certs and rewrite the paths in the generated temp config only. Never modify the production source file.
+  **Correct**:
+
+```bash
+openssl req -x509 -newkey rsa:2048 -nodes \
+  -keyout "$TMPDIR/privkey.pem" \
+  -out "$TMPDIR/fullchain.pem" \
+  -days 1 -subj "/CN=localhost" 2>/dev/null
+sed -i "s|/etc/nginx/ssl/fullchain\.pem|$TMPDIR/fullchain.pem|g" "$TMPDIR/nginx.conf"
+sed -i "s|/etc/nginx/ssl/privkey\.pem|$TMPDIR/privkey.pem|g" "$TMPDIR/nginx.conf"
+```

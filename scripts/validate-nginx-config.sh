@@ -74,12 +74,37 @@ echo "}" >> "$TMPDIR/nginx.conf"
 # Rewrite production include paths to point to the temp dir so nginx -t resolves them
 sed -i "s|include /etc/nginx/conf.d/security-headers\.inc;|include $TMPDIR/security-headers.inc;|g" "$TMPDIR/nginx.conf"
 
+# Generate dummy SSL cert/key for validation (production uses real certs from /etc/nginx/ssl/)
+if command -v openssl &>/dev/null; then
+  openssl req -x509 -newkey rsa:2048 -nodes \
+    -keyout "$TMPDIR/privkey.pem" \
+    -out "$TMPDIR/fullchain.pem" \
+    -days 1 -subj "/CN=localhost" 2>/dev/null
+else
+  echo "validate-nginx-config: openssl not found — installing..." >&2
+  if command -v sudo &>/dev/null; then
+    sudo apt-get update -qq && sudo apt-get install -y -qq openssl
+  else
+    apt-get update -qq && apt-get install -y -qq openssl
+  fi
+  openssl req -x509 -newkey rsa:2048 -nodes \
+    -keyout "$TMPDIR/privkey.pem" \
+    -out "$TMPDIR/fullchain.pem" \
+    -days 1 -subj "/CN=localhost" 2>/dev/null
+fi
+
+# Rewrite production SSL cert paths to point to temp dummy certs
+sed -i "s|/etc/nginx/ssl/fullchain\.pem|$TMPDIR/fullchain.pem|g" "$TMPDIR/nginx.conf"
+sed -i "s|/etc/nginx/ssl/privkey\.pem|$TMPDIR/privkey.pem|g" "$TMPDIR/nginx.conf"
+
 # ─── Debug: prove exactly what nginx -t is validating ───
 echo "--- DEBUG: temp config = $TMPDIR/nginx.conf"
 echo "--- DEBUG: lines containing http2 in generated config:"
 grep -n 'http2' "$TMPDIR/nginx.conf" || echo "  (none)"
 echo "--- DEBUG: include lines in generated config:"
 grep -n 'include' "$TMPDIR/nginx.conf" || echo "  (none)"
+echo "--- DEBUG: ssl cert/key lines in generated config:"
+grep -n 'ssl_certificate\|ssl_trusted\|privkey\|fullchain' "$TMPDIR/nginx.conf" || echo "  (none)"
 echo "--- DEBUG: dir listing of tmp dir:"
 ls -la "$TMPDIR/"
 echo "--- DEBUG: end ---"

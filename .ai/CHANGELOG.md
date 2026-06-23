@@ -1,3 +1,9 @@
+### Fix: Generate dummy SSL certs for nginx config validation in CI
+
+- **Files modified**: `scripts/validate-nginx-config.sh`
+- **Reason**: After fixing include paths, CI failed with `cannot load certificate "/etc/nginx/ssl/fullchain.pem" (No such file or directory)`. The SSL cert files exist only in Docker at `/etc/nginx/ssl/` — not on the CI runner.
+- **Impact**: Validation script now generates temporary self-signed certs via `openssl req -x509` and rewrites SSL paths (`ssl_certificate`, `ssl_certificate_key`, `ssl_trusted_certificate`) to point to temp dummy certs. Openssl is auto-installed if missing. Debug output now shows SSL cert/key lines. Production `nginx.conf` is unchanged.
+
 ### Fix: Rewrite include paths in nginx validation wrapper for CI
 
 - **Files modified**: `scripts/validate-nginx-config.sh`
