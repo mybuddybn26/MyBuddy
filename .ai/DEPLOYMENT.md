@@ -47,10 +47,15 @@ Production deployments must be:
 1. Push this repo to GitHub.
 2. Create a **Neon PostgreSQL** project at https://neon.tech (free tier).
 3. On Render dashboard, create a new **Blueprint** pointing to this repo.
-4. `render.yaml` auto-configures:
-   - `buddy-api` — Fastify backend web service
-   - `buddy-app` — Vite + React static site
-5. Set these env vars in Render dashboard (secrets marked with `sync: false`):
+   - `render.yaml` configures `buddy-api` (backend web service) automatically.
+   - **Frontend must be created manually** — Render Blueprint does not support `type: static`.
+4. **Manually create** the frontend static site in Render dashboard:
+   - New → Static Site → connect same GitHub repo
+   - Build command: `cd vitejs && pnpm install --frozen-lockfile && pnpm build`
+   - Publish directory: `vitejs/dist`
+   - Env var: `VITE_API_URL` → backend URL (e.g. `https://buddy-api.onrender.com`)
+   - Rewrite rule: `/*` → `/index.html` (SPA routing)
+5. Set these env vars on `buddy-api` in Render dashboard (secrets with `sync: false`):
    - `DATABASE_URL` — Neon PostgreSQL connection string (includes `sslmode=require`)
    - `JWT_SECRET` — 48+ char random string (`openssl rand -base64 48`)
    - `CORS_ALLOW_ORIGINS` — Render frontend URL (e.g. `https://mybuddy-app.onrender.com`)
@@ -61,10 +66,10 @@ Production deployments must be:
 
 ### render.yaml Services
 
-| Service     | Type        | Build                                      | Start / Publish |
-| ----------- | ----------- | ------------------------------------------ | --------------- |
-| `buddy-api` | Web Service | `cd fastify && pnpm install && pnpm build` | `pnpm start`    |
-| `buddy-app` | Static Site | `cd vitejs && pnpm install && pnpm build`  | `vitejs/dist`   |
+| Service     | Type        | Source                                    |
+| ----------- | ----------- | ----------------------------------------- |
+| `buddy-api` | Web Service | Blueprint (`render.yaml`) — auto-deployed |
+| `buddy-app` | Static Site | Manual in dashboard — no `static` in YAML |
 
 ### Render-Specific Notes
 

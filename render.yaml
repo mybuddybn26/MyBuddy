@@ -1,11 +1,9 @@
 # Render Blueprint — Buddy production deployment
 # https://render.com/docs/blueprint-spec
 #
-# Deploy: push to GitHub → Render auto-deploys via Blueprint.
-#
-# Services:
-#   buddy-api    — Fastify backend web service (free tier)
-#   buddy-app    — Vite + React static site (free tier)
+# Auto-deploys the backend web service.
+# The frontend static site must be created manually in the Render dashboard
+# (Render Blueprint does not support "type: static" — only web/worker/cron).
 #
 # Database: create a Neon PostgreSQL project separately → set DATABASE_URL env var.
 
@@ -50,20 +48,3 @@ services:
       - key: CRED_ENCRYPTION_KEY
         sync: false
     autoDeploy: true
-
-  # ─── Frontend Static Site ───
-  - type: static
-    name: buddy-app
-    runtime: node
-    plan: free
-    region: singapore
-    buildCommand: cd vitejs && pnpm install --frozen-lockfile && pnpm build
-    publishPath: vitejs/dist
-    envVars:
-      - key: VITE_API_URL
-        sync: false
-    autoDeploy: true
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
