@@ -21,6 +21,7 @@ jobs:
     outputs:
       fastify: ${{ steps.filter.outputs.fastify }}
       vitejs: ${{ steps.filter.outputs.vitejs }}
+      shared: ${{ steps.filter.outputs.shared }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
@@ -34,6 +35,15 @@ jobs:
               - 'fastify/**'
             vitejs:
               - 'vitejs/**'
+            shared:
+              - '.github/**'
+              - 'BUDDY.md'
+              - 'AGENTS.md'
+              - '.ai/**'
+              - 'scripts/**'
+              - 'pnpm-lock.yaml'
+              - '.gitignore'
+              - 'docker-compose.yml'
 
   secrets:
     name: Secret scan
@@ -55,7 +65,7 @@ jobs:
   fastify:
     name: Fastify (format + lint + typecheck + build + audit)
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.fastify == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.fastify == 'true' || needs.changes.outputs.shared == 'true'
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -100,7 +110,7 @@ jobs:
   vitejs:
     name: React + Vite (format + lint + typecheck + build + audit)
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.vitejs == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.vitejs == 'true' || needs.changes.outputs.shared == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
