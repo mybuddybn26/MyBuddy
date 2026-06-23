@@ -1,3 +1,10 @@
+### Added: Full Brunei Malay language mode
+
+- **Files created**: `fastify/src/ai/prompts/bruneiMalayPrompt.ts`
+- **Files modified**: `fastify/src/ai/prompts/buddySystemPrompt.ts`, `fastify/src/ai/prompts/index.ts`, `.ai/PROMPTS.md`
+- **Reason**: Existing 'brunei' dialect only added a one-line prompt note with a few words. Full Brunei Malay mode needed comprehensive vocabulary rules, sentence style examples, casual tone guides, and what-NOT-to-do rules (no Malaysian/Indonesian).
+- **Impact**: When dialect is 'brunei', Buddy now receives a full 60+ line Brunei Malay style guide covering: vocabulary replacements (awu, inda, ani, atu, ku, kau, banar, bisai, pasal, karang, etc.), sentence transformation examples, casual WhatsApp-style tone, anti-pattern rules (no Indonesian "nggak"/"aja", no Malaysian "boleh?"/"sangat"), and technical accuracy preservation. The prompt is injected into buddySystemPrompt via template string interpolation. No schema, UI, or route changes needed — existing dialect selector already supports 'brunei'.
+
 ### Added: Render + Neon production deployment readiness
 
 - **Files created**: `render.yaml`

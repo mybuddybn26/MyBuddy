@@ -48,6 +48,42 @@ function stripBudgetBlocks(text: string): string {
   return text.replace(/```budget\s*\n[\s\S]*?\n```\n?/g, '');
 }
 
+function stripChatMarkdown(text: string): string {
+  // Preserve code blocks (``` ... ```) by extracting them first
+  const blocks: string[] = [];
+  const withBlocks = text.replace(
+    /```[\s\S]*?```/g,
+    (match) => `__CB__${blocks.push(match) - 1}__CB__`,
+  );
+  // Preserve inline code (`...`) the same way
+  const inlines: string[] = [];
+  const preserved = withBlocks.replace(
+    /`[^`\n]+`/g,
+    (match) => `__IC__${inlines.push(match) - 1}__IC__`,
+  );
+
+  let result = preserved;
+  // Strip **bold** markers
+  result = result.replace(/\*\*(.+?)\*\*/g, '$1');
+  // Strip *italic* markers (only when surrounded by spaces/punctuation, not in contractions)
+  result = result.replace(/(?<!\w)\*(.+?)\*(?!\w)/g, '$1');
+  // Strip bullet list markers at line start
+  result = result.replace(/^[\t ]*[-*]\s+/gm, '');
+  // Strip numbered list markers (1. 2. etc) at line start
+  result = result.replace(/^[\t ]*\d+\.\s+/gm, '');
+  // Strip markdown headings at line start
+  result = result.replace(/^#{1,4}\s+/gm, '');
+  // Collapse excessive blank lines (max 1 consecutive)
+  result = result.replace(/\n{3,}/g, '\n\n');
+
+  // Restore inline code
+  result = result.replace(/__IC__(\d+)__IC__/g, (_m, i) => inlines[Number(i)]);
+  // Restore code blocks
+  result = result.replace(/__CB__(\d+)__CB__/g, (_m, i) => blocks[Number(i)]);
+
+  return result;
+}
+
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -712,7 +748,9 @@ export function Chat() {
               }
             >
               <div className='whitespace-pre-wrap text-sm leading-relaxed'>
-                {msg.content}
+                {msg.role === 'assistant'
+                  ? stripChatMarkdown(msg.content)
+                  : msg.content}
                 {msg.streaming && (
                   <span className='inline-block w-1.5 h-4 bg-primary-400 ml-0.5 animate-pulse rounded-sm' />
                 )}

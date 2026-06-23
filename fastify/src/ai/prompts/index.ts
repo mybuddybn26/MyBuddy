@@ -5,6 +5,7 @@ export { translationPrompt } from './translationPrompt.js';
 export { financialAssistantPrompt } from './financialAssistantPrompt.js';
 export { codingAssistantPrompt } from './codingAssistantPrompt.js';
 export { voiceCallPrompt } from './voiceCallPrompt.js';
+export { bruneiMalayPrompt } from './bruneiMalayPrompt.js';
 
 import type { AiPersona } from '../../db/schema.js';
 import { buddySystemPrompt } from './buddySystemPrompt.js';

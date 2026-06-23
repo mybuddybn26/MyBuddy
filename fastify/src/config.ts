@@ -45,6 +45,9 @@ const ConfigSchema = Type.Object({
   DEEPSEEK_OUTPUT_COST_PER_1M: Type.Number({ default: 0.28 }),
   MONTHLY_TOKEN_LIMIT: Type.Number({ default: 1000000 }),
 
+  // ─── OpenAI Configuration ───
+  OPENAI_MODEL: Type.String({ default: 'gpt-4o-mini' }),
+
   // ─── Kokoro TTS ───
   KOKORO_TTS_URL: Type.String({ default: 'http://127.0.0.1:8001' }),
 
@@ -107,6 +110,9 @@ function loadConfig(): Config {
       process.env.DEEPSEEK_OUTPUT_COST_PER_1M ?? 0.28,
     ),
     MONTHLY_TOKEN_LIMIT: Number(process.env.MONTHLY_TOKEN_LIMIT ?? 1000000),
+
+    // OpenAI Configuration
+    OPENAI_MODEL: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
 
     // Kokoro TTS
     KOKORO_TTS_URL: process.env.KOKORO_TTS_URL ?? 'http://127.0.0.1:8001',

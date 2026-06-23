@@ -1,14 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
-import {
-  Save,
-  User,
-  Globe,
-  Palette,
-  Volume2,
-  Brain,
-  Coins,
-} from 'lucide-react';
+import { Save, User, Globe, Brain, Coins } from 'lucide-react';
 
 interface Persona {
   name: string;
@@ -64,12 +56,6 @@ export function Settings() {
     { value: 'ms', label: '🇲🇾 Bahasa Melayu' },
     { value: 'zh', label: '🇨🇳 中文 (Mandarin)' },
     { value: 'mixed', label: '🌏 Mixed' },
-  ];
-
-  const tones = [
-    { value: 'formal', label: 'Professional & Polite' },
-    { value: 'casual', label: 'Friendly & Conversational' },
-    { value: 'slang', label: 'Local Slang & Colloquial' },
   ];
 
   return (
@@ -129,54 +115,7 @@ export function Settings() {
             </div>
           </div>
 
-          {/* Tone */}
-          <div>
-            <label className='flex items-center gap-1.5 text-sm font-medium text-slate-600 mb-2'>
-              <Palette size={14} />
-              Tone
-            </label>
-            <div className='space-y-2'>
-              {tones.map((t) => (
-                <button
-                  key={t.value}
-                  onClick={() => setPersona({ ...persona, tone: t.value })}
-                  className={`w-full px-4 py-2.5 rounded-xl text-sm text-left font-medium transition-all border ${
-                    persona.tone === t.value
-                      ? 'bg-primary-50 border-primary-300 text-primary-700'
-                      : 'bg-white border-slate-200 text-slate-600 hover:border-primary-200'
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Dialect */}
-          <div>
-            <label className='flex items-center gap-1.5 text-sm font-medium text-slate-600 mb-2'>
-              <Volume2 size={14} />
-              Dialect
-            </label>
-            <div className='flex gap-2'>
-              {[
-                { value: 'standard', label: 'Standard' },
-                { value: 'brunei', label: 'Brunei' },
-              ].map((d) => (
-                <button
-                  key={d.value}
-                  onClick={() => setPersona({ ...persona, dialect: d.value })}
-                  className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border ${
-                    persona.dialect === d.value
-                      ? 'bg-primary-50 border-primary-300 text-primary-700'
-                      : 'bg-white border-slate-200 text-slate-600 hover:border-primary-200'
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Tone and dialect are auto-detected — removed from Settings UI */}
 
           {/* Save Button */}
           <button

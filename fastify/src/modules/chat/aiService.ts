@@ -5,6 +5,7 @@ import {
   type TaskType,
 } from '../../ai/prompts/index.js';
 import { buildToolPrompt } from '../../ai/prompts/toolPrompt.js';
+import { detectBruneiMalay } from '../../lib/brunei-detector.js';
 
 function buildMessages(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
@@ -13,10 +14,8 @@ function buildMessages(
   memoryTexts?: string[],
 ) {
   const systemPrompt = buildFullSystemPrompt({ persona, task });
-  const toolPrompt = buildToolPrompt();
-  let fullPrompt = `${systemPrompt}
+  let fullPrompt = systemPrompt;
 
-${toolPrompt}`;
   if (memoryTexts && memoryTexts.length > 0) {
     fullPrompt = `${fullPrompt}
 
@@ -25,6 +24,12 @@ ${memoryTexts.map((m) => `- ${m}`).join('\n')}
 
 Use this information naturally. Don't explicitly mention it unless relevant to the conversation.`;
   }
+
+  const toolPrompt = buildToolPrompt();
+  fullPrompt = `${fullPrompt}
+
+${toolPrompt}`;
+
   return [
     { role: 'system', content: fullPrompt },
     ...messages.map((m) => ({
@@ -103,6 +108,84 @@ async function* streamDeepSeek(
               completionTokens,
               model: config.DEEPSEEK_MODEL,
               provider: 'deepseek',
+            },
+          };
+        }
+      } catch (_e) {
+        // ignore parse errors on partial chunks
+      }
+    }
+  }
+}
+
+async function* streamOpenAI(
+  messages: Array<{ role: string; content: string }>,
+): AsyncGenerator<{
+  type: 'text' | 'done';
+  content: string;
+  tokens?: number;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    model: string;
+    provider: string;
+  };
+}> {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: config.OPENAI_MODEL,
+      messages,
+      stream: true,
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`OpenAI error ${response.status}: ${text}`);
+  }
+
+  if (!response.body) {
+    throw new Error('OpenAI response body is empty');
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  for await (const chunk of response.body as unknown as AsyncIterable<Uint8Array>) {
+    buffer += decoder.decode(chunk, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('data: ')) continue;
+
+      const data = trimmed.slice(6);
+      if (data === '[DONE]') continue;
+
+      try {
+        const json = JSON.parse(data);
+        const delta = json.choices?.[0]?.delta;
+        if (delta?.content) {
+          yield { type: 'text', content: delta.content };
+        }
+        if (json.choices?.[0]?.finish_reason) {
+          const promptTokens = json.usage?.prompt_tokens ?? 0;
+          const completionTokens = json.usage?.completion_tokens ?? 0;
+          yield {
+            type: 'done',
+            content: '',
+            tokens: promptTokens + completionTokens,
+            usage: {
+              promptTokens,
+              completionTokens,
+              model: config.OPENAI_MODEL,
+              provider: 'openai',
             },
           };
         }
@@ -194,9 +277,51 @@ export async function* streamChat(
 }> {
   const formatted = buildMessages(messages, persona, task, memoryTexts);
 
-  if (config.DEEPSEEK_API_KEY) {
+  // Auto-detect Brunei Malay from the latest user message
+  const lastUserMsg = [...messages]
+    .reverse()
+    .find((m) => m.role === 'user')?.content;
+  const detection = lastUserMsg
+    ? detectBruneiMalay(lastUserMsg)
+    : {
+        isBruneiMalay: false,
+        confidence: 'none' as const,
+        signalCount: 0,
+        signalsFound: [] as string[],
+      };
+  const useBruneiMode = detection.isBruneiMalay || persona.dialect === 'brunei';
+
+  // If auto-detected, temporarily override dialect for prompt injection + routing
+  const effectivePersona = detection.isBruneiMalay
+    ? { ...persona, dialect: 'brunei' as const }
+    : persona;
+
+  // Rebuild messages with effective persona if detection changed dialect
+  const effectiveMessages =
+    effectivePersona !== persona
+      ? buildMessages(messages, effectivePersona, task, memoryTexts)
+      : formatted;
+
+  // Brunei Malay mode → OpenAI (better multilingual quality)
+  if (useBruneiMode && config.OPENAI_API_KEY) {
+    const reason = detection.isBruneiMalay
+      ? `Brunei Malay auto-detected (${detection.confidence} confidence, ${detection.signalCount} signals: ${detection.signalsFound.join(', ')})`
+      : 'dialect=brunei from settings';
+    console.log(`[aiService] provider selected: openai because ${reason}`);
     try {
-      yield* streamDeepSeek(formatted);
+      yield* streamOpenAI(effectiveMessages);
+      return;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'unknown';
+      console.warn(`OpenAI failed, falling back to DeepSeek: ${msg}`);
+    }
+  }
+
+  // Default → DeepSeek
+  if (config.DEEPSEEK_API_KEY) {
+    console.log('[aiService] provider selected: deepseek because default');
+    try {
+      yield* streamDeepSeek(effectiveMessages);
       return;
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'unknown';
@@ -204,7 +329,7 @@ export async function* streamChat(
     }
   }
 
-  yield* streamOllama(formatted, config.OLLAMA_MODEL);
+  yield* streamOllama(effectiveMessages, config.OLLAMA_MODEL);
 }
 
 export async function analyzeImage(
