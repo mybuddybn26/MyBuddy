@@ -177,3 +177,22 @@ For frontend:
 px prettier --check . and pnpm typecheck (eslint optional).
 
 Empty catch blocks must either handle the error with logging or have an inline comment explaining why they are intentionally ignored.
+
+---
+
+## Lesson 13: Run ESLint, Prettier, and TypeScript Check Before Completing Frontend Work
+
+- **Date**: 2026-06-23
+- **Category**: Quality Assurance
+
+**Problem**: Frontend ESLint CI failed due to circular function dependencies in voice components, unused imports, and empty catch blocks.
+
+**Rule**: Before reporting any frontend task as complete, run:
+1. 
+px eslint . — 0 errors, 0 warnings
+2. 
+px prettier --check . — all files formatted
+3. pnpm typecheck — 0 errors
+4. pnpm build — build succeeds
+
+For voice components with circular dependencies between startListening/speak/	hink/onTranscribe: use useRef function refs (startListeningRef, speakRef, 	hinkRef) with useEffect to update them, breaking the cycle while keeping React hook rules satisfied.
