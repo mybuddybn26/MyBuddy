@@ -15,8 +15,8 @@
   --color-primary-800: #1e40af;
   --color-primary-900: #1e3a8a;
 
-  --color-surface: #FFFFF7;
-  --color-surface-alt: #FEFEF0;
+  --color-surface: #fffff7;
+  --color-surface-alt: #fefef0;
   --color-surface-dark: #0f172a;
   --color-surface-dark-alt: #1e293b;
 
@@ -141,7 +141,11 @@
   }
 
   .chat-bubble-user-voice {
-    background: linear-gradient(135deg, var(--color-primary-400), var(--color-primary-500));
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-400),
+      var(--color-primary-500)
+    );
     color: white;
     border-radius: 20px 20px 4px 20px;
     padding: 12px 18px;

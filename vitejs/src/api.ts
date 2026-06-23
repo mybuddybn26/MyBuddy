@@ -128,12 +128,17 @@ export const api = {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ text: text.slice(0, 5000), ...(voiceId ? { voice_id: voiceId } : {}) }),
+      body: JSON.stringify({
+        text: text.slice(0, 5000),
+        ...(voiceId ? { voice_id: voiceId } : {}),
+      }),
     });
   },
 
   ttsVoices: () =>
-    request<{ voices: Array<{ id: string; label: string }>; default: string }>('/api/voice/tts/voices'),
+    request<{ voices: Array<{ id: string; label: string }>; default: string }>(
+      '/api/voice/tts/voices',
+    ),
 
   // Upload
   uploadImage: (file: File) => uploadFile('/api/upload/image', file, file.name),
@@ -271,19 +276,45 @@ export const api = {
     ),
 
   memories: () =>
-    request<{ data: Array<{ id: string; type: string; content: string; importance: number; createdAt: string; updatedAt: string }>; count: number }>('/api/memories'),
+    request<{
+      data: Array<{
+        id: string;
+        type: string;
+        content: string;
+        importance: number;
+        createdAt: string;
+        updatedAt: string;
+      }>;
+      count: number;
+    }>('/api/memories'),
 
-  createMemory: (data: { type: string; content: string; importance?: number }) =>
-    request<Record<string, unknown>>('/api/memories', { method: 'POST', body: JSON.stringify(data) }),
+  createMemory: (data: {
+    type: string;
+    content: string;
+    importance?: number;
+  }) =>
+    request<Record<string, unknown>>('/api/memories', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 
   updateMemory: (id: string, data: Record<string, unknown>) =>
-    request<Record<string, unknown>>(`/api/memories/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    request<Record<string, unknown>>(`/api/memories/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 
   toolConfirm: (confirmationId: string) =>
-    request<{ ok: boolean; tool: string; data?: unknown }>('/api/tools/confirm', { method: 'POST', body: JSON.stringify({ confirmationId }) }),
+    request<{ ok: boolean; tool: string; data?: unknown }>(
+      '/api/tools/confirm',
+      { method: 'POST', body: JSON.stringify({ confirmationId }) },
+    ),
 
   toolCancel: (confirmationId: string) =>
-    request<{ ok: boolean }>('/api/tools/cancel', { method: 'POST', body: JSON.stringify({ confirmationId }) }),
+    request<{ ok: boolean }>('/api/tools/cancel', {
+      method: 'POST',
+      body: JSON.stringify({ confirmationId }),
+    }),
 
   deleteMemory: (id: string) =>
     request<void>(`/api/memories/${id}`, { method: 'DELETE' }),

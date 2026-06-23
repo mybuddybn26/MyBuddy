@@ -211,7 +211,9 @@ export function Ledger() {
                         const d = tx.transactedAt || tx.transacted_at;
                         if (!d) return '—';
                         const dt = new Date(d);
-                        return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString();
+                        return isNaN(dt.getTime())
+                          ? '—'
+                          : dt.toLocaleDateString();
                       })()}
                     </p>
                   </div>

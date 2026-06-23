@@ -23,7 +23,11 @@ const REASONS = [
   { id: 'other', label: 'Other' },
 ];
 
-export function FeedbackDialog({ open, onClose, conversationId }: FeedbackDialogProps) {
+export function FeedbackDialog({
+  open,
+  onClose,
+  conversationId,
+}: FeedbackDialogProps) {
   const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
   const [feedbackText, setFeedbackText] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -76,13 +80,18 @@ export function FeedbackDialog({ open, onClose, conversationId }: FeedbackDialog
   }
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/30' onClick={onClose}>
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/30'
+      onClick={onClose}
+    >
       <div
         className='bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto animate-slide-up'
         onClick={(e) => e.stopPropagation()}
       >
         <div className='flex items-center justify-between mb-4'>
-          <h3 className='font-semibold text-slate-800 text-lg'>Help us improve</h3>
+          <h3 className='font-semibold text-slate-800 text-lg'>
+            Help us improve
+          </h3>
           <button
             onClick={onClose}
             className='p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors'
@@ -92,7 +101,9 @@ export function FeedbackDialog({ open, onClose, conversationId }: FeedbackDialog
           </button>
         </div>
 
-        <p className='text-sm text-slate-500 mb-3'>What was wrong with this response?</p>
+        <p className='text-sm text-slate-500 mb-3'>
+          What was wrong with this response?
+        </p>
 
         <div className='space-y-1 mb-4'>
           {REASONS.map((reason) => (

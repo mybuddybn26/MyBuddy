@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api';
-import { Camera, Eye, Upload, Loader2, FileDown, Trash2, TriangleAlert, FileText } from 'lucide-react';
+import {
+  Camera,
+  Eye,
+  Upload,
+  Loader2,
+  FileDown,
+  Trash2,
+  TriangleAlert,
+  FileText,
+} from 'lucide-react';
 
 interface Doc {
   id: string;
@@ -48,7 +57,11 @@ export function Documents() {
           : prev,
       );
     } catch (err) {
-      setAnalysisError(err instanceof Error ? err.message : 'Analysis failed. Please try again.');
+      setAnalysisError(
+        err instanceof Error
+          ? err.message
+          : 'Analysis failed. Please try again.',
+      );
     }
     setAnalyzingId(null);
   };
@@ -91,9 +104,17 @@ export function Documents() {
     setUploading(true);
     setError(null);
 
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    const validTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'application/pdf',
+    ];
     if (!validTypes.includes(file.type)) {
-      setError(`Unsupported file type: ${file.type || 'unknown'}. Please upload an image or PDF.`);
+      setError(
+        `Unsupported file type: ${file.type || 'unknown'}. Please upload an image or PDF.`,
+      );
       setUploading(false);
       e.target.value = '';
       return;
@@ -104,7 +125,10 @@ export function Documents() {
       const docRes = (await api.createDocument({
         image_url: uploadRes.url,
         doc_type: 'other',
-        ai_summary: file.type === 'application/pdf' ? 'PDF documents cannot be auto-analyzed by image recognition.' : '',
+        ai_summary:
+          file.type === 'application/pdf'
+            ? 'PDF documents cannot be auto-analyzed by image recognition.'
+            : '',
       })) as unknown as Doc;
 
       setDocs((prev) => [docRes, ...prev]);
@@ -113,7 +137,11 @@ export function Documents() {
         analyzeDocument(docRes.id);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed. Please check file size and type.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Upload failed. Please check file size and type.',
+      );
     }
 
     setUploading(false);
@@ -236,8 +264,15 @@ export function Documents() {
                 </>
               ) : analysisError ? (
                 <div>
-                  <p className='text-sm text-red-600 mb-2 flex items-center gap-1'><TriangleAlert size={14} /> {analysisError}</p>
-                  <button onClick={() => analyzeDocument(selectedDoc.id)} className='text-xs text-primary-500 hover:text-primary-700 font-medium'>Retry</button>
+                  <p className='text-sm text-red-600 mb-2 flex items-center gap-1'>
+                    <TriangleAlert size={14} /> {analysisError}
+                  </p>
+                  <button
+                    onClick={() => analyzeDocument(selectedDoc.id)}
+                    className='text-xs text-primary-500 hover:text-primary-700 font-medium'
+                  >
+                    Retry
+                  </button>
                 </div>
               ) : (
                 <p className='text-sm text-slate-400 italic'>
@@ -303,7 +338,9 @@ export function Documents() {
                       const d = doc.createdAt || doc.created_at;
                       if (!d) return '—';
                       const dt = new Date(d);
-                      return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString();
+                      return isNaN(dt.getTime())
+                        ? '—'
+                        : dt.toLocaleDateString();
                     })()}
                   </p>
                 </div>

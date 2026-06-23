@@ -12,7 +12,11 @@ interface MessageActionsProps {
   onRetry: () => void;
 }
 
-export function MessageActions({ content, conversationId, onRetry }: MessageActionsProps) {
+export function MessageActions({
+  content,
+  conversationId,
+  onRetry,
+}: MessageActionsProps) {
   const [voted, setVoted] = useState<'good' | 'bad' | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const toast = useToast();

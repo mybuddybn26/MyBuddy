@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
-import { Save, User, Globe, Palette, Volume2, Brain, Coins } from 'lucide-react';
+import {
+  Save,
+  User,
+  Globe,
+  Palette,
+  Volume2,
+  Brain,
+  Coins,
+} from 'lucide-react';
 
 interface Persona {
   name: string;

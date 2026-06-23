@@ -48,10 +48,10 @@ export function Layout() {
       <nav className='hidden md:flex flex-col w-64 bg-gradient-to-b from-primary-800 via-primary-700 to-primary-900 backdrop-blur-sm'>
         {/* Brand */}
         <div className='p-5 border-b border-white/10'>
-          <h1 className='text-xl font-bold tracking-tight text-white'>MyBuddy</h1>
-          <p className='text-xs text-primary-200 mt-0.5'>
-            Your AI Assistant
-          </p>
+          <h1 className='text-xl font-bold tracking-tight text-white'>
+            MyBuddy
+          </h1>
+          <p className='text-xs text-primary-200 mt-0.5'>Your AI Assistant</p>
         </div>
 
         {/* Nav Links */}
