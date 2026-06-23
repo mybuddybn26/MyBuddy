@@ -157,3 +157,23 @@ if (data.type === 'budget') {
 const latestBudget = await api.budgets();
 lastAssistantMsg.budgets = [latestBudget];
 ```
+---
+
+## Lesson 12: Run ESLint, Prettier, and TypeScript Check Before Completing Backend Work
+
+- **Date**: 2026-06-23
+- **Category**: Quality Assurance
+
+**Problem**: ESLint CI failed on empty catch {} blocks and unused variable assignments. These are caught by CI but waste time with re-push cycles.
+
+**Rule**: Before reporting any backend task as complete, run:
+1. 
+px eslint . — 0 errors
+2. 
+px prettier --check . — all files formatted
+3. pnpm typecheck — 0 errors
+
+For frontend: 
+px prettier --check . and pnpm typecheck (eslint optional).
+
+Empty catch blocks must either handle the error with logging or have an inline comment explaining why they are intentionally ignored.
