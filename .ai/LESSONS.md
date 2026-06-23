@@ -300,3 +300,17 @@ events { worker_connections 1024; }
 sed -i "s|listen 80;|listen 8080;|g" "$TMPDIR/nginx.conf"
 sed -i "s|listen 443 |listen 8443 |g" "$TMPDIR/nginx.conf"
 ```
+
+---
+
+## Lesson 20: Separate Local and Cloud Start Scripts for Render Deployments
+
+- **Date**: 2026-06-23
+- **Category**: Deployment / Render
+  **Problem**: Using `--env-file=.env` in the `start` script works for local testing but fails on Render where env vars are set via the dashboard (no `.env` file exists on Render's filesystem). Node would fail with "ENOENT: no such file or directory, open '.env'".
+  **Rule**: Use `node dist/server.js` for the `start` script (cloud deployment). Add a separate `start:local` script with `node --env-file=.env dist/server.js` for local production-like testing. Render sets `PORT`, `DATABASE_URL`, and all secrets via env vars.
+  **Correct**:
+  ```json
+  "start": "node dist/server.js",
+  "start:local": "node --env-file=.env dist/server.js"
+  ```

@@ -1,3 +1,16 @@
+### Added: Render + Neon production deployment readiness
+
+- **Files created**: `render.yaml`
+- **Files modified**: `fastify/package.json`, `fastify/.env.example`, `vitejs/.env.example`, `.ai/DEPLOYMENT.md`
+- **Reason**: Prepare Buddy for first production deployment on Render (frontend static site + backend web service) with Neon PostgreSQL. No architecture changes.
+- **Impact**:
+  - Backend `start` script: removed `--env-file=.env` (Render sets env vars via dashboard). Added `start:local` for local `.env` testing.
+  - `.env.example` files updated with production documentation and Render-specific notes.
+  - `render.yaml` Blueprint spec: auto-configures `buddy-api` (web service) and `buddy-app` (static site) with SPA rewrite rules.
+  - DEPLOYMENT.md updated with Render + Neon as primary deployment target, Docker Compose kept as alternative.
+  - Both `pnpm build` (fastify + vitejs) verified passing.
+  - Frontend API uses `VITE_API_URL` env var — empty in production means same-origin proxying via Render.
+
 ### Fix: Rewrite privileged ports to unprivileged for nginx validation in CI
 
 - **Files modified**: `scripts/validate-nginx-config.sh`

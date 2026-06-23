@@ -17,7 +17,17 @@ Production deployments must be:
 
 ---
 
-## 2. Current Environment
+## 2. Production Environment (Render + Neon)
+
+| Layer        | Technology                | Details                                      |
+| ------------ | ------------------------- | -------------------------------------------- |
+| **Frontend** | Render Static Site (Free) | React 19 + Vite 6; auto-deploy from GitHub   |
+| **Backend**  | Render Web Service (Free) | Fastify 5 + Node 22; auto-deploy from GitHub |
+| **Database** | Neon PostgreSQL (Free)    | Serverless PostgreSQL; 0.5 GB storage        |
+| **SSL**      | Render/Neon managed       | Automatic TLS termination                    |
+| **CI/CD**    | GitHub Actions → Render   | Auto-deploy on push to main via Blueprint    |
+
+### Alternative: Self-Hosted (Docker Compose)
 
 | Layer                | Technology                | Details                                               |
 | -------------------- | ------------------------- | ----------------------------------------------------- |
@@ -30,7 +40,44 @@ Production deployments must be:
 
 ---
 
-## 3. Docker Compose Services
+## 3. Render Blueprint Deployment
+
+### Quick Deploy
+
+1. Push this repo to GitHub.
+2. Create a **Neon PostgreSQL** project at https://neon.tech (free tier).
+3. On Render dashboard, create a new **Blueprint** pointing to this repo.
+4. `render.yaml` auto-configures:
+   - `buddy-api` — Fastify backend web service
+   - `buddy-app` — Vite + React static site
+5. Set these env vars in Render dashboard (secrets marked with `sync: false`):
+   - `DATABASE_URL` — Neon PostgreSQL connection string (includes `sslmode=require`)
+   - `JWT_SECRET` — 48+ char random string (`openssl rand -base64 48`)
+   - `CORS_ALLOW_ORIGINS` — Render frontend URL (e.g. `https://mybuddy-app.onrender.com`)
+   - `DEEPSEEK_API_KEY`, `ASSEMBLYAI_API_KEY`, `DEEPGRAM_API_KEY` — AI/voice provider keys
+   - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — optional (payments)
+   - `CRED_ENCRYPTION_KEY` — 32-byte base64 (`openssl rand -base64 32`)
+6. Deploy — Render builds and starts both services automatically.
+
+### render.yaml Services
+
+| Service     | Type        | Build                                      | Start / Publish |
+| ----------- | ----------- | ------------------------------------------ | --------------- |
+| `buddy-api` | Web Service | `cd fastify && pnpm install && pnpm build` | `pnpm start`    |
+| `buddy-app` | Static Site | `cd vitejs && pnpm install && pnpm build`  | `vitejs/dist`   |
+
+### Render-Specific Notes
+
+- **PORT**: Render sets `PORT` env var automatically — `config.ts` reads `process.env.PORT ?? 3000`.
+- **HOST**: Set to `0.0.0.0` in Render env vars or rely on config default.
+- **Start command**: `node dist/server.js` — no `--env-file` (env vars come from Render dashboard).
+- **Auto-deploy**: Enabled — push to `main` triggers automatic redeploy.
+- **Build isolation**: Render runs `buildCommand` from repo root; paths use `cd fastify` or `cd vitejs`.
+- **Ephemeral filesystem**: Uploads stored in `/tmp/uploads` are lost on restart. Use S3/Cloudinary for production file storage.
+
+---
+
+## 4. Docker Compose (Self-Hosted Alternative)
 
 | Service           | Purpose                                   | Ports                  | Health Check              |
 | ----------------- | ----------------------------------------- | ---------------------- | ------------------------- |
