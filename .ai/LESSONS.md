@@ -235,3 +235,20 @@ ls -la "$TMPDIR/"
 if nginx -t -c "$TMPDIR/nginx.conf" -p "$TMPDIR" 2>&1; then
   echo "nginx config is valid."
 ```
+
+---
+
+## Lesson 16: Rewrite Absolute Include Paths in CI Validation Wrappers
+
+- **Date**: 2026-06-23
+- **Category**: CI / Nginx
+  **Problem**: The nginx validation script wraps the source server block in an `http {}` block for `nginx -t` validation. The source config uses absolute production paths like `include /etc/nginx/conf.d/security-headers.inc;` which exist inside Docker but not on the CI runner's filesystem. Even though the validation script copies the include file to the temp dir, nginx still looks for it at the production path and fails with "No such file or directory."
+  **Rule**: After writing the temp config, use `sed` to rewrite production include paths to temp dir paths. The source config keeps production paths unchanged — only the generated temp copy is modified.
+  **Correct**:
+
+```bash
+cp "$NGINX_SECURITY" "$TMPDIR/security-headers.inc"
+cat "$NGINX_CONF" >> "$TMPDIR/nginx.conf"
+echo "}" >> "$TMPDIR/nginx.conf"
+sed -i "s|include /etc/nginx/conf.d/security-headers\.inc;|include $TMPDIR/security-headers.inc;|g" "$TMPDIR/nginx.conf"
+```

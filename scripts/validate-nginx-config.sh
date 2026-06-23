@@ -63,16 +63,23 @@ http {
 HEADER
 
 # Include the security headers (referenced by the server block)
+# Production path is /etc/nginx/conf.d/security-headers.inc (Docker copies it there).
+# For validation, copy the file to the temp dir and rewrite include paths.
 cp "$NGINX_SECURITY" "$TMPDIR/security-headers.inc"
 
-# Include the server block with paths adjusted to the temp dir
+# Append the server block to the temp config
 cat "$NGINX_CONF" >> "$TMPDIR/nginx.conf"
 echo "}" >> "$TMPDIR/nginx.conf"
+
+# Rewrite production include paths to point to the temp dir so nginx -t resolves them
+sed -i "s|include /etc/nginx/conf.d/security-headers\.inc;|include $TMPDIR/security-headers.inc;|g" "$TMPDIR/nginx.conf"
 
 # ─── Debug: prove exactly what nginx -t is validating ───
 echo "--- DEBUG: temp config = $TMPDIR/nginx.conf"
 echo "--- DEBUG: lines containing http2 in generated config:"
 grep -n 'http2' "$TMPDIR/nginx.conf" || echo "  (none)"
+echo "--- DEBUG: include lines in generated config:"
+grep -n 'include' "$TMPDIR/nginx.conf" || echo "  (none)"
 echo "--- DEBUG: dir listing of tmp dir:"
 ls -la "$TMPDIR/"
 echo "--- DEBUG: end ---"

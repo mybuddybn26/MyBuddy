@@ -1,3 +1,9 @@
+### Fix: Rewrite include paths in nginx validation wrapper for CI
+
+- **Files modified**: `scripts/validate-nginx-config.sh`
+- **Reason**: After fixing the http2 directive, CI validation failed with `open() "/etc/nginx/conf.d/security-headers.inc" failed (No such file or directory)`. The validation script copied `security-headers.inc` to the temp dir but nginx.conf still referenced the production Docker path `/etc/nginx/conf.d/security-headers.inc` which doesn't exist on the CI runner.
+- **Impact**: Added `sed` rewrite that replaces production include paths with temp dir paths in the generated config only. Source `vitejs/nginx.conf` is unchanged — keeps production paths for Docker. Debug output now also shows include lines.
+
 ### Fix: Nginx validation debug output added
 
 - **Files modified**: `scripts/validate-nginx-config.sh`
