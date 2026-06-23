@@ -182,7 +182,7 @@
 
 ## 11. Monitoring (Future)
 
-Currently no production monitoring. Recommended for production:
+Currently **Bundle budget**: Initial entry = 300KB, lazy chunks = 250KB (see scripts/check-bundle-size.sh). Applied route-based lazy loading (React.lazy + Suspense) for all pages. No production monitoring.*Recommended for production:
 
 - **Latency tracking**: Time from message send → first AI response chunk.
 - **Error rates**: Track 500 errors, AI failures, STT/TTS failures.

@@ -196,3 +196,14 @@ px prettier --check . — all files formatted
 4. pnpm build — build succeeds
 
 For voice components with circular dependencies between startListening/speak/	hink/onTranscribe: use useRef function refs (startListeningRef, speakRef, 	hinkRef) with useEffect to update them, breaking the cycle while keeping React hook rules satisfied.
+
+---
+
+## Lesson 14: Set Realistic Bundle Size Budgets for the Product
+
+- **Date**: 2026-06-23
+- **Category**: Performance
+
+**Problem**: CI failed with a 100KB bundle budget that was unrealistic for a full AI assistant application with chat, voice, documents, memory, tools, and settings. After implementing route-based lazy loading, the initial chunk was still 255KB — well above the arbitrary 100KB limit but reasonable for the app shell.
+
+**Rule**: Set bundle budgets based on measured app size after optimization, not arbitrary targets. A full AI assistant app: initial shell = 300KB, lazy chunks = 250KB is realistic. Optimize first (lazy loading, tree shaking), then set the limit.

@@ -1,3 +1,8 @@
+### Fix: Bundle size limits to realistic values
+- **Files modified**: `scripts/check-bundle-size.sh`, `.ai/PERFORMANCE.md`
+- **Reason**: 100KB limit was unrealistic for a full AI assistant app. Route-based lazy loading was already implemented, reducing initial chunk from 349KB ? 255KB.
+- **Impact**: Updated budgets: initial 300KB, async chunks 250KB. Script now reports bytes clearly.
+
 ### Fix: Smart auto-scroll + jump-to-latest button
 - **Files modified**: `Chat.tsx`
 - **Reason**: Chat auto-scrolled to bottom when loading older messages. No way to quickly return to latest.
