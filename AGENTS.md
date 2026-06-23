@@ -24,15 +24,15 @@ Then, based on the task type, load the relevant skill files from `.ai/skills/`.
 
 Determine the task category and load the matching skills automatically:
 
-| Task Category | Skills to Load |
-|---|---|
-| **Backend / API** | `fastify.md` → `.ai/API.md` → `architecture.md` → `typescript.md` → `testing.md` → `security.md` |
-| **Database / Schema** | `drizzle.md` → `.ai/DATABASE.md` → `fastify.md` → `typescript.md` |
-| **Frontend / UI** | `ui.md` → `.ai/DESIGN.md` → `typescript.md` → `architecture.md` → `testing.md` |
-| **Voice / Audio** | `voice.md` → `.ai/VOICE.md` → `ai.md` → `architecture.md` |
-| **AI / Prompts** | `ai.md` → `prompts.md` → `.ai/PROMPTS.md` → `architecture.md` |
-| **Security** | `security.md` → `.ai/SECURITY.md` → `architecture.md` |
-| **Cross-cutting / Refactor** | `architecture.md` → `typescript.md` → `ui.md` → `fastify.md` |
+| Task Category                | Skills to Load                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Backend / API**            | `fastify.md` → `.ai/API.md` → `architecture.md` → `typescript.md` → `testing.md` → `security.md` |
+| **Database / Schema**        | `drizzle.md` → `.ai/DATABASE.md` → `fastify.md` → `typescript.md`                                |
+| **Frontend / UI**            | `ui.md` → `.ai/DESIGN.md` → `typescript.md` → `architecture.md` → `testing.md`                   |
+| **Voice / Audio**            | `voice.md` → `.ai/VOICE.md` → `ai.md` → `architecture.md`                                        |
+| **AI / Prompts**             | `ai.md` → `prompts.md` → `.ai/PROMPTS.md` → `architecture.md`                                    |
+| **Security**                 | `security.md` → `.ai/SECURITY.md` → `architecture.md`                                            |
+| **Cross-cutting / Refactor** | `architecture.md` → `typescript.md` → `ui.md` → `fastify.md`                                     |
 
 When in doubt, load `architecture.md` and `typescript.md` as the minimum baseline.
 
@@ -57,16 +57,16 @@ Context Proof:
 
 ### Rules by Task Type
 
-| Task Type | Minimum Required |
-|---|---|
-| **General question** | AGENTS.md + BUDDY.md. State: _"Project files not inspected because this is a general explanation."_ |
-| **Architecture question** | AGENTS.md + BUDDY.md + relevant skill files + inspect source files. Source inspection is mandatory. |
-| **Implementation** | AGENTS.md + BUDDY.md + skill files + inspect ALL affected source files. File inspection is mandatory. |
-| **Bug fix** | AGENTS.md + BUDDY.md + skill files + inspect the broken file AND any related files. Source inspection is mandatory. |
-| **UI change** | AGENTS.md + BUDDY.md + `.ai/skills/ui.md` + `.ai/skills/typescript.md` + inspect affected components. Design skill inspection is mandatory. |
-| **Voice feature** | AGENTS.md + BUDDY.md + `.ai/skills/voice.md` + `.ai/skills/ai.md` + `.ai/skills/typescript.md` + `.ai/skills/testing.md`. All four skill files are mandatory. |
-| **AI/prompt change** | AGENTS.md + BUDDY.md + `.ai/skills/ai.md` + `.ai/skills/prompts.md` + `.ai/skills/architecture.md`. |
-| **Database change** | AGENTS.md + BUDDY.md + `.ai/skills/drizzle.md` + `.ai/skills/fastify.md` + `.ai/skills/typescript.md`. |
+| Task Type                 | Minimum Required                                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **General question**      | AGENTS.md + BUDDY.md. State: _"Project files not inspected because this is a general explanation."_                                                           |
+| **Architecture question** | AGENTS.md + BUDDY.md + relevant skill files + inspect source files. Source inspection is mandatory.                                                           |
+| **Implementation**        | AGENTS.md + BUDDY.md + skill files + inspect ALL affected source files. File inspection is mandatory.                                                         |
+| **Bug fix**               | AGENTS.md + BUDDY.md + skill files + inspect the broken file AND any related files. Source inspection is mandatory.                                           |
+| **UI change**             | AGENTS.md + BUDDY.md + `.ai/skills/ui.md` + `.ai/skills/typescript.md` + inspect affected components. Design skill inspection is mandatory.                   |
+| **Voice feature**         | AGENTS.md + BUDDY.md + `.ai/skills/voice.md` + `.ai/skills/ai.md` + `.ai/skills/typescript.md` + `.ai/skills/testing.md`. All four skill files are mandatory. |
+| **AI/prompt change**      | AGENTS.md + BUDDY.md + `.ai/skills/ai.md` + `.ai/skills/prompts.md` + `.ai/skills/architecture.md`.                                                           |
+| **Database change**       | AGENTS.md + BUDDY.md + `.ai/skills/drizzle.md` + `.ai/skills/fastify.md` + `.ai/skills/typescript.md`.                                                        |
 
 ### Rules
 
@@ -82,6 +82,7 @@ Context Proof:
 ### Examples
 
 **For a general question (no code):**
+
 ```
 Context Proof:
 - Read: AGENTS.md, BUDDY.md
@@ -89,6 +90,7 @@ Context Proof:
 ```
 
 **For an implementation task:**
+
 ```
 Context Proof:
 - Read: AGENTS.md, BUDDY.md
@@ -98,6 +100,7 @@ Context Proof:
 ```
 
 **For a bug fix:**
+
 ```
 Context Proof:
 - Read: AGENTS.md, BUDDY.md
@@ -155,7 +158,12 @@ Every task must follow this exact sequence:
     - Existing functionality preserved
     - All Definition of Done items checked
        ↓
-15. Report completion
+15. Report completion with all required items (see § Final Report Format below)
+       ↓
+16. WAIT for explicit user approval before:
+    - git commit
+    - git push
+    - Any production database changes
 ```
 
 ---
@@ -172,6 +180,7 @@ As an AI coding agent working on this project, you MUST:
 6. **Always verify before reporting completion.**
 7. **Treat project documentation as permanent memory.**
 8. **Never open duplicate development servers** — before restarting, always run `.\scripts\restart-dev.ps1` which kills old Buddy processes first. Do not open new terminals or PowerShell windows without closing the previous ones.
+9. **Never commit or push without explicit user approval** — Buddy is deployed to production on Render. GitHub main triggers auto-deploy. Do not push unfinished code or production database changes. Wait for approval before every commit and push.
 
 ---
 
@@ -226,25 +235,40 @@ cd vitejs && pnpm typecheck    # 0 errors required
 ```
 
 Plus:
+
 - No broken imports
 - No unused files
 - No duplicate code
 - Existing features still work
+- No commits or pushes made without approval
+
+---
+
+## Final Report Format
+
+Every completed task MUST end with a report containing:
+
+1. **Files changed** — list all created/modified files
+2. **Local testing instructions** — exact commands to verify on localhost
+3. **Database changes required?** — Yes/No (if yes, list the change)
+4. **Render redeploy required?** — Yes/No (note: push to main triggers auto-deploy)
+
+Do NOT commit, push, or modify production data unless explicitly instructed.
 
 ---
 
 ## Quick Reference
 
-| Need | Where |
-|---|---|
-| Backend route pattern | `.ai/skills/fastify.md` |
-| Database schema pattern | `.ai/skills/drizzle.md` |
-| Frontend component pattern | `.ai/skills/ui.md` |
-| Voice pipeline | `.ai/skills/voice.md` |
-| AI prompt system | `.ai/skills/ai.md` + `.ai/skills/prompts.md` |
-| TypeScript conventions | `.ai/skills/typescript.md` |
-| Security rules | `.ai/skills/security.md` |
-| Project file structure | `BUDDY.md` |
-| Lessons learned | `BUDDY.md` § Lessons Learned |
-| Architecture decisions | `BUDDY.md` § ADR |
-| Definition of Done | `BUDDY.md` § Definition of Done |
+| Need                       | Where                                        |
+| -------------------------- | -------------------------------------------- |
+| Backend route pattern      | `.ai/skills/fastify.md`                      |
+| Database schema pattern    | `.ai/skills/drizzle.md`                      |
+| Frontend component pattern | `.ai/skills/ui.md`                           |
+| Voice pipeline             | `.ai/skills/voice.md`                        |
+| AI prompt system           | `.ai/skills/ai.md` + `.ai/skills/prompts.md` |
+| TypeScript conventions     | `.ai/skills/typescript.md`                   |
+| Security rules             | `.ai/skills/security.md`                     |
+| Project file structure     | `BUDDY.md`                                   |
+| Lessons learned            | `BUDDY.md` § Lessons Learned                 |
+| Architecture decisions     | `BUDDY.md` § ADR                             |
+| Definition of Done         | `BUDDY.md` § Definition of Done              |

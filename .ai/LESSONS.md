@@ -314,3 +314,26 @@ sed -i "s|listen 443 |listen 8443 |g" "$TMPDIR/nginx.conf"
   "start": "node dist/server.js",
   "start:local": "node --env-file=.env dist/server.js"
   ```
+
+---
+
+## Lesson 21: Never Auto-Push to a Production-Deployed Repo
+
+- **Date**: 2026-06-23
+- **Category**: Deployment / Workflow
+  **Problem**: Buddy is deployed to production on Render. GitHub main triggers auto-deploy. Pushing unfinished code breaks production immediately — users see 500 errors, broken features, or stalled deployments.
+  **Rule**: Never commit or push without explicit user approval. The workflow is: modify code locally → developer tests on localhost → provide final report → wait for approval → then commit/push.
+  **Every final report must include**:
+  1. Files changed
+  2. Local testing instructions
+  3. Whether database changes are required
+  4. Whether Render redeploy is required
+
+---
+
+## Lesson 22: Do Not Modify Production Database Without Request
+
+- **Date**: 2026-06-23
+- **Category**: Deployment / Database
+  **Problem**: The Neon production database contains real user data. Schema changes pushed directly to production can break features, cause data loss, or interrupt running services.
+  **Rule**: Database changes must be explicitly requested by the user. Always test schema changes locally with `pnpm db:push` against a local PostgreSQL. Only apply to production after approval.

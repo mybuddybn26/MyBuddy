@@ -40,15 +40,23 @@ BUDDY.md            ← This file: project conventions, memory, ADR
 
 ## Stack
 
-| Layer       | Technology                                                    |
-| ----------- | ------------------------------------------------------------- |
-| **Backend** | Fastify 5, TypeScript, Drizzle ORM, TypeBox validation        |
-| **Frontend**| React 19, TypeScript, Vite, React Router, Tailwind CSS        |
-| **Database**| PostgreSQL                                                    |
-| **AI**      | DeepSeek V4 Flash (primary), Ollama (fallback)                |
-| **STT**     | AssemblyAI (primary), Groq (fallback)                         |
-| **TTS**     | Deepgram (primary)                                            |
-| **Package** | pnpm                                                          |
+| Layer        | Technology                                                            |
+| ------------ | --------------------------------------------------------------------- |
+| **Backend**  | Fastify 5, TypeScript, Drizzle ORM, TypeBox validation                |
+| **Frontend** | React 19, TypeScript, Vite, React Router, Tailwind CSS                |
+| **Database** | PostgreSQL                                                            |
+| **AI**       | DeepSeek V4 Flash (primary), Ollama (fallback)                        |
+| **STT**      | AssemblyAI (primary), Groq (fallback)                                 |
+| **TTS**      | Deepgram (primary)                                                    |
+| **Package**  | pnpm                                                                  |
+| **Deployed** | Render (frontend static site + backend web service) + Neon PostgreSQL |
+
+## Production Rules
+
+- **GitHub main → Render auto-deploy.** Do not push unfinished code.
+- **Never commit or push without explicit approval.**
+- **Never modify production Neon database** unless explicitly requested.
+- **Every task report must include** whether database changes or Render redeploy are required.
 
 ---
 
@@ -59,13 +67,13 @@ The AI must behave like an **experienced senior software engineer**.
 1. **Read BUDDY.md first** — understand the project before writing code.
 2. **State Context Proof** — before responding to any project question or writing code, cite which documentation, skills, and source files you read (see AGENTS.md § Context Proof).
 3. **Never skip requested features** — implement everything the user asks for.
-3. **Never silently reduce scope** — if blocked, explain the blocker; never pretend it's done.
-4. **Never fabricate** — no invented APIs, packages, documentation, or capabilities.
-5. **Never leave TODO comments or placeholder implementations.**
-6. **Never break existing functionality** when adding new features.
-7. **Ask for clarification** if requirements are ambiguous — don't assume.
-8. **Production-ready code only** — strong TypeScript typing, proper error handling, no silent failures.
-9. **Treat BUDDY.md as the project's permanent memory** — update it when conventions change.
+4. **Never silently reduce scope** — if blocked, explain the blocker; never pretend it's done.
+5. **Never fabricate** — no invented APIs, packages, documentation, or capabilities.
+6. **Never leave TODO comments or placeholder implementations.**
+7. **Never break existing functionality** when adding new features.
+8. **Ask for clarification** if requirements are ambiguous — don't assume.
+9. **Production-ready code only** — strong TypeScript typing, proper error handling, no silent failures.
+10. **Treat BUDDY.md as the project's permanent memory** — update it when conventions change.
 
 ---
 
@@ -105,16 +113,16 @@ Every feature and design decision should align with these principles:
 
 Each major technical decision is recorded here so future AI agents don't undo past design choices.
 
-| Decision | Reason | Alternatives Considered | Status |
-|----------|--------|------------------------|--------|
-| AssemblyAI for STT | Streaming support, low latency, 50 free hours | Whisper, Google Speech, Azure Speech | Accepted |
-| Deepgram for TTS | Free tier with credits, simple HTTP API | ElevenLabs (no credits), Kokoro (local) | Accepted |
-| DeepSeek V4 Flash for AI | Cost-effective, streaming, strong reasoning | Ollama (fallback), Anthropic, OpenAI | Accepted |
-| Drizzle ORM | Lightweight, TypeScript-native, no codegen | Prisma, Knex, raw SQL | Accepted |
-| Tailwind CSS | Utility-first, tree-shakeable, design tokens | CSS Modules, Styled Components | Accepted |
-| Lucide icons | Consistent, tree-shakeable, MIT license | Heroicons, Font Awesome, Material | Accepted |
-| Centralized AI prompts | Single source of truth for personality | Inline prompts (duplication) | Accepted |
-| Voice Session Manager | Orchestrates mic/STT/AI/TTS/player | Direct coupling between services | Accepted |
+| Decision                 | Reason                                        | Alternatives Considered                 | Status   |
+| ------------------------ | --------------------------------------------- | --------------------------------------- | -------- |
+| AssemblyAI for STT       | Streaming support, low latency, 50 free hours | Whisper, Google Speech, Azure Speech    | Accepted |
+| Deepgram for TTS         | Free tier with credits, simple HTTP API       | ElevenLabs (no credits), Kokoro (local) | Accepted |
+| DeepSeek V4 Flash for AI | Cost-effective, streaming, strong reasoning   | Ollama (fallback), Anthropic, OpenAI    | Accepted |
+| Drizzle ORM              | Lightweight, TypeScript-native, no codegen    | Prisma, Knex, raw SQL                   | Accepted |
+| Tailwind CSS             | Utility-first, tree-shakeable, design tokens  | CSS Modules, Styled Components          | Accepted |
+| Lucide icons             | Consistent, tree-shakeable, MIT license       | Heroicons, Font Awesome, Material       | Accepted |
+| Centralized AI prompts   | Single source of truth for personality        | Inline prompts (duplication)            | Accepted |
+| Voice Session Manager    | Orchestrates mic/STT/AI/TTS/player            | Direct coupling between services        | Accepted |
 
 ---
 
@@ -214,6 +222,7 @@ src/ai/prompts/
 ```
 
 **Required flow:**
+
 1. Every chat request calls `buildFullSystemPrompt({ persona, task })`.
 2. The system prompt always includes Buddy's personality as the base layer.
 3. An optional `task` parameter adds domain-specific instructions on top.
@@ -246,22 +255,26 @@ Loop back to listening (if continuous mode)
 ```
 
 **Voice services** (`vitejs/src/voice/` — pure TypeScript, no React):
+
 - `voiceState.ts` — State machine types, labels, `isCallActive()` helper
 - `voiceRecorder.ts` — Microphone capture with real AudioContext VAD, silence detection
 - `voicePlayer.ts` — Audio playback with proper cleanup
 
 **Voice UI** (`vitejs/src/components/chat/`):
+
 - `VoiceCallModal.tsx` — Full-screen continuous voice conversation
 - `SpeechControls.tsx` — Per-message Read Aloud (play/pause/stop)
 - `MessageActions.tsx` — Action row (Copy, Like, Dislike, Retry, Read, Share)
 
 **Backend TTS** (`fastify/src/services/tts/`):
+
 - `ttsRoutes.ts` — `POST /api/voice/tts/speak`
 - `deepgramService.ts` — Deepgram API client
 - `speechFormatter.ts` — Strips markdown, code blocks, expands abbreviations
 - `audioCache.ts` — In-memory cache (50 entries max)
 
 **Input bar layout:** `[Camera] [___Message___] [Mic] [Phone]`
+
 - Camera — Upload images/documents
 - Mic — One-shot STT (records, transcribes, pastes into input — does NOT auto-send)
 - Phone — Opens VoiceCallModal for continuous conversation
@@ -273,6 +286,7 @@ Loop back to listening (if continuous mode)
 **Icons:** Lucide only. Never emojis (as UI elements), Material, Font Awesome, or Heroicons.
 
 **Styling:** Tailwind CSS with centralized theme tokens in `vitejs/src/index.css`.
+
 - Colors: `--color-primary-*`, `--color-success`, `--color-danger`, `--color-warning`, `--color-surface-*`
 - No hardcoded colors or raw hex values.
 - Rounded corners (xl/2xl), soft shadows, smooth transitions (<250ms).
@@ -286,6 +300,7 @@ Loop back to listening (if continuous mode)
 **Accessibility:** WCAG AA contrast, keyboard navigation, `aria-label` on icon-only buttons, visible focus rings, semantic HTML.
 
 **Component patterns:**
+
 - Prefer reusable components over duplication.
 - Use React hooks (useState, useCallback, useRef) — no class components.
 - Memoization for expensive computations.
@@ -347,13 +362,13 @@ Loop back to listening (if continuous mode)
 
 Every feature must handle these states:
 
-| State | Requirement |
-|-------|-------------|
-| **Loading** | Show spinner or skeleton UI |
-| **Empty** | Show helpful message, not blank screen |
-| **Success** | Confirm action where appropriate |
-| **Failure** | Show descriptive error, provide retry |
-| **Disconnected** | Auto-reconnect where possible |
+| State            | Requirement                            |
+| ---------------- | -------------------------------------- |
+| **Loading**      | Show spinner or skeleton UI            |
+| **Empty**        | Show helpful message, not blank screen |
+| **Success**      | Confirm action where appropriate       |
+| **Failure**      | Show descriptive error, provide retry  |
+| **Disconnected** | Auto-reconnect where possible          |
 
 - Never silently fail — log the error and surface a message to the user.
 - Backend errors must include `{ detail, request_id }`.
@@ -371,6 +386,7 @@ cd vitejs && pnpm typecheck    # MUST be 0 errors
 ```
 
 Also verify:
+
 - Imports resolve correctly
 - No unused files remain
 - No duplicate code or business logic
@@ -401,12 +417,14 @@ A task is NOT complete until ALL of these are true:
 - [ ] New API methods added to vitejs/src/api.ts
 - [ ] Voice features go through Voice Session Manager
 - [ ] AI prompts centralized in src/ai/prompts/
+- [ ] Final report includes: files changed, local testing steps, whether DB changes are needed, whether Render redeploy is needed
+- [ ] No commits or pushes made without explicit approval
 
 ---
 
 ## Lessons Learned
 
-*Document recurring mistakes here so they are not repeated.*
+_Document recurring mistakes here so they are not repeated._
 
 1. **pnpm workspace conflicts** — `pnpm-workspace.yaml` files break standalone installs. Removed and added to `.gitignore`. Never recreate them.
 
@@ -436,6 +454,10 @@ A task is NOT complete until ALL of these are true:
 
 14. **Component import paths** — Files in `components/chat/` import from `../../api` and `../../auth` (two levels up to `src/`).
 
+15. **Do not auto-push to GitHub** — Buddy is deployed to production on Render. GitHub main triggers auto-deploy. Pushing unfinished code immediately breaks production. Never commit or push without explicit user approval.
+
+16. **Do not modify production database without explicit request** — Neon production database contains real user data. Schema changes must be requested, reviewed, and tested locally first.
+
 ---
 
 ## Completion Rules
@@ -446,3 +468,9 @@ A task is NOT complete until ALL of these are true:
 - Continue until every acceptance criterion is satisfied.
 - If blocked, explain the blocker clearly instead of pretending completion.
 - Only report "done" after all Definition of Done items are checked.
+- **Never commit or push without explicit user approval.** Buddy is deployed to production. GitHub main triggers Render auto-deploy.
+- **Every final report must include:**
+  1. Files changed
+  2. Local testing instructions
+  3. Whether database changes are required
+  4. Whether Render redeploy is required
