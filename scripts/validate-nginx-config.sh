@@ -69,6 +69,14 @@ cp "$NGINX_SECURITY" "$TMPDIR/security-headers.inc"
 cat "$NGINX_CONF" >> "$TMPDIR/nginx.conf"
 echo "}" >> "$TMPDIR/nginx.conf"
 
+# ─── Debug: prove exactly what nginx -t is validating ───
+echo "--- DEBUG: temp config = $TMPDIR/nginx.conf"
+echo "--- DEBUG: lines containing http2 in generated config:"
+grep -n 'http2' "$TMPDIR/nginx.conf" || echo "  (none)"
+echo "--- DEBUG: dir listing of tmp dir:"
+ls -la "$TMPDIR/"
+echo "--- DEBUG: end ---"
+
 if nginx -t -c "$TMPDIR/nginx.conf" -p "$TMPDIR" 2>&1; then
   echo "nginx config is valid."
 else

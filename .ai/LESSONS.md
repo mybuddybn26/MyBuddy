@@ -12,17 +12,19 @@
 **Problem**: The AI chat service module was named `claude.ts`, implying a dependency on Anthropic's Claude. The project actually uses DeepSeek V4 Flash as primary AI provider. This caused confusion and made the codebase misleading.
 
 **Rule**: Name service modules by their responsibility, not their vendor.
+
 - Prefer `aiService.ts` over `deepseek.ts` or `claude.ts`.
 - Prefer `deepgramService.ts` over `elevenLabsService.ts` when the provider changes but the function is the same.
 - Prefer `voiceRecorder.ts` over `assemblyAIRecorder.ts` â€” the interface should be provider-agnostic.
 
 **Example**:
+
 ```typescript
 // BAD: Vendor-specific name
-import { streamChat } from './deepseek.js';
+import { streamChat } from "./deepseek.js";
 
 // GOOD: Responsibility-based name
-import { streamChat } from './aiService.js';
+import { streamChat } from "./aiService.js";
 ```
 
 ---
@@ -37,10 +39,11 @@ import { streamChat } from './aiService.js';
 **Rule**: Always `await audioCtx.resume()` after `new AudioContext()`.
 
 **Example**:
+
 ```typescript
 // CORRECT
 const audioCtx = new AudioContext();
-if (audioCtx.state === 'suspended') {
+if (audioCtx.state === "suspended") {
   await audioCtx.resume();
 }
 ```
@@ -112,11 +115,14 @@ if (audioCtx.state === 'suspended') {
 **Rule**: Run `.\scripts\restart-dev.ps1` from the project root. This kills old processes on ports 3000/5173 before starting fresh servers in a single window. Never `Start-Process` a new terminal without closing the previous one.
 
 **Correct**:
+
 ```powershell
 .\scripts\restart-dev.ps1
 ```
+
 **Incorrect**:
-```powershell
+
+````powershell
 Start-Process powershell -ArgumentList "pnpm dev"  # creates duplicate window
 Get-Process -Name node | Stop-Process               # kills unrelated processes
 
@@ -129,7 +135,8 @@ Get-Process -Name node | Stop-Process               # kills unrelated processes
 
 **Problem**: The AI usage dashboard exposed DeepSeek token costs and provider pricing to normal users. This is business/internal data, not customer information.
 
-**Rule**: Internal cost/profit analytics must never appear in normal user-facing UI. Create separate admin endpoints (ole === 'admin') for financial data. Users should only see feature usage counts.
+**Rule**: Internal cost/profit analytics must never appear in normal user-facing UI. Create separate admin endpoints (
+ole === 'admin') for financial data. Users should only see feature usage counts.
 
 
 ---
@@ -150,13 +157,15 @@ if (data.type === 'budget') {
     m.id === assistantMsg.id ? { ...m, budgets: [budget] } : m
   ));
 }
-```
+````
 
 **Incorrect** â€” History loader, attaches latest global budget to last message:
+
 ```typescript
 const latestBudget = await api.budgets();
 lastAssistantMsg.budgets = [latestBudget];
 ```
+
 ---
 
 ## Lesson 12: Run ESLint, Prettier, and TypeScript Check Before Completing Backend Work
@@ -167,13 +176,12 @@ lastAssistantMsg.budgets = [latestBudget];
 **Problem**: ESLint CI failed on empty catch {} blocks and unused variable assignments. These are caught by CI but waste time with re-push cycles.
 
 **Rule**: Before reporting any backend task as complete, run:
-1. 
-px eslint . — 0 errors
-2. 
-px prettier --check . — all files formatted
-3. pnpm typecheck — 0 errors
 
-For frontend: 
+1.  px eslint . ï¿½ 0 errors
+2.  px prettier --check . ï¿½ all files formatted
+3.  pnpm typecheck ï¿½ 0 errors
+
+For frontend:
 px prettier --check . and pnpm typecheck (eslint optional).
 
 Empty catch blocks must either handle the error with logging or have an inline comment explaining why they are intentionally ignored.
@@ -188,14 +196,13 @@ Empty catch blocks must either handle the error with logging or have an inline c
 **Problem**: Frontend ESLint CI failed due to circular function dependencies in voice components, unused imports, and empty catch blocks.
 
 **Rule**: Before reporting any frontend task as complete, run:
-1. 
-px eslint . — 0 errors, 0 warnings
-2. 
-px prettier --check . — all files formatted
-3. pnpm typecheck — 0 errors
-4. pnpm build — build succeeds
 
-For voice components with circular dependencies between startListening/speak/	hink/onTranscribe: use useRef function refs (startListeningRef, speakRef, 	hinkRef) with useEffect to update them, breaking the cycle while keeping React hook rules satisfied.
+1.  px eslint . ï¿½ 0 errors, 0 warnings
+2.  px prettier --check . ï¿½ all files formatted
+3.  pnpm typecheck ï¿½ 0 errors
+4.  pnpm build ï¿½ build succeeds
+
+For voice components with circular dependencies between startListening/speak/ hink/onTranscribe: use useRef function refs (startListeningRef, speakRef, hinkRef) with useEffect to update them, breaking the cycle while keeping React hook rules satisfied.
 
 ---
 
@@ -204,6 +211,27 @@ For voice components with circular dependencies between startListening/speak/	hi
 - **Date**: 2026-06-23
 - **Category**: Performance
 
-**Problem**: CI failed with a 100KB bundle budget that was unrealistic for a full AI assistant application with chat, voice, documents, memory, tools, and settings. After implementing route-based lazy loading, the initial chunk was still 255KB — well above the arbitrary 100KB limit but reasonable for the app shell.
+**Problem**: CI failed with a 100KB bundle budget that was unrealistic for a full AI assistant application with chat, voice, documents, memory, tools, and settings. After implementing route-based lazy loading, the initial chunk was still 255KB ï¿½ well above the arbitrary 100KB limit but reasonable for the app shell.
 
-**Rule**: Set bundle budgets based on measured app size after optimization, not arbitrary targets. A full AI assistant app: initial shell = 300KB, lazy chunks = 250KB is realistic. Optimize first (lazy loading, tree shaking), then set the limit.
+## **Rule**: Set bundle budgets based on measured app size after optimization, not arbitrary targets. A full AI assistant app: initial shell = 300KB, lazy chunks = 250KB is realistic. Optimize first (lazy loading, tree shaking), then set the limit.
+
+## Lesson 15: Debug CI Validation Scripts That Wrap/Generate Temporary Configs
+
+- **Date**: 2026-06-23
+- **Category**: CI / Debugging
+  **Problem**: CI validation scripts (like `validate-nginx-config.sh`) wrap source config files in temporary wrapper blocks for syntax checking. When `nginx -t` reports an error at a line number inside the _generated_ temp config, the line number maps to the wrapper + source file, not just the source file directly. Without debug output, it's impossible to know whether the error came from the source config or the wrapper script itself.
+  **Rule**: Add debug output to CI validation scripts that print:
+
+1. The path of the generated temp config
+2. A grep of relevant directives in the generated config (to prove they came from source vs. wrapper)
+3. The directory listing of the temp dir
+   This proves what `nginx -t` is actually validating and makes failures immediately traceable to the correct file and line.
+   **Correct** (debug before validation):
+
+```bash
+echo "--- DEBUG: temp config = $TMPDIR/nginx.conf"
+grep -n 'http2' "$TMPDIR/nginx.conf" || echo "  (none)"
+ls -la "$TMPDIR/"
+if nginx -t -c "$TMPDIR/nginx.conf" -p "$TMPDIR" 2>&1; then
+  echo "nginx config is valid."
+```
