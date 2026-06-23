@@ -97,10 +97,17 @@ fi
 sed -i "s|/etc/nginx/ssl/fullchain\.pem|$TMPDIR/fullchain.pem|g" "$TMPDIR/nginx.conf"
 sed -i "s|/etc/nginx/ssl/privkey\.pem|$TMPDIR/privkey.pem|g" "$TMPDIR/nginx.conf"
 
+# Rewrite privileged ports to unprivileged for CI validation
+# (CI runner cannot bind 80/443; production Docker uses CAP_NET_BIND_SERVICE)
+sed -i "s|listen 80;|listen 8080;|g" "$TMPDIR/nginx.conf"
+sed -i "s|listen 443 |listen 8443 |g" "$TMPDIR/nginx.conf"
+
 # ─── Debug: prove exactly what nginx -t is validating ───
 echo "--- DEBUG: temp config = $TMPDIR/nginx.conf"
 echo "--- DEBUG: lines containing http2 in generated config:"
 grep -n 'http2' "$TMPDIR/nginx.conf" || echo "  (none)"
+echo "--- DEBUG: listen lines in generated config:"
+grep -n '^\s*listen' "$TMPDIR/nginx.conf" || echo "  (none)"
 echo "--- DEBUG: include lines in generated config:"
 grep -n 'include' "$TMPDIR/nginx.conf" || echo "  (none)"
 echo "--- DEBUG: ssl cert/key lines in generated config:"

@@ -285,3 +285,18 @@ sed -i "s|/etc/nginx/ssl/privkey\.pem|$TMPDIR/privkey.pem|g" "$TMPDIR/nginx.conf
 ```nginx
 events { worker_connections 1024; }
 ```
+
+---
+
+## Lesson 19: Rewrite Privileged Ports for Nginx Validation in CI
+
+- **Date**: 2026-06-23
+- **Category**: CI / Nginx
+  **Problem**: `nginx -t` failed with `bind() to 0.0.0.0:80 failed (13: Permission denied)`. The CI runner cannot bind privileged ports 80/443. Production Docker containers use `CAP_NET_BIND_SERVICE`.
+  **Rule**: Rewrite listen ports from 80→8080 and 443→8443 in the generated temp config only. Production config keeps privileged ports unchanged.
+  **Correct**:
+
+```bash
+sed -i "s|listen 80;|listen 8080;|g" "$TMPDIR/nginx.conf"
+sed -i "s|listen 443 |listen 8443 |g" "$TMPDIR/nginx.conf"
+```

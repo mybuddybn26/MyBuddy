@@ -1,3 +1,9 @@
+### Fix: Rewrite privileged ports to unprivileged for nginx validation in CI
+
+- **Files modified**: `scripts/validate-nginx-config.sh`
+- **Reason**: `nginx -t` failed with `bind() to 0.0.0.0:80 failed (13: Permission denied)` — CI runner cannot bind privileged ports 80/443. Production Docker containers use `CAP_NET_BIND_SERVICE` for this.
+- **Impact**: Validation script now rewrites `listen 80;` → `listen 8080;` and `listen 443` → `listen 8443` in the generated temp config only. Debug output now shows listen lines. Production `vitejs/nginx.conf` keeps ports 80/443.
+
 ### Fix: Increase nginx validation worker_connections from 1 to 1024
 
 - **Files modified**: `scripts/validate-nginx-config.sh`
