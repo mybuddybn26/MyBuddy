@@ -1,7 +1,9 @@
 import { TOOLS } from '../tools/index.js';
 
 export function buildToolPrompt(): string {
-  const toolList = TOOLS.map((t) => `- ${t.name}: ${t.description} (${t.permission})`).join('\n');
+  const toolList = TOOLS.map(
+    (t) => `- ${t.name}: ${t.description} (${t.permission})`,
+  ).join('\n');
   return `AVAILABLE TOOLS:
 You can help the user by calling internal tools. To call a tool, output a JSON code block labeled \`tool_call\`:
 

@@ -36,13 +36,20 @@ export default fp(async (app: FastifyInstance) => {
     { schema: { tags: ['memory'], body: CreateMemoryBody } },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const userId = request.authUser!.sub;
-      const body = request.body as { type: string; content: string; importance?: number };
-      const [record] = await app.db.insert(memories).values({
-        userId,
-        type: body.type,
-        content: body.content,
-        importance: body.importance || 1,
-      }).returning();
+      const body = request.body as {
+        type: string;
+        content: string;
+        importance?: number;
+      };
+      const [record] = await app.db
+        .insert(memories)
+        .values({
+          userId,
+          type: body.type,
+          content: body.content,
+          importance: body.importance || 1,
+        })
+        .returning();
       return reply.status(201).send(record);
     },
   );
@@ -61,7 +68,8 @@ export default fp(async (app: FastifyInstance) => {
         .where(and(eq(memories.id, id), eq(memories.userId, userId)))
         .limit(1);
 
-      if (!record) return reply.status(404).send({ detail: 'Memory not found' });
+      if (!record)
+        return reply.status(404).send({ detail: 'Memory not found' });
 
       const updates: Record<string, unknown> = { updatedAt: new Date() };
       if (body.type) updates.type = body.type;
@@ -90,7 +98,8 @@ export default fp(async (app: FastifyInstance) => {
         .where(and(eq(memories.id, id), eq(memories.userId, userId)))
         .limit(1);
 
-      if (!record) return reply.status(404).send({ detail: 'Memory not found' });
+      if (!record)
+        return reply.status(404).send({ detail: 'Memory not found' });
       await app.db.delete(memories).where(eq(memories.id, id));
       return reply.status(204).send();
     },

@@ -139,10 +139,7 @@ export default fp(async (app: FastifyInstance) => {
           return reply.send({ transcript });
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'unknown';
-          request.log.warn(
-            { msg },
-            'AssemblyAI failed, falling back to Groq',
-          );
+          request.log.warn({ msg }, 'AssemblyAI failed, falling back to Groq');
         }
       }
 

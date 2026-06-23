@@ -100,8 +100,12 @@ function loadConfig(): Config {
 
     // DeepSeek Configuration
     DEEPSEEK_MODEL: process.env.DEEPSEEK_MODEL ?? 'deepseek-chat',
-    DEEPSEEK_INPUT_COST_PER_1M: Number(process.env.DEEPSEEK_INPUT_COST_PER_1M ?? 0.14),
-    DEEPSEEK_OUTPUT_COST_PER_1M: Number(process.env.DEEPSEEK_OUTPUT_COST_PER_1M ?? 0.28),
+    DEEPSEEK_INPUT_COST_PER_1M: Number(
+      process.env.DEEPSEEK_INPUT_COST_PER_1M ?? 0.14,
+    ),
+    DEEPSEEK_OUTPUT_COST_PER_1M: Number(
+      process.env.DEEPSEEK_OUTPUT_COST_PER_1M ?? 0.28,
+    ),
     MONTHLY_TOKEN_LIMIT: Number(process.env.MONTHLY_TOKEN_LIMIT ?? 1000000),
 
     // Kokoro TTS

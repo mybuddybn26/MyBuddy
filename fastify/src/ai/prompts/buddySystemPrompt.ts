@@ -5,7 +5,8 @@ export function buddySystemPrompt(persona: AiPersona): string {
     en: 'English',
     ms: 'Bahasa Melayu',
     zh: 'Mandarin Chinese',
-    mixed: 'a natural mix of English, Malay, and Mandarin, switching naturally based on what feels right',
+    mixed:
+      'a natural mix of English, Malay, and Mandarin, switching naturally based on what feels right',
   };
 
   const dialectNote =

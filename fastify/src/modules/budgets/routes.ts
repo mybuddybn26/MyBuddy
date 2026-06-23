@@ -297,7 +297,12 @@ Only change what the user asked for. Keep existing IDs for unchanged items.`;
         const messages = [{ role: 'user' as const, content: aiPrompt }];
 
         let fullText = '';
-        for await (const chunk of streamChat(messages, persona, 'financial', undefined)) {
+        for await (const chunk of streamChat(
+          messages,
+          persona,
+          'financial',
+          undefined,
+        )) {
           if (chunk.type === 'text') {
             fullText += chunk.content;
           }
@@ -331,12 +336,10 @@ Only change what the user asked for. Keep existing IDs for unchanged items.`;
           });
         }
 
-        return reply
-          .status(422)
-          .send({
-            detail:
-              'AI could not generate a valid proposal. Try rephrasing your request.',
-          });
+        return reply.status(422).send({
+          detail:
+            'AI could not generate a valid proposal. Try rephrasing your request.',
+        });
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'AI edit failed';
         return reply.status(502).send({ detail: msg });

@@ -9,15 +9,25 @@ export interface TTSResult {
 }
 
 export const VALID_VOICES = [
-  'aura-asteria-en', 'aura-luna-en', 'aura-stella-en', 'aura-athena-en', 'aura-hera-en',
-  'aura-orpheus-en', 'aura-arcas-en', 'aura-angus-en', 'aura-zeus-en',
+  'aura-asteria-en',
+  'aura-luna-en',
+  'aura-stella-en',
+  'aura-athena-en',
+  'aura-hera-en',
+  'aura-orpheus-en',
+  'aura-arcas-en',
+  'aura-angus-en',
+  'aura-zeus-en',
 ];
 
 function hashText(text: string): string {
   return createHash('sha256').update(text).digest('hex').slice(0, 16);
 }
 
-export async function synthesizeSpeech(text: string, voiceId?: string): Promise<TTSResult> {
+export async function synthesizeSpeech(
+  text: string,
+  voiceId?: string,
+): Promise<TTSResult> {
   const cleaned = formatForSpeech(text);
 
   if (!cleaned || cleaned.length < 2) {
@@ -35,25 +45,23 @@ export async function synthesizeSpeech(text: string, voiceId?: string): Promise<
     throw new Error('DEEPGRAM_API_KEY is not configured');
   }
 
-  const voice = voiceId && VALID_VOICES.includes(voiceId) ? voiceId : 'aura-asteria-en';
+  const voice =
+    voiceId && VALID_VOICES.includes(voiceId) ? voiceId : 'aura-asteria-en';
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
 
   let res: Response;
   try {
-    res = await fetch(
-      `https://api.deepgram.com/v1/speak?model=${voice}`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Token ${config.DEEPGRAM_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        signal: controller.signal,
-        body: JSON.stringify({ text: cleaned }),
+    res = await fetch(`https://api.deepgram.com/v1/speak?model=${voice}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Token ${config.DEEPGRAM_API_KEY}`,
+        'Content-Type': 'application/json',
       },
-    );
+      signal: controller.signal,
+      body: JSON.stringify({ text: cleaned }),
+    });
   } finally {
     clearTimeout(timeout);
   }
@@ -62,10 +70,14 @@ export async function synthesizeSpeech(text: string, voiceId?: string): Promise<
     const errText = await res.text().catch(() => 'unknown');
     const detail = errText.slice(0, 300);
     if (res.status === 401) {
-      throw new Error('Deepgram: Invalid API key. Check your DEEPGRAM_API_KEY.');
+      throw new Error(
+        'Deepgram: Invalid API key. Check your DEEPGRAM_API_KEY.',
+      );
     }
     if (res.status === 402) {
-      throw new Error('Deepgram: No credits remaining. Add credits at deepgram.com.');
+      throw new Error(
+        'Deepgram: No credits remaining. Add credits at deepgram.com.',
+      );
     }
     if (res.status === 429) {
       throw new Error('Deepgram: Rate limit exceeded. Try again later.');

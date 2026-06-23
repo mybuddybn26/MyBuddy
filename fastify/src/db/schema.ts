@@ -157,8 +157,9 @@ export const aiUsage = pgTable('ai_usage', {
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  conversationId: uuid('conversation_id')
-    .references(() => conversations.id, { onDelete: 'set null' }),
+  conversationId: uuid('conversation_id').references(() => conversations.id, {
+    onDelete: 'set null',
+  }),
   model: text('model').notNull(),
   provider: text('provider').notNull().default('deepseek'),
   promptTokens: integer('prompt_tokens').notNull().default(0),

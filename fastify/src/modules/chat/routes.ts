@@ -14,7 +14,11 @@ import {
 import type { AiPersona } from '../../db/schema.js';
 import { streamChat } from './aiService.js';
 import { config } from '../../config.js';
-import { parseToolCalls, stripToolCallBlocks, getTool } from '../../ai/tools/index.js';
+import {
+  parseToolCalls,
+  stripToolCallBlocks,
+  getTool,
+} from '../../ai/tools/index.js';
 
 const ChatBody = Type.Object({
   message: Type.String({ minLength: 1 }),
@@ -168,7 +172,8 @@ function extractBudgets(text: string): {
   return { parsed, cleaned };
 }
 
-const FINANCIAL_KEYWORDS = /\b(budget|budgets|spend|spent|spending|cost|costs|costing|price|prices|expensive|cheap|save|saving|savings|income|earn|earned|earning|profit|profits|revenue|expense|expenses|transaction|transactions|sale|sales|sell|sold|pay|paid|payment|payments|bill|bills|invoice|invoices|money|fund|funds|wallet|balance|credit|debit|loan|loans|owe|owed|tax|taxes|wage|wages|salary|total|amount|price|funds|financial|finance|accounting|bookkeeping)/i;
+const FINANCIAL_KEYWORDS =
+  /\b(budget|budgets|spend|spent|spending|cost|costs|costing|price|prices|expensive|cheap|save|saving|savings|income|earn|earned|earning|profit|profits|revenue|expense|expenses|transaction|transactions|sale|sales|sell|sold|pay|paid|payment|payments|bill|bills|invoice|invoices|money|fund|funds|wallet|balance|credit|debit|loan|loans|owe|owed|tax|taxes|wage|wages|salary|total|amount|price|funds|financial|finance|accounting|bookkeeping)/i;
 
 function hasFinancialIntent(message: string): boolean {
   return FINANCIAL_KEYWORDS.test(message);
@@ -223,7 +228,8 @@ export default fp(async (app: FastifyInstance) => {
       const msg = body.message;
       const rememberMatch = msg.match(/^remember\s+that\s+(.+)$/i);
       const forgetMatch = msg.match(/^forget\s+that\s+(.+)$/i);
-      let memoryAction: { type: 'create' | 'delete'; content: string } | null = null;
+      let memoryAction: { type: 'create' | 'delete'; content: string } | null =
+        null;
       if (rememberMatch) {
         memoryAction = { type: 'create', content: rememberMatch[1].trim() };
       } else if (forgetMatch) {
@@ -238,9 +244,17 @@ export default fp(async (app: FastifyInstance) => {
           type: 'preference',
           importance: 3,
         });
-        reply.raw.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
-        reply.raw.write(`data: ${JSON.stringify({ type: 'text', content: `I'll remember that. ${memoryAction.content}` })}\n\n`);
-        reply.raw.write(`data: ${JSON.stringify({ type: 'done', token_balance: user.tokenBalance })}\n\n`);
+        reply.raw.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        });
+        reply.raw.write(
+          `data: ${JSON.stringify({ type: 'text', content: `I'll remember that. ${memoryAction.content}` })}\n\n`,
+        );
+        reply.raw.write(
+          `data: ${JSON.stringify({ type: 'done', token_balance: user.tokenBalance })}\n\n`,
+        );
         reply.raw.end();
         return;
       }
@@ -249,10 +263,20 @@ export default fp(async (app: FastifyInstance) => {
         const content = memoryAction.content.toLowerCase().trim();
         await app.db
           .delete(memories)
-          .where(and(eq(memories.userId, userId), eq(memories.content, content)));
-        reply.raw.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
-        reply.raw.write(`data: ${JSON.stringify({ type: 'text', content: `I've removed that memory. "${memoryAction.content}" is now forgotten.` })}\n\n`);
-        reply.raw.write(`data: ${JSON.stringify({ type: 'done', token_balance: user.tokenBalance })}\n\n`);
+          .where(
+            and(eq(memories.userId, userId), eq(memories.content, content)),
+          );
+        reply.raw.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        });
+        reply.raw.write(
+          `data: ${JSON.stringify({ type: 'text', content: `I've removed that memory. "${memoryAction.content}" is now forgotten.` })}\n\n`,
+        );
+        reply.raw.write(
+          `data: ${JSON.stringify({ type: 'done', token_balance: user.tokenBalance })}\n\n`,
+        );
         reply.raw.end();
         return;
       }
@@ -296,10 +320,20 @@ export default fp(async (app: FastifyInstance) => {
       let fullResponse = '';
       let totalTokens = 0;
       let savedConversationId: string | undefined;
-      let usageData: { promptTokens: number; completionTokens: number; model: string; provider: string } | null = null;
+      let usageData: {
+        promptTokens: number;
+        completionTokens: number;
+        model: string;
+        provider: string;
+      } | null = null;
 
       try {
-        for await (const chunk of streamChat(messages, persona, undefined, memoryTexts)) {
+        for await (const chunk of streamChat(
+          messages,
+          persona,
+          undefined,
+          memoryTexts,
+        )) {
           if (chunk.type === 'text') {
             fullResponse += chunk.content;
             reply.raw.write(
@@ -316,13 +350,16 @@ export default fp(async (app: FastifyInstance) => {
           `data: ${JSON.stringify({ type: 'error', content: msg })}\n\n`,
         );
         // Record failed usage
-        await app.db.insert(aiUsage).values({
-          userId,
-          model: config.DEEPSEEK_MODEL,
-          provider: 'deepseek',
-          feature: 'chat',
-          status: 'failed',
-        }).catch(() => {});
+        await app.db
+          .insert(aiUsage)
+          .values({
+            userId,
+            model: config.DEEPSEEK_MODEL,
+            provider: 'deepseek',
+            feature: 'chat',
+            status: 'failed',
+          })
+          .catch(() => {});
       }
 
       // Save assistant response
@@ -344,7 +381,16 @@ export default fp(async (app: FastifyInstance) => {
           } else {
             // WRITE — send confirmation request
             const confirmationId = crypto.randomUUID();
-            const store = app as unknown as { _tc?: Record<string, { tool: string; params: Record<string, unknown>; userId: string }> };
+            const store = app as unknown as {
+              _tc?: Record<
+                string,
+                {
+                  tool: string;
+                  params: Record<string, unknown>;
+                  userId: string;
+                }
+              >;
+            };
             if (!store._tc) store._tc = {};
             store._tc[confirmationId] = {
               tool: tc.tool,
@@ -360,7 +406,10 @@ export default fp(async (app: FastifyInstance) => {
 
         const cleanedResponse = stripToolCallBlocks(fullResponse);
         const displayText = toolHandled
-          ? cleanedResponse.replace(/```transaction\s*\n[\s\S]*?\n```\n?/g, '').replace(/```budget\s*\n[\s\S]*?\n```\n?/g, '').trim()
+          ? cleanedResponse
+              .replace(/```transaction\s*\n[\s\S]*?\n```\n?/g, '')
+              .replace(/```budget\s*\n[\s\S]*?\n```\n?/g, '')
+              .trim()
           : cleanedResponse;
 
         // Legacy extraction fallback
@@ -370,27 +419,58 @@ export default fp(async (app: FastifyInstance) => {
             const txResult = extractTransactions(displayText);
             const budgetResult = extractBudgets(txResult.cleaned);
             for (const tx of txResult.parsed) {
-              try { await app.db.insert(transactions).values({ userId, type: tx.type, amount: String(tx.amount), description: tx.description, category: tx.category, rawVoiceLog: body.input_type === 'voice' ? body.message : null }); }
-              catch {}
+              try {
+                await app.db.insert(transactions).values({
+                  userId,
+                  type: tx.type,
+                  amount: String(tx.amount),
+                  description: tx.description,
+                  category: tx.category,
+                  rawVoiceLog:
+                    body.input_type === 'voice' ? body.message : null,
+                });
+              } catch {}
             }
             for (const budget of budgetResult.parsed) {
               try {
-                const lineItems = budget.items.map((item) => ({ id: crypto.randomUUID(), category: item.category, allocated_amount: item.allocated_amount, spent_amount: 0 }));
+                const lineItems = budget.items.map((item) => ({
+                  id: crypto.randomUUID(),
+                  category: item.category,
+                  allocated_amount: item.allocated_amount,
+                  spent_amount: 0,
+                }));
                 const isRecurring = budget.period !== 'one_time';
-                const [saved] = await app.db.insert(budgets).values({ userId, title: budget.title, budgetType: isRecurring ? 'recurring' : 'snapshot', period: budget.period || 'one_time', totalAmount: String(budget.total || 0), lineItems, source: 'ai_generated', status: 'active' }).returning();
-                reply.raw.write(`data: ${JSON.stringify({ type: 'budget', id: saved.id, title: budget.title, items: lineItems, budget_type: isRecurring ? 'recurring' : 'snapshot', period: budget.period })}\n\n`);
+                const [saved] = await app.db
+                  .insert(budgets)
+                  .values({
+                    userId,
+                    title: budget.title,
+                    budgetType: isRecurring ? 'recurring' : 'snapshot',
+                    period: budget.period || 'one_time',
+                    totalAmount: String(budget.total || 0),
+                    lineItems,
+                    source: 'ai_generated',
+                    status: 'active',
+                  })
+                  .returning();
+                reply.raw.write(
+                  `data: ${JSON.stringify({ type: 'budget', id: saved.id, title: budget.title, items: lineItems, budget_type: isRecurring ? 'recurring' : 'snapshot', period: budget.period })}\n\n`,
+                );
               } catch {}
             }
           }
         }
 
-        const [saved] = await app.db.insert(conversations).values({
-          userId,
-          role: 'assistant',
-          content: displayText || fullResponse.slice(0, 500),
-          inputType: 'text',
-          tokensUsed: totalTokens,
-        }).returning({ id: conversations.id });
+        const [saved] = await app.db
+          .insert(conversations)
+          .values({
+            userId,
+            role: 'assistant',
+            content: displayText || fullResponse.slice(0, 500),
+            inputType: 'text',
+            tokensUsed: totalTokens,
+          })
+          .returning({ id: conversations.id });
         savedConversationId = saved.id;
       }
 
@@ -407,9 +487,12 @@ export default fp(async (app: FastifyInstance) => {
       });
 
       if (usageData) {
-        const costPer1M = usageData.provider === 'deepseek'
-          ? (usageData.completionTokens * config.DEEPSEEK_OUTPUT_COST_PER_1M + usageData.promptTokens * config.DEEPSEEK_INPUT_COST_PER_1M) / 1_000_000
-          : 0;
+        const costPer1M =
+          usageData.provider === 'deepseek'
+            ? (usageData.completionTokens * config.DEEPSEEK_OUTPUT_COST_PER_1M +
+                usageData.promptTokens * config.DEEPSEEK_INPUT_COST_PER_1M) /
+              1_000_000
+            : 0;
         await app.db.insert(aiUsage).values({
           userId,
           conversationId: savedConversationId,

@@ -14,7 +14,11 @@ export function getCached(hash: string): CacheEntry | undefined {
   return undefined;
 }
 
-export function setCache(hash: string, buffer: Buffer, contentType: string): void {
+export function setCache(
+  hash: string,
+  buffer: Buffer,
+  contentType: string,
+): void {
   // Limit cache to 50 entries, evict oldest
   if (cache.size >= 50) {
     const firstKey = cache.keys().next().value;

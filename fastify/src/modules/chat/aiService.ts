@@ -1,6 +1,9 @@
 import type { AiPersona } from '../../db/schema.js';
 import { config } from '../../config.js';
-import { buildFullSystemPrompt, type TaskType } from '../../ai/prompts/index.js';
+import {
+  buildFullSystemPrompt,
+  type TaskType,
+} from '../../ai/prompts/index.js';
 import { buildToolPrompt } from '../../ai/prompts/toolPrompt.js';
 
 function buildMessages(
@@ -34,7 +37,17 @@ Use this information naturally. Don't explicitly mention it unless relevant to t
 
 async function* streamDeepSeek(
   messages: Array<{ role: string; content: string }>,
-): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number; usage?: { promptTokens: number; completionTokens: number; model: string; provider: string } }> {
+): AsyncGenerator<{
+  type: 'text' | 'done';
+  content: string;
+  tokens?: number;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    model: string;
+    provider: string;
+  };
+}> {
   const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -103,7 +116,17 @@ async function* streamDeepSeek(
 async function* streamOllama(
   messages: Array<{ role: string; content: string }>,
   model: string,
-): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number; usage?: { promptTokens: number; completionTokens: number; model: string; provider: string } }> {
+): AsyncGenerator<{
+  type: 'text' | 'done';
+  content: string;
+  tokens?: number;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    model: string;
+    provider: string;
+  };
+}> {
   const response = await fetch(`${config.OLLAMA_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -158,7 +181,17 @@ export async function* streamChat(
   persona: AiPersona,
   task?: TaskType,
   memoryTexts?: string[],
-): AsyncGenerator<{ type: 'text' | 'done'; content: string; tokens?: number; usage?: { promptTokens: number; completionTokens: number; model: string; provider: string } }> {
+): AsyncGenerator<{
+  type: 'text' | 'done';
+  content: string;
+  tokens?: number;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    model: string;
+    provider: string;
+  };
+}> {
   const formatted = buildMessages(messages, persona, task, memoryTexts);
 
   if (config.DEEPSEEK_API_KEY) {
@@ -179,7 +212,16 @@ export async function analyzeImage(
   _mediaType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
   userPrompt: string,
   persona: AiPersona,
-): Promise<{ text: string; tokens: number; usage?: { promptTokens: number; completionTokens: number; model: string; provider: string } }> {
+): Promise<{
+  text: string;
+  tokens: number;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    model: string;
+    provider: string;
+  };
+}> {
   const prompt =
     userPrompt || 'What does this document say? Explain it in simple language.';
 
@@ -224,13 +266,23 @@ export async function analyzeImage(
           | undefined;
         const text = choices?.[0]?.['message']
           ? String(
-              (choices[0]['message'] as Record<string, unknown>)['content'] || '',
+              (choices[0]['message'] as Record<string, unknown>)['content'] ||
+                '',
             )
           : '';
         const usage = json['usage'] as Record<string, number> | undefined;
         const promptTokens = usage?.['prompt_tokens'] ?? 0;
         const completionTokens = usage?.['completion_tokens'] ?? 0;
-        return { text, tokens: promptTokens + completionTokens, usage: { promptTokens, completionTokens, model: config.DEEPSEEK_MODEL, provider: 'deepseek' } };
+        return {
+          text,
+          tokens: promptTokens + completionTokens,
+          usage: {
+            promptTokens,
+            completionTokens,
+            model: config.DEEPSEEK_MODEL,
+            provider: 'deepseek',
+          },
+        };
       }
     } catch (err) {
       console.warn(
@@ -239,34 +291,39 @@ export async function analyzeImage(
     }
   }
 
-const response = await fetch(`${config.OLLAMA_URL}/api/chat`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    model: config.OLLAMA_MODEL,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt, images: [imageBase64] },
-    ],
-    stream: false,
-  }),
-});
+  const response = await fetch(`${config.OLLAMA_URL}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: config.OLLAMA_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt, images: [imageBase64] },
+      ],
+      stream: false,
+    }),
+  });
 
-if (!response.ok) {
-  const errText = await response.text();
-  throw new Error(
-    `Ollama image analysis failed: ${response.statusText} - ${errText}`,
-  );
-}
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(
+      `Ollama image analysis failed: ${response.statusText} - ${errText}`,
+    );
+  }
 
-const json = (await response.json()) as Record<string, unknown>;
-const msg = json['message'] as Record<string, unknown> | undefined;
-const text = msg?.['content'] ? String(msg['content']) : '';
-const ollamaTokens =
-  Number(json['prompt_eval_count'] ?? 0) + Number(json['eval_count'] ?? 0);
-return {
-  text,
-  tokens: ollamaTokens,
-  usage: { promptTokens: Number(json['prompt_eval_count'] ?? 0), completionTokens: Number(json['eval_count'] ?? 0), model: config.OLLAMA_MODEL, provider: 'ollama' },
-};
+  const json = (await response.json()) as Record<string, unknown>;
+  const msg = json['message'] as Record<string, unknown> | undefined;
+  const text = msg?.['content'] ? String(msg['content']) : '';
+  const ollamaTokens =
+    Number(json['prompt_eval_count'] ?? 0) + Number(json['eval_count'] ?? 0);
+  return {
+    text,
+    tokens: ollamaTokens,
+    usage: {
+      promptTokens: Number(json['prompt_eval_count'] ?? 0),
+      completionTokens: Number(json['eval_count'] ?? 0),
+      model: config.OLLAMA_MODEL,
+      provider: 'ollama',
+    },
+  };
 }

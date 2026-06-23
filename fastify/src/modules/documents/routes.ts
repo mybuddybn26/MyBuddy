@@ -196,30 +196,42 @@ export default fp(async (app: FastifyInstance) => {
 
         // Record usage
         if (result.usage) {
-          const costPer1M = result.usage.provider === 'deepseek'
-            ? (result.usage.completionTokens * config.DEEPSEEK_OUTPUT_COST_PER_1M + result.usage.promptTokens * config.DEEPSEEK_INPUT_COST_PER_1M) / 1_000_000
-            : 0;
-          await app.db.insert(aiUsage).values({
-            userId,
-            model: result.usage.model,
-            provider: result.usage.provider,
-            promptTokens: result.usage.promptTokens,
-            completionTokens: result.usage.completionTokens,
-            totalTokens: result.usage.promptTokens + result.usage.completionTokens,
-            estimatedCost: String(costPer1M),
-            feature: 'document',
-            status: 'success',
-          }).catch(() => {});
+          const costPer1M =
+            result.usage.provider === 'deepseek'
+              ? (result.usage.completionTokens *
+                  config.DEEPSEEK_OUTPUT_COST_PER_1M +
+                  result.usage.promptTokens *
+                    config.DEEPSEEK_INPUT_COST_PER_1M) /
+                1_000_000
+              : 0;
+          await app.db
+            .insert(aiUsage)
+            .values({
+              userId,
+              model: result.usage.model,
+              provider: result.usage.provider,
+              promptTokens: result.usage.promptTokens,
+              completionTokens: result.usage.completionTokens,
+              totalTokens:
+                result.usage.promptTokens + result.usage.completionTokens,
+              estimatedCost: String(costPer1M),
+              feature: 'document',
+              status: 'success',
+            })
+            .catch(() => {});
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'AI analysis failed';
-        await app.db.insert(aiUsage).values({
-          userId,
-          model: config.DEEPSEEK_MODEL,
-          provider: 'deepseek',
-          feature: 'document',
-          status: 'failed',
-        }).catch(() => {});
+        await app.db
+          .insert(aiUsage)
+          .values({
+            userId,
+            model: config.DEEPSEEK_MODEL,
+            provider: 'deepseek',
+            feature: 'document',
+            status: 'failed',
+          })
+          .catch(() => {});
         return reply.status(502).send({ detail: msg });
       }
 
