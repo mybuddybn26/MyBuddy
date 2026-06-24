@@ -97,7 +97,28 @@
 
 ---
 
-## 6. Database Performance
+---
+
+## 6. Auth Performance
+
+### Current Implementation
+- **bcrypt**: Async `hash()` / `compare()` with cost factor 10
+- **DB queries**: Single `SELECT` by `phone_email` (unique column, indexed)
+- **JWT**: `app.jwt.sign()` with `expiresIn: '7d'` (access) and `'30d'` (refresh)
+- **Timing logs**: `request.log.info()` with `db_lookup_ms`, `bcrypt_ms`, `jwt_sign_ms`, `total_ms`
+
+### Expected Timings
+| Environment | DB Lookup | bcrypt | JWT | Total |
+|---|---|---|---|---|
+| Localhost (warm) | <5ms | 50-100ms | <5ms | ~100ms |
+| Render + Neon (warm) | 10-50ms | 200-500ms | <10ms | ~500ms |
+| Render + Neon (cold start) | 1-5s | 200-500ms | <10ms | 2-6s |
+
+### Cold Start
+- **Render free tier**: Web services spin down after 15min inactivity. First request triggers a cold start — Render provisions a new container which takes 5-15 seconds.
+- **Neon free tier**: Serverless PostgreSQL suspends after inactivity. First query wakes the compute — add 1-3 seconds.
+- **Both combined**: Worst case ~20 seconds for the very first request after extended inactivity.
+- **Mitigation**: Render's "always-on" paid tier or a simple uptime monitor (e.g., cron hitting `/api/health` every 10 minutes) prevents cold starts.
 
 ### Current Patterns
 | Pattern | Implementation |

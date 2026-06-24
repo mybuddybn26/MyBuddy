@@ -1,7 +1,7 @@
 import fp from 'fastify-plugin';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { eq } from 'drizzle-orm';
-import { hashSync, compareSync } from 'bcryptjs';
+import { hash, compare } from 'bcryptjs';
 import { Type } from '@sinclair/typebox';
 import { users } from '../../db/schema.js';
 
@@ -31,6 +31,8 @@ export default fp(async (app: FastifyInstance) => {
         display_name?: string;
       };
 
+      const t0 = performance.now();
+
       // Check if user exists
       const [existing] = await app.db
         .select()
@@ -42,7 +44,9 @@ export default fp(async (app: FastifyInstance) => {
         return reply.status(409).send({ detail: 'User already exists' });
       }
 
-      const passwordHash = hashSync(password, 10);
+      const tHash = performance.now();
+      const passwordHash = await hash(password, 10);
+      const tHashEnd = performance.now();
 
       const [user] = await app.db
         .insert(users)
@@ -53,6 +57,7 @@ export default fp(async (app: FastifyInstance) => {
         })
         .returning();
 
+      const tJwt = performance.now();
       const token = app.jwt.sign(
         { sub: user.id, email: user.phoneEmail, name: user.displayName },
         { expiresIn: '7d' },
@@ -61,6 +66,18 @@ export default fp(async (app: FastifyInstance) => {
       const refreshToken = app.jwt.sign(
         { sub: user.id, type: 'refresh' },
         { expiresIn: '30d' },
+      );
+      const tEnd = performance.now();
+
+      request.log.info(
+        {
+          route: 'register',
+          db_lookup_ms: Math.round(tHash - t0),
+          bcrypt_hash_ms: Math.round(tHashEnd - tHash),
+          jwt_sign_ms: Math.round(tEnd - tJwt),
+          total_ms: Math.round(tEnd - t0),
+        },
+        'auth timing',
       );
 
       return reply.status(201).send({
@@ -90,16 +107,23 @@ export default fp(async (app: FastifyInstance) => {
         password: string;
       };
 
+      const t0 = performance.now();
+
       const [user] = await app.db
         .select()
         .from(users)
         .where(eq(users.phoneEmail, phone_email))
         .limit(1);
 
-      if (!user || !compareSync(password, user.passwordHash)) {
+      const tVerify = performance.now();
+      const valid = user ? await compare(password, user.passwordHash) : false;
+      const tVerifyEnd = performance.now();
+
+      if (!valid) {
         return reply.status(401).send({ detail: 'Invalid credentials' });
       }
 
+      const tJwt = performance.now();
       const token = app.jwt.sign(
         { sub: user.id, email: user.phoneEmail, name: user.displayName },
         { expiresIn: '7d' },
@@ -108,6 +132,18 @@ export default fp(async (app: FastifyInstance) => {
       const refreshToken = app.jwt.sign(
         { sub: user.id, type: 'refresh' },
         { expiresIn: '30d' },
+      );
+      const tEnd = performance.now();
+
+      request.log.info(
+        {
+          route: 'login',
+          db_lookup_ms: Math.round(tVerify - t0),
+          bcrypt_verify_ms: Math.round(tVerifyEnd - tVerify),
+          jwt_sign_ms: Math.round(tEnd - tJwt),
+          total_ms: Math.round(tEnd - t0),
+        },
+        'auth timing',
       );
 
       return reply.send({
