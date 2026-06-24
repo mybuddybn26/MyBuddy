@@ -6,11 +6,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   await ensureFreshToken();
   const token = getToken();
 
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (init?.body) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...headers,
       ...init?.headers,
     },
   });
@@ -236,6 +241,7 @@ export const api = {
   tokenBalance: () => request<Record<string, unknown>>('/api/tokens/balance'),
 
   // Billing
+  billingPlans: () => request<Record<string, unknown>>('/api/billing/plans'),
   createCheckout: (packId: string) =>
     request<Record<string, unknown>>('/api/billing/create-checkout', {
       method: 'POST',

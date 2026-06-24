@@ -5,11 +5,12 @@ import { Type } from '@sinclair/typebox';
 import Stripe from 'stripe';
 import { users, tokenLedger } from '../../db/schema.js';
 import { config } from '../../config.js';
+import { SUBSCRIPTION_PLANS } from '../../lib/creditCosts.js';
 
 const TOKEN_PACKS = [
-  { id: 'pack_100', tokens: 100, price: 200, label: '100 Tokens — $2' },
-  { id: 'pack_500', tokens: 500, price: 800, label: '500 Tokens — $8' },
-  { id: 'pack_1000', tokens: 1000, price: 1500, label: '1000 Tokens — $15' },
+  { id: 'pack_100', tokens: 100, price: 200, label: '100 Credits — $2' },
+  { id: 'pack_500', tokens: 500, price: 800, label: '500 Credits — $8' },
+  { id: 'pack_1000', tokens: 1000, price: 1500, label: '1000 Credits — $15' },
 ];
 
 function getStripe(): Stripe | null {
@@ -22,6 +23,15 @@ const CreateCheckoutBody = Type.Object({
 });
 
 export default fp(async (app: FastifyInstance) => {
+  // ─── List available plans ───
+  app.get(
+    '/api/billing/plans',
+    { schema: { tags: ['billing'] } },
+    async (_request: FastifyRequest, reply: FastifyReply) => {
+      return reply.send({ plans: SUBSCRIPTION_PLANS });
+    },
+  );
+
   // ─── List available packs ───
   app.get(
     '/api/billing/packs',

@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { Type } from '@sinclair/typebox';
 import PDFDocument from 'pdfkit';
 import { users, documents, tokenLedger } from '../../db/schema.js';
+import { CREDIT_COSTS } from '../../lib/creditCosts.js';
 
 const GeneratePdfBody = Type.Object({
   title: Type.String({ minLength: 1 }),
@@ -25,7 +26,7 @@ const GeneratePdfBody = Type.Object({
   ),
 });
 
-const PDF_FEE_TOKENS = 50; // 50 tokens per PDF
+const PDF_COST = CREDIT_COSTS.pdfExport;
 
 export default fp(async (app: FastifyInstance) => {
   // ─── Generate PDF ───
@@ -51,9 +52,9 @@ export default fp(async (app: FastifyInstance) => {
         return reply.status(404).send({ detail: 'User not found' });
       }
 
-      if (user.tokenBalance < PDF_FEE_TOKENS) {
+      if (user.tokenBalance < PDF_COST) {
         return reply.status(402).send({
-          detail: `PDF generation requires ${PDF_FEE_TOKENS} tokens. You have ${user.tokenBalance}.`,
+          detail: `PDF generation requires ${PDF_COST} tokens. You have ${user.tokenBalance}.`,
         });
       }
 
@@ -121,12 +122,12 @@ export default fp(async (app: FastifyInstance) => {
       // Deduct tokens
       await app.db
         .update(users)
-        .set({ tokenBalance: user.tokenBalance - PDF_FEE_TOKENS })
+        .set({ tokenBalance: user.tokenBalance - PDF_COST })
         .where(eq(users.id, userId));
 
       await app.db.insert(tokenLedger).values({
         userId,
-        changeAmount: -PDF_FEE_TOKENS,
+        changeAmount: -PDF_COST,
         reason: 'pdf_fee',
       });
 

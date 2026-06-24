@@ -748,7 +748,7 @@ export function Chat() {
               }
             >
               <div className='whitespace-pre-wrap text-sm leading-relaxed'>
-                {msg.role === 'assistant'
+                {msg.role === 'assistant' && !msg.streaming
                   ? stripChatMarkdown(msg.content)
                   : msg.content}
                 {msg.streaming && (

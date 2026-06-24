@@ -4,6 +4,7 @@ import { eq, desc } from 'drizzle-orm';
 import { Type } from '@sinclair/typebox';
 import { budgets, users } from '../../db/schema.js';
 import type { BudgetLineItem, AiPersona } from '../../db/schema.js';
+import { CREDIT_COSTS, deductCredits } from '../../lib/creditCosts.js';
 
 const CreateBudgetBody = Type.Object({
   title: Type.String({ minLength: 1 }),
@@ -312,6 +313,15 @@ Only change what the user asked for. Keep existing IDs for unchanged items.`;
         const match = fullText.match(/```proposal\s*\n([\s\S]*?)\n```/);
         if (match) {
           const proposal = JSON.parse(match[1].trim());
+
+          // Deduct credits for AI budget generation (only on success)
+          await deductCredits(
+            app.db,
+            userId,
+            CREDIT_COSTS.budgetGeneration,
+            'budget_generation',
+          );
+
           const summary = proposal.summary || 'Budget updated by AI';
           const proposedItems = (
             proposal.line_items as Array<Record<string, unknown>>

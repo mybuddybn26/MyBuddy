@@ -25,8 +25,8 @@ interface UserInfo {
 let tokens: AuthTokens | null = null;
 
 function loadFromStorage() {
-  const at = sessionStorage.getItem(TOKEN_KEY);
-  const rt = sessionStorage.getItem(REFRESH_KEY);
+  const at = localStorage.getItem(TOKEN_KEY);
+  const rt = localStorage.getItem(REFRESH_KEY);
   if (at && rt) {
     tokens = { access_token: at, refresh_token: rt };
   }
@@ -34,8 +34,8 @@ function loadFromStorage() {
 
 function save(data: AuthTokens) {
   tokens = data;
-  sessionStorage.setItem(TOKEN_KEY, data.access_token);
-  sessionStorage.setItem(REFRESH_KEY, data.refresh_token);
+  localStorage.setItem(TOKEN_KEY, data.access_token);
+  localStorage.setItem(REFRESH_KEY, data.refresh_token);
 }
 
 function parseJwt(token: string): Record<string, unknown> {
@@ -144,8 +144,8 @@ export function getUserInfo(): { name: string; email?: string } {
 
 export function logout() {
   tokens = null;
-  sessionStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(REFRESH_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_KEY);
   window.location.href = '/login';
 }
 

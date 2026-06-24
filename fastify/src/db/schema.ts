@@ -29,7 +29,7 @@ export const users = pgTable('users', {
     tone: 'casual',
     dialect: 'standard',
   }),
-  tokenBalance: integer('token_balance').notNull().default(200),
+  tokenBalance: integer('token_balance').notNull().default(500),
   subscriptionTier: text('subscription_tier').notNull().default('free'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()

@@ -12,7 +12,9 @@ interface Persona {
 
 interface TokenInfo {
   balance: number;
+  monthly_limit: number;
   usage_percent: number;
+  plan: string;
 }
 
 import { MemorySection } from '../components/MemorySection';
@@ -59,7 +61,7 @@ export function Settings() {
   ];
 
   return (
-    <div className='h-full overflow-y-auto'>
+    <div className='min-h-full overflow-y-auto'>
       <div className='max-w-lg mx-auto p-4 space-y-5'>
         <div>
           <h1 className='text-xl font-bold text-slate-800'>⚙️ Settings</h1>
@@ -128,18 +130,20 @@ export function Settings() {
           </button>
         </div>
 
-        {/* Token Usage */}
+        {/* Buddy Credits */}
         {tokenInfo && (
           <div className='glass-card p-5'>
             <h2 className='flex items-center gap-2 font-semibold text-slate-700 mb-3'>
               <Coins size={18} className='text-primary-500' />
-              Token Usage
+              Buddy Credits
             </h2>
             <div className='flex items-baseline justify-between mb-2'>
               <span className='text-3xl font-bold text-primary-600'>
                 {tokenInfo.balance}
               </span>
-              <span className='text-sm text-slate-400'>of 200 / month</span>
+              <span className='text-sm text-slate-400'>
+                of {tokenInfo.monthly_limit} / month
+              </span>
             </div>
             <div className='token-bar mb-3'>
               <div
@@ -150,20 +154,24 @@ export function Settings() {
               />
             </div>
             <p className='text-xs text-slate-400'>
-              {tokenInfo.usage_percent}% used this month. Each chat message uses
-              1 token.
+              {tokenInfo.usage_percent}% used this month.{' '}
+              {tokenInfo.plan === 'free'
+                ? 'Free'
+                : tokenInfo.plan === 'plus'
+                  ? 'Plus'
+                  : 'Pro'}{' '}
+              plan.
             </p>
           </div>
         )}
-      </div>
-
-      {/* ─── Memory Section ─── */}
-      <div className='glass-card p-5 space-y-4'>
-        <div className='flex items-center gap-2'>
-          <Brain size={18} className='text-primary-500' />
-          <h3 className='text-sm font-bold text-slate-700'>Memory</h3>
+        {/* ─── Memory Section ─── */}
+        <div className='glass-card p-5 space-y-4'>
+          <div className='flex items-center gap-2'>
+            <Brain size={18} className='text-primary-500' />
+            <h3 className='text-sm font-bold text-slate-700'>Memory</h3>
+          </div>
+          <MemorySection />
         </div>
-        <MemorySection />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import fp from 'fastify-plugin';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { config } from '../../config.js';
+import { CREDIT_COSTS, deductCredits } from '../../lib/creditCosts.js';
 
 async function transcribeAssemblyAI(
   buffer: Uint8Array,
@@ -120,6 +121,20 @@ export default fp(async (app: FastifyInstance) => {
       const buffer = await data.toBuffer();
       if (buffer.length < 100) {
         return reply.status(400).send({ detail: 'Audio file is too short' });
+      }
+
+      // Check credits before processing
+      const remaining = await deductCredits(
+        app.db,
+        request.authUser!.sub,
+        CREDIT_COSTS.voiceMinute,
+        'voice_transcribe',
+      );
+      if (remaining === null) {
+        return reply.status(402).send({
+          detail:
+            "You're out of Buddy Credits. Upgrade or wait for your monthly refresh.",
+        });
       }
 
       const filename = data.filename || 'audio.webm';

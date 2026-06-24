@@ -19,6 +19,7 @@ import {
   stripToolCallBlocks,
   getTool,
 } from '../../ai/tools/index.js';
+import { CREDIT_COSTS } from '../../lib/creditCosts.js';
 
 const ChatBody = Type.Object({
   message: Type.String({ minLength: 1 }),
@@ -206,14 +207,20 @@ export default fp(async (app: FastifyInstance) => {
         return reply.status(404).send({ detail: 'User not found' });
       }
 
-      if (user.tokenBalance <= 0) {
+      const persona = user.aiPersona as AiPersona;
+
+      const creditCost =
+        persona.dialect === 'brunei'
+          ? CREDIT_COSTS.openaiBruneiChat
+          : CREDIT_COSTS.deepseekChat;
+
+      if (user.tokenBalance < creditCost) {
         return reply.status(402).send({
-          detail: 'No tokens remaining. Please top up to continue.',
-          token_balance: 0,
+          detail:
+            'Not enough Buddy Credits. Upgrade or wait for your monthly refresh.',
+          token_balance: user.tokenBalance,
         });
       }
-
-      const persona = user.aiPersona as AiPersona;
 
       // Load relevant user memories (max 5, highest importance)
       const memoryRows = await app.db
@@ -488,17 +495,22 @@ export default fp(async (app: FastifyInstance) => {
         savedConversationId = saved.id;
       }
 
-      // Deduct 1 token
+      // Deduct credits based on feature
       await app.db
         .update(users)
-        .set({ tokenBalance: user.tokenBalance - 1 })
+        .set({ tokenBalance: user.tokenBalance - creditCost })
         .where(eq(users.id, userId));
 
       await app.db.insert(tokenLedger).values({
         userId,
-        changeAmount: -1,
-        reason: 'task_use',
+        changeAmount: -creditCost,
+        reason:
+          creditCost === CREDIT_COSTS.openaiBruneiChat
+            ? 'brunei_chat'
+            : 'chat_use',
       });
+
+      const newBalance = user.tokenBalance - creditCost;
 
       if (usageData) {
         const costPer1M =
@@ -522,7 +534,7 @@ export default fp(async (app: FastifyInstance) => {
       }
 
       reply.raw.write(
-        `data: ${JSON.stringify({ type: 'done', token_balance: user.tokenBalance - 1, conversationId: savedConversationId })}\n\n`,
+        `data: ${JSON.stringify({ type: 'done', token_balance: newBalance, conversationId: savedConversationId })}\n\n`,
       );
       reply.raw.end();
     },

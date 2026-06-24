@@ -43,7 +43,7 @@ export function Layout() {
   }, [location.pathname]);
 
   return (
-    <div className='flex h-screen bg-surface overflow-hidden'>
+    <div className='flex h-dvh bg-surface overflow-hidden'>
       {/* ─── Desktop Sidebar ─── */}
       <nav className='hidden md:flex flex-col w-64 bg-gradient-to-b from-primary-800 via-primary-700 to-primary-900 backdrop-blur-sm'>
         {/* Brand */}
@@ -80,7 +80,7 @@ export function Layout() {
           <div className='px-4 py-3 border-t border-white/10'>
             <div className='flex items-center gap-2 text-xs text-white/50 mb-1.5'>
               <Coins size={14} />
-              <span>{tokenBalance} tokens</span>
+              <span>{tokenBalance} credits</span>
             </div>
             <div className='token-bar bg-white/10'>
               <div
@@ -181,7 +181,7 @@ export function Layout() {
       </nav>
 
       {/* ─── Main Content ─── */}
-      <main className='flex-1 overflow-auto md:overflow-hidden pt-14 md:pt-0 pb-16 md:pb-0'>
+      <main className='flex-1 overflow-auto pt-14 pb-20 md:pt-0 md:pb-0'>
         <Outlet />
       </main>
     </div>
