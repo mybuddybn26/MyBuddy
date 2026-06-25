@@ -937,15 +937,15 @@ export function Chat() {
         </div>
       )}
 
-      <div className='border-t border-slate-100 bg-white px-4 py-3'>
+      <div className='border-t border-slate-100 bg-white px-3 py-2.5'>
         <form
           onSubmit={handleSubmit}
-          className='flex items-center gap-2 max-w-2xl mx-auto'
+          className='flex items-center gap-1.5 w-full'
         >
           <button
             type='button'
             onClick={() => fileInputRef.current?.click()}
-            className='p-2.5 text-slate-400 hover:text-primary-500 hover:bg-primary-50 rounded-xl transition-colors'
+            className='p-2 text-slate-400 hover:text-primary-500 hover:bg-primary-50 rounded-xl transition-colors flex-shrink-0'
             aria-label='Upload photo'
           >
             <Camera size={20} />
@@ -964,13 +964,13 @@ export function Chat() {
             onChange={(e) => setInput(e.target.value)}
             placeholder={isRecording ? 'Listening...' : 'Type a message…'}
             disabled={isStreaming || isRecording}
-            className='flex-1 px-4 py-2.5 bg-surface border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all disabled:opacity-50'
+            className='flex-1 min-w-0 px-3 py-2 bg-surface border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all disabled:opacity-50'
           />
           {input.trim() ? (
             <button
               type='submit'
               disabled={isStreaming}
-              className='p-2.5 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors disabled:opacity-50'
+              className='p-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors disabled:opacity-50 flex-shrink-0'
               aria-label='Send message'
             >
               <Send size={20} />
@@ -979,7 +979,7 @@ export function Chat() {
             <button
               type='button'
               onClick={toggleRecording}
-              className={`p-2.5 rounded-xl transition-all ${isRecording ? 'bg-red-500 text-white scale-110 shadow-lg shadow-red-200 animate-pulse' : 'bg-primary-500 text-white hover:bg-primary-600'}`}
+              className={`p-2 rounded-xl transition-all flex-shrink-0 ${isRecording ? 'bg-red-500 text-white scale-110 shadow-lg shadow-red-200 animate-pulse' : 'bg-primary-500 text-white hover:bg-primary-600'}`}
               aria-label={isRecording ? 'Stop recording' : 'Start recording'}
             >
               {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
@@ -988,7 +988,7 @@ export function Chat() {
           <button
             type='button'
             onClick={() => setVoiceCallOpen(true)}
-            className='p-2.5 text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors'
+            className='p-2 text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors flex-shrink-0'
             aria-label='Start voice call'
           >
             <PhoneCall size={20} />

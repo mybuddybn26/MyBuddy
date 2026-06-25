@@ -7,6 +7,7 @@ import type { AiPersona } from '../../db/schema.js';
 import { config } from '../../config.js';
 import { documentAnalysisPrompt } from '../../ai/prompts/index.js';
 import { CREDIT_COSTS, deductCredits } from '../../lib/creditCosts.js';
+import { isRemoteUrl, downloadFile } from '../../lib/storage.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import { createRequire } from 'node:module';
@@ -152,19 +153,34 @@ export default fp(async (app: FastifyInstance) => {
         return reply.status(404).send({ detail: 'Document not found' });
       }
 
-      // Read file from disk
-      const filename = record.imageUrl.replace(/^\/uploads\//, '');
-      const filepath = join(config.UPLOAD_DIR, filename);
-
-      if (!existsSync(filepath)) {
-        return reply.status(404).send({ detail: 'File not found on disk' });
+      // Read file — from Cloudinary URL or local disk
+      let fileBuffer: Buffer;
+      let ext: string;
+      if (isRemoteUrl(record.imageUrl)) {
+        const data = await downloadFile(record.imageUrl);
+        fileBuffer = Buffer.from(data);
+        const urlExt = record.imageUrl.split('.').pop()?.split('?')[0] || 'jpg';
+        ext = `.${urlExt}`;
+        request.log.info(
+          { url: record.imageUrl, size: fileBuffer.length },
+          'doc: downloaded from remote',
+        );
+      } else {
+        const filename = record.imageUrl.replace(/^\/uploads\//, '');
+        const filepath = join(config.UPLOAD_DIR, filename);
+        if (!existsSync(filepath)) {
+          return reply.status(404).send({ detail: 'File not found on disk' });
+        }
+        fileBuffer = readFileSync(filepath);
+        ext = extname(filename).toLowerCase();
+        request.log.info(
+          { filename, size: fileBuffer.length },
+          'doc: loaded from disk',
+        );
       }
-
-      const fileBuffer = readFileSync(filepath);
-      const ext = extname(filename).toLowerCase();
       const isPdf = ext === '.pdf';
       request.log.info(
-        { filename, ext, isPdf, size: fileBuffer.length },
+        { url: record.imageUrl, ext, isPdf, size: fileBuffer.length },
         'doc: file loaded',
       );
 
@@ -329,7 +345,7 @@ export default fp(async (app: FastifyInstance) => {
             // ─── OCR failed → OpenAI vision fallback ───
             if (config.OPENAI_API_KEY) {
               const imageBase64 = fileBuffer.toString('base64');
-              const mediaType = getMimeFromExt(filename);
+              const mediaType = getMimeFromExt(`file${ext}`);
               const { analyzeImage } = await import('../chat/aiService.js');
               const result = await analyzeImage(
                 imageBase64,

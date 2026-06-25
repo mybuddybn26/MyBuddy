@@ -109,21 +109,15 @@ export function Documents() {
     if (!doc || !docSummary(doc)) return;
     setGeneratingPdf(true);
     try {
-      const summaryText = docSummary(doc);
-      const blob = await api.generatePdf('Document Analysis', [
-        {
-          heading: 'AI Summary',
-          body: summaryText,
-        },
-      ]);
+      const blob = await api.generateReport(doc.id);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `mybuddy-doc-${doc.id.slice(0, 8)}.pdf`;
+      a.download = `mybuddy-report-${doc.id.slice(0, 8)}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert('PDF generation failed. You may need more credits.');
+      alert('Report generation failed. You may need more credits.');
     }
     setGeneratingPdf(false);
   };
@@ -344,7 +338,7 @@ export function Documents() {
                     className='mt-3 flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50'
                   >
                     <FileDown size={14} />
-                    {generatingPdf ? 'Generating…' : 'Download PDF'}
+                    {generatingPdf ? 'Generating…' : 'Generate Report'}
                   </button>
                 </>
               ) : analysisError ? (

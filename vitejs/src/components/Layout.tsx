@@ -109,7 +109,7 @@ export function Layout() {
       </nav>
 
       {/* ─── Mobile Header ─── */}
-      <div className='md:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-primary-800 via-primary-700 to-primary-900'>
+      <div className='md:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-primary-800 via-primary-700 to-primary-900 safe-area-pt'>
         <div className='flex items-center justify-between px-4 h-14'>
           <h1 className='text-lg font-bold text-white'>MyBuddy</h1>
           <button
@@ -161,20 +161,22 @@ export function Layout() {
 
       {/* ─── Mobile Bottom Nav ─── */}
       <nav className='md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 safe-area-pb'>
-        <div className='flex justify-around py-2'>
+        <div className='flex justify-between px-1 py-1.5'>
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 px-3 py-1.5 text-xs ${
+                `flex flex-1 min-w-0 flex-col items-center gap-0.5 py-1 ${
                   isActive ? 'text-primary-600' : 'text-slate-400'
                 }`
               }
             >
-              <item.icon size={20} />
-              <span>{item.label}</span>
+              <item.icon size={18} />
+              <span className='text-[10px] leading-tight truncate max-w-full px-0.5'>
+                {item.label}
+              </span>
             </NavLink>
           ))}
         </div>

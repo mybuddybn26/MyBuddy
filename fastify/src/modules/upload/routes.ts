@@ -1,11 +1,6 @@
 import fp from 'fastify-plugin';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { config } from '../../config.js';
-import { mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
-import { randomUUID } from 'node:crypto';
-import { createWriteStream } from 'node:fs';
-import { pipeline } from 'node:stream/promises';
+import { uploadFile } from '../../lib/storage.js';
 
 const ALLOWED_TYPES = [
   'image/jpeg',
@@ -16,10 +11,6 @@ const ALLOWED_TYPES = [
 ];
 
 export default fp(async (app: FastifyInstance) => {
-  // Ensure upload directory exists
-  const uploadDir = config.UPLOAD_DIR;
-  await mkdir(uploadDir, { recursive: true });
-
   // ─── Upload Image ───
   app.post(
     '/api/upload/image',
@@ -36,16 +27,23 @@ export default fp(async (app: FastifyInstance) => {
         });
       }
 
-      const ext = data.mimetype.split('/')[1] || 'jpg';
-      const filename = `${randomUUID()}.${ext}`;
-      const filepath = join(uploadDir, filename);
+      const buffer = await data.toBuffer();
+      const result = await uploadFile(
+        new Uint8Array(buffer),
+        data.filename || 'upload',
+        data.mimetype,
+      );
 
-      await pipeline(data.file, createWriteStream(filepath));
+      request.log.info(
+        { provider: result.provider, filename: result.filename },
+        'upload: file stored',
+      );
 
-      // Return the URL path (frontend prepends the API base)
-      const url = `/uploads/${filename}`;
-
-      return reply.status(201).send({ url, filename });
+      return reply.status(201).send({
+        url: result.url,
+        filename: result.filename,
+        provider: result.provider,
+      });
     },
   );
 });

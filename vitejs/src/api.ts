@@ -229,6 +229,26 @@ export const api = {
     return res.blob();
   },
 
+  async generateReport(documentId: string) {
+    await ensureFreshToken();
+    const token = getToken();
+    const res = await fetch(`${BASE}/api/pdf/generate-report`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ document_id: documentId }),
+    });
+    if (!res.ok) {
+      const body = await res
+        .json()
+        .catch(() => ({ detail: 'Report generation failed' }));
+      throw new Error(body.detail || 'Report generation failed');
+    }
+    return res.blob();
+  },
+
   // Persona
   getPersona: () => request<Record<string, unknown>>('/api/persona'),
   updatePersona: (data: Record<string, unknown>) =>

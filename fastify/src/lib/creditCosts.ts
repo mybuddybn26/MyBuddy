@@ -45,8 +45,8 @@ export function rejectInsufficientCredits(reply: FastifyReply) {
 
 export const CREDIT_COSTS = {
   deepseekChat: 1,
-  openaiBruneiChat: 3,
-  voiceMinute: 15,
+  openaiBruneiChat: 5,
+  voiceMinute: 30,
   documentAnalysis: 20,
   budgetGeneration: 5,
   transactionParse: 2,
@@ -63,7 +63,7 @@ export const SUBSCRIPTION_PLANS = {
   plus: {
     name: 'Plus',
     priceBND: 2.99,
-    monthlyCredits: 10000,
+    monthlyCredits: 5000,
     features: [
       'More voice',
       'More document scans',
@@ -74,7 +74,7 @@ export const SUBSCRIPTION_PLANS = {
   pro: {
     name: 'Pro',
     priceBND: 5,
-    monthlyCredits: 25000,
+    monthlyCredits: 15000,
     features: [
       'Highest voice allowance',
       'More documents',

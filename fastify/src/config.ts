@@ -65,6 +65,11 @@ const ConfigSchema = Type.Object({
   // ─── File Uploads ───
   UPLOAD_DIR: Type.String({ default: './uploads' }),
   MAX_FILE_SIZE_MB: Type.Number({ default: 10 }),
+
+  // ─── Cloudinary (production image storage) ───
+  CLOUDINARY_CLOUD_NAME: Type.String({ default: '' }),
+  CLOUDINARY_API_KEY: Type.String({ default: '' }),
+  CLOUDINARY_API_SECRET: Type.String({ default: '' }),
 });
 
 export type Config = Static<typeof ConfigSchema>;
@@ -131,6 +136,11 @@ function loadConfig(): Config {
     // File Uploads
     UPLOAD_DIR: process.env.UPLOAD_DIR ?? './uploads',
     MAX_FILE_SIZE_MB: Number(process.env.MAX_FILE_SIZE_MB ?? 10),
+
+    // Cloudinary
+    CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME ?? '',
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ?? '',
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ?? '',
   };
 
   if (!Value.Check(ConfigSchema, raw)) {

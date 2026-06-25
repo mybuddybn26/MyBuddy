@@ -209,6 +209,7 @@ cd fastify && npx drizzle-kit generate && npx drizzle-kit migrate
 | **AssemblyAI** | Valid API key (50 free hours, then paid)          |
 | **Deepgram**   | Valid API key with credits                        |
 | **Stripe**     | Live keys in production, test keys in development |
+| **Cloudinary** | Free tier (25 GB storage) — required for persistent document uploads in production |
 
 ### Health Check Dependencies
 
@@ -218,7 +219,7 @@ cd fastify && npx drizzle-kit generate && npx drizzle-kit migrate
 
 ## 8. File Storage
 
-- **Uploads**: Stored in `config.UPLOAD_DIR` (default `./uploads`).
+- **Uploads**: Stored in Cloudinary (production) or `config.UPLOAD_DIR` (local dev). When `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` are set, files upload to Cloudinary. Otherwise, local disk storage is used. Cloudinary URLs are saved directly in `documents.image_url`.
 - **Docker**: Volume mount required for persistent uploads (not currently configured in docker-compose — **gap**).
 - **Cleanup**: No automatic cleanup — orphaned files accumulate.
 - **Public access**: `/uploads/:filename` served directly — configure CDN or auth for production.
